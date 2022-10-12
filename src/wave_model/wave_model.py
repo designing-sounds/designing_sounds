@@ -2,7 +2,7 @@ import numpy as np
 
 
 class SinWave:
-    def __init__(self, freq: int, amp: int):
+    def __init__(self, freq: float, amp: float):
         self.freq = freq
         self.amp = amp
 

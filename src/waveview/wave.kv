@@ -37,9 +37,9 @@
                         text: 'Frequency ' + str(freq.value) + ' Hz'
                     Slider:
                         id: freq
-                        value: 20000
+                        value: 400
                         min: 1
-                        max: 20000
+                        max: 8000
                         step: 1
                         on_value: root.update_plot(freq.value, amp.value)
                 BoxLayout:
@@ -51,7 +51,7 @@
                     Slider:
                         id: amp
                         value: 100
-                        min: 1
+                        min: 0
                         max: 100
                         step: 1
                         on_value: root.update_plot(freq.value, amp.value)

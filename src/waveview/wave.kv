@@ -14,10 +14,49 @@
 
         BoxLayout:
             size_hint: 1, 0.5
-            padding: 40
-            Button:
-                id: play_button
-                text: 'Play'
+            orientation: 'horizontal'
+
+
+            BoxLayout:
+                size_hint: 0.5, 1
+                orientation: 'vertical'
+                padding: 40
+                Button:
+                    id: play_button
+                    text: 'Play'
+
+            BoxLayout:
+                size_hint: 0.5, 1
+                orientation: 'vertical'
+
+                BoxLayout:
+                    size_hint: 1, 0.5
+                    orientation: 'vertical'
+                    padding: 40
+                    Label:
+                        text: 'Frequency ' + str(freq.value) + ' Hz'
+                    Slider:
+                        id: freq
+                        value: 20000
+                        min: 1
+                        max: 20000
+                        step: 1
+                        on_value: root.update_plot(freq.value, amp.value)
+                BoxLayout:
+                    size_hint: 1, 0.5
+                    orientation: 'vertical'
+                    padding: 40
+                    Label:
+                        text: 'Amplitude ' + str(amp.value) + ' %'
+                    Slider:
+                        id: amp
+                        value: 100
+                        min: 1
+                        max: 100
+                        step: 1
+                        on_value: root.update_plot(freq.value, amp.value)
+
+
 
 
 

@@ -1,6 +1,24 @@
 <RootWave>:
     play: play_button
 
-    Button:
-        id: play_button
-        text: 'Play'
+    BoxLayout:
+        size_hint: 1, 1
+        orientation: 'vertical'
+        pos: self.pos
+        padding: 40
+
+        BoxLayout:
+            id: modulation
+            size_hint: 1, 0.5
+            orientation: 'vertical'
+
+        BoxLayout:
+            size_hint: 1, 0.5
+            padding: 40
+            Button:
+                id: play_button
+                text: 'Play'
+
+
+
+

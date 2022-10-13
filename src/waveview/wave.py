@@ -1,3 +1,5 @@
+import threading
+import time
 import typing
 
 from kivy.app import App
@@ -11,9 +13,11 @@ from src.wave_model.wave_model import SinWave, normalize_sound
 class RootWave(BoxLayout):
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
-        self.points = []
+        self.sound = sa.PlayObject
+        self.is_playing = False
+        self.points = np.array([])
         self.num_samples = 44100
-        self.play.bind(on_press=self.callback)
+        self.play.bind(on_press=self.press_button_play)
         self.graph = Graph(border_color=[0, 1, 1, 1],
                            xmin=0, xmax=512,
                            ymin=-1.0, ymax=1.0,
@@ -36,8 +40,19 @@ class RootWave(BoxLayout):
         self.points = self.sin_wave.get_array(self.num_samples)
         self.plot.points = [(x / self.points.size * 512, self.points[x]) for x in range(self.points.size)]
 
-    def callback(self, arg: typing.Any) -> None:
-        sa.play_buffer(normalize_sound(self.points), 1, 2, 44100)
+    def loop_play(self) -> None:
+        while self.is_playing:
+            self.sound = sa.play_buffer(normalize_sound(self.points), 1, 2, 44100)
+            time.sleep(len(self.points) / (44100 * 1.02))
+
+    def press_button_play(self, arg: typing.Any) -> None:
+        if not self.is_playing:
+            self.is_playing = True
+            my_thread = threading.Thread(target=self.loop_play)
+            my_thread.start()
+        else:
+            self.is_playing = False
+            self.sound.stop()
 
 
 class WaveApp(App):

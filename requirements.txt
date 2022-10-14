@@ -3,3 +3,4 @@ Kivy
 numpy
 pytest
 pytest-cov
+kivy_garden.graph

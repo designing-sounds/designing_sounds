@@ -1,7 +1,5 @@
 import numpy as np
 
-MAX_SOUND_VAL = 32767
-
 
 def normalize_sound(arr: np.ndarray) -> np.ndarray:
     sound = arr

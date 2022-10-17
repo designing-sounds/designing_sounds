@@ -32,14 +32,14 @@ class RootWave(BoxLayout):
         self.plot = LinePlot(color=[1, 1, 0, 1], line_width=1)
         starting_freq = 100
         starting_amp = 100
-        self.sin_wave = SinWave(starting_freq, starting_amp / 100, self.time)
+        self.sin_wave = SinWave(starting_freq, starting_amp / 100)
         self.graph.add_plot(self.plot)
         self.update_plot(starting_freq, starting_amp)
 
     def update_plot(self, freq: int, amp: int) -> None:
         self.sin_wave.freq = freq
         self.sin_wave.amp = amp / 100.0
-        self.points = self.sin_wave.get_array(self.num_samples)
+        self.points = self.sin_wave.get_array(self.num_samples, self.time)
         self.plot.points = [(x / self.points.size * self.num_samples, self.points[x]) for x in range(self.points.size)]
         self.wave_sound.update_sound(self.points)
 

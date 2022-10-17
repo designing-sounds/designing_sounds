@@ -13,6 +13,6 @@ class SinWave:
         self.freq = freq
         self.amp = amp
 
-    def get_array(self, samples: int) -> np.array:
-        x = np.linspace(0, 2 * np.pi, samples)
-        return self.amp * np.sin(x * self.freq)
+    def get_array(self, sample_rate: int, duration: float = 1) -> np.array:
+        points = np.linspace(0, duration, int(duration * sample_rate))
+        return self.amp * np.sin(self.freq * points * 2 * np.pi)

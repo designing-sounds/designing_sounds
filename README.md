@@ -27,3 +27,4 @@ The application is run by calling the main.py file with
 ```shell
 python3 ./main.py
 ```
+

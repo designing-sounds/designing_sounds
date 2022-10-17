@@ -35,7 +35,7 @@ class RootWave(BoxLayout):
         self.sin_wave.amp = amp / 100.0
         self.points = self.sin_wave.get_array(self.num_samples, self.time)
         self.plot.points = [(x / self.points.size * self.num_samples, self.points[x]) for x in range(self.points.size)]
-        self.wave_sound.sound = self.points
+        self.wave_sound.update_sound(self.points)
 
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()

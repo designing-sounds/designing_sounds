@@ -11,16 +11,15 @@ class WaveSound:
         self.time = time
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.sample_rate, output=True,
-                                  stream_callback=self.callback, frames_per_buffer=int(self.sample_rate*time))
+                                  stream_callback=self.callback, frames_per_buffer=int(self.sample_rate * time))
         self.stream.stop_stream()
         Window.bind(on_request_close=self.shutdown_audio)
 
     def callback(self, in_data, frame_count, time_info, flag):
         return self.sound, pyaudio.paContinue
 
-    def update_sound(self, sound:  np.ndarray) -> None:
+    def update_sound(self, sound: np.ndarray) -> None:
         self.sound = np.copy(sound)
-
 
     def press_button_play(self) -> None:
         if not self.is_playing:

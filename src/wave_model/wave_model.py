@@ -9,10 +9,11 @@ def normalize_sound(arr: np.ndarray) -> np.ndarray:
 
 
 class SinWave:
-    def __init__(self, freq: float, amp: float):
+    def __init__(self, freq: float, amp: float, time: float):
         self.freq = freq
         self.amp = amp
+        self.time = time
 
-    def get_array(self, samples: int) -> np.array:
-        x = np.linspace(0, 2 * np.pi, samples)
-        return self.amp * np.sin(x * self.freq)
+    def get_array(self, sample_rate: int) -> np.array:
+        points = np.linspace(0, self.time, int(self.time * sample_rate))
+        return self.amp * np.sin(self.freq * points * 2 * np.pi)

@@ -5,8 +5,8 @@ import unittest
 
 class TestSinWave(unittest.TestCase):
     def setUp(self):
-        self.wave = SinWave(freq=1, amp=1)
-        self.tolerance = 1e-16
+        self.wave = SinWave(freq=1, amp=1, time=1)
+        self.tolerance = 1e-12
 
     def test_calculate_sine_correctly(self):
         expected_arr = np.array([0, 1.0, 1.2246467991473532e-16, -1.0, -2.4492935982947064e-16])
@@ -21,6 +21,11 @@ class TestSinWave(unittest.TestCase):
         self.wave.freq = 2
         expected_arr = np.array([0, 0.9749279121818236, -0.433883739117558, -0.7818314824680299, 0.7818314824680296,
                                  0.43388373911755845, -0.9749279121818235, -4.898587196589413e-16])
+        np.testing.assert_allclose(self.wave.get_array(8), expected_arr, self.tolerance)
+
+    def test_altering_time_constraint_calculates_sine_correctly(self):
+        self.wave.time = 0.5
+        expected_arr = np.array([0, 0.8660254037844386, 0.8660254037844387, 1.2246467991473532e-16])
         np.testing.assert_allclose(self.wave.get_array(8), expected_arr, self.tolerance)
 
 

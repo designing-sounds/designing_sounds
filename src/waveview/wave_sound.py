@@ -17,11 +17,7 @@ class WaveSound:
         Window.bind(on_request_close=self.shutdown_audio)
 
     def callback(self, in_data, frame_count, time_info, flag):
-        if self.is_playing:
-            pa = pyaudio.paContinue
-        else:
-            pa = pyaudio.paComplete
-        return self.sound, pa
+        return self.sound, pyaudio.paContinue
 
     def update_sound(self, sound:  np.ndarray) -> None:
         points = np.copy(normalize_sound(sound))

@@ -28,16 +28,9 @@ jobs:
   test:
     # The type of runner that the job will run on
     runs-on: self-hosted
-    strategy:
-      matrix:
-        python-version: ["3.8"]
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Test with pytest
         run: python3 -m pytest -v
 

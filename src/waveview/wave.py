@@ -26,7 +26,7 @@ class RootWave(BoxLayout):
         starting_freq = 100
         starting_amp = 100
 
-        self.sin_wave = SinWave(starting_freq, starting_amp / 100, 1)
+        self.sin_wave = SinWave(starting_freq, starting_amp / 100)
         self.graph.add_plot(self.plot)
         self.update_plot(starting_freq, starting_amp)
 

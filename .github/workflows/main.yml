@@ -6,9 +6,11 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches:
+      - '**'
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - '**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,6 +30,7 @@ jobs:
   test:
     # The type of runner that the job will run on
     runs-on: self-hosted
+    needs: build
 
     steps:
       - uses: actions/checkout@v3
@@ -35,7 +38,9 @@ jobs:
         run: python3 -m pytest -v
 
   release:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: self-hosted
+    needs: test
 
     steps:
       - name: Create GitHub Release

@@ -20,21 +20,15 @@ class RootWave(BoxLayout):
         self.wave_sound = WaveSound(self.sample_rate, self.time)
 
         self.play.bind(on_press=self.press_button_play)
-        self.graph = Graph(border_color=[0, 1, 1, 1],
-                           xmin=0, xmax=self.num_samples,
+        self.graph = Graph(xmin=0, xmax=self.num_samples,
                            ymin=-1.0, ymax=1.0,
                            draw_border=False)
 
         self.ids.modulation.add_widget(self.graph)
-
-        self.plot_x = np.linspace(0, 1, self.num_samples)
-        self.plot_y = np.zeros(self.num_samples)
         self.plot = LinePlot(color=[1, 1, 0, 1], line_width=1)
-        starting_freq = 100
-        starting_amp = 100
-        self.sin_wave = SinWave(starting_freq, starting_amp / 100)
         self.graph.add_plot(self.plot)
-        self.update_plot(starting_freq, starting_amp)
+        self.sin_wave = SinWave(self.freq.value, self.amp.value / 100)
+        self.update_plot(self.freq.value, self.amp.value)
 
     def update_plot(self, freq: int, amp: int) -> None:
         self.sin_wave.freq = freq

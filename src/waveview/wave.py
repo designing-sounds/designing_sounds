@@ -1,6 +1,8 @@
 import typing
 
 from kivy.app import App
+from kivy.graphics import Color, Ellipse
+from kivy.config import Config
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import Graph, LinePlot
 import numpy as np
@@ -20,10 +22,10 @@ class RootWave(BoxLayout):
         self.wave_sound = WaveSound(self.sample_rate, self.time)
 
         self.play.bind(on_press=self.press_button_play)
-        self.graph = Graph(border_color=[0, 1, 1, 1],
-                           xmin=0, xmax=self.num_samples,
-                           ymin=-1.0, ymax=1.0,
-                           draw_border=False)
+        self.graph = RootGraph(border_color=[0, 1, 1, 1],
+                               xmin=0, xmax=self.num_samples,
+                               ymin=-1.0, ymax=1.0,
+                               draw_border=True)
 
         self.ids.modulation.add_widget(self.graph)
 
@@ -45,6 +47,20 @@ class RootWave(BoxLayout):
 
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()
+
+
+class RootGraph(Graph):
+
+    def on_touch_down(self, touch):
+        if self.collide_point(touch.x, touch.y):
+            x, y = self.to_widget(touch.x, touch.y)
+            color = (1, 1, 1)
+            with self.canvas:
+                Color(*color, mode='hsv')
+                d = 10
+                Ellipse(pos=(x - d / 2, y - d / 2), size=(d, d))
+
+        return super(RootGraph, self).on_touch_down(touch)
 
 
 class WaveApp(App):

@@ -29,18 +29,12 @@ class TestSinWave(unittest.TestCase):
 
 class TestPowerSpectrum(unittest.TestCase):
     def setUp(self):
-        self.spectrum = PowerSpectrum(freqs=np.array([np.array([2, 5, 1]), np.array([8, 10, 1])]),
-                                      means=np.array([200, 300]), stds=np.array([1, 3]))
+        self.spectrum = PowerSpectrum()
 
     def test_adds_freqs(self):
-        new_freqs = np.array([23, 47, 15])
-        new_means = np.array([500, 1000, 17000])
-        new_stds = np.array([1, 2, 3])
-        self.spectrum.add_freq(new_freqs, new_means, new_stds)
-        np.testing.assert_array_equal(self.spectrum.freqs, np.array([np.array([2, 5, 1]), np.array([8, 10, 1]),
-                                      np.array([23, 47, 15])]))
-        np.testing.assert_array_equal(self.spectrum.means, np.array([200, 300, 500, 1000, 17000]))
-        np.testing.assert_array_equal(self.spectrum.stds, np.array([1, 3, 1, 2, 3]))
+        self.spectrum.add_element(1000, 1, 10)
+        self.spectrum.add_element(2000, 3, 10)
+        assert self.spectrum.freqs.shape == (10, 2)
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,7 +6,7 @@ from kivy.core.window import Window
 class WaveSound:
     def __init__(self, sample_rate, time):
         self.is_playing = False
-        self.sound = np.array([])
+        self.sound = None
         self.sample_rate = sample_rate
         self.time = time
         self.p = pyaudio.PyAudio()

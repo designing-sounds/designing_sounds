@@ -23,7 +23,7 @@
                 padding: 40
                 Button:
                     id: play_button
-                    text: 'Play'
+                    text: 'Play/Pause'
 
             BoxLayout:
                 size_hint: 0.5, 1
@@ -38,9 +38,9 @@
                     Slider:
                         id: freq
                         value: 100
-                        min: 1
+                        min: 10
                         max: 8000
-                        step: 1
+                        step: 10
                         on_value: root.update_plot(freq.value, amp.value)
                 BoxLayout:
                     size_hint: 1, 0.5

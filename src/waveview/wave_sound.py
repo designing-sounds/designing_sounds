@@ -1,6 +1,5 @@
 import numpy as np
 import pyaudio
-from src.wave_model.wave_model import normalize_sound
 from kivy.core.window import Window
 
 
@@ -20,7 +19,7 @@ class WaveSound:
         return self.sound, pyaudio.paContinue
 
     def update_sound(self, sound:  np.ndarray) -> None:
-        points = np.copy(normalize_sound(sound))
+        points = np.copy(sound)
         self.sound = points.tostring()
 
     def press_button_play(self) -> None:

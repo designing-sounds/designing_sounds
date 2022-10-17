@@ -6,7 +6,7 @@ import unittest
 class TestSinWave(unittest.TestCase):
     def setUp(self):
         self.wave = SinWave(freq=1, amp=1)
-        self.tolerance = 1e-10
+        self.tolerance = 1e-6
 
     def test_calculate_sine_correctly(self):
         expected_arr = np.array([0, 0.9510565163, 0.5877852523, -0.5877852523, -0.9510565163])

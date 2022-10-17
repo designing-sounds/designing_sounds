@@ -22,12 +22,15 @@ class RootWave(BoxLayout):
         self.wave_sound = WaveSound(self.sample_rate, self.time)
 
         self.play.bind(on_press=self.press_button_play)
+        self.clear.bind(on_press=self.clear_button_play)
         self.graph = RootGraph(border_color=[0, 1, 1, 1],
                                xmin=0, xmax=self.num_samples,
                                ymin=-1.0, ymax=1.0,
                                draw_border=True)
-
+        self.graph_canvas = BoxLayout(size_hint=(1, 1))
+        self.graph.add_widget(self.graph_canvas)
         self.ids.modulation.add_widget(self.graph)
+
         self.plot = LinePlot(color=[1, 1, 0, 1], line_width=1)
         self.graph.add_plot(self.plot)
         self.sin_wave = SinWave(self.freq.value, self.amp.value / 100)
@@ -43,21 +46,35 @@ class RootWave(BoxLayout):
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()
 
+    def clear_button_play(self, arg: typing.Any) -> None:
+        self.graph_canvas.canvas.clear()
+        self.graph.get_selected_points().clear()
+
 
 class RootGraph(Graph):
+    __selected_points = []
 
-    def on_touch_down(self, touch):
-        if self.collide_point(touch.x, touch.y):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def on_touch_down(self, touch) -> bool:
+        if self.parent.collide_point(touch.x, touch.y):
             x, y = self.to_widget(touch.x, touch.y)
             color = (1, 1, 1)
-            with self.canvas:
+            graph_canvas = self.children[0]
+            d = 10
+            pos = (x - d / 2, y - d / 2)
+            with graph_canvas.canvas:
                 Color(*color, mode='hsv')
-                d = 10
-                Ellipse(pos=(x - d / 2, y - d / 2), size=(d, d))
-
+                Ellipse(pos=pos, size=(d, d))
+            self.__selected_points.append(pos)
+        print(self.__selected_points)
         return super(RootGraph, self).on_touch_down(touch)
+
+    def get_selected_points(self):
+        return self.__selected_points
 
 
 class WaveApp(App):
-    def build(self) -> RootWave:
+    def build(self):
         return RootWave()

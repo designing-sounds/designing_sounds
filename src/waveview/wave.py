@@ -66,9 +66,10 @@ class RootGraph(Graph):
                 Ellipse(pos=pos, size=(d, d))
 
             self.__selected_points.append(self.convert_points(pos))
+        print(self.__selected_points)
         return super(RootGraph, self).on_touch_down(touch)
 
-    def get_selected_points(self) -> typing.List[(int, int)]:
+    def get_selected_points(self) -> typing.List[typing.Tuple[int, int]]:
         return self.__selected_points
 
     def clear_selected_points(self) -> None:

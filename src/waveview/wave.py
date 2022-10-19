@@ -14,11 +14,12 @@ class RootWave(BoxLayout):
     sample_rate = 44100
     num_samples = 44100
     time = 1
+    chunk_time = 0.1
 
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
 
-        self.wave_sound = WaveSound(self.sample_rate, self.time)
+        self.wave_sound = WaveSound(self.sample_rate, self.chunk_time)
         self.sound_model = SoundModel(self.sample_rate)
 
         self.play.bind(on_press=self.press_button_play)
@@ -38,7 +39,7 @@ class RootWave(BoxLayout):
         self.sound_model.model_sound(self.time)
         self.sound_model.normalize_sound(amp / 100)
         self.update_plot()
-        self.wave_sound.update_sound(np.reshape(self.sound_model.get_sound(), (1, -1)))
+        self.wave_sound.update_sound(self.sound_model.reshape(self.chunk_time))
 
     def update_plot(self) -> None:
         points = self.sound_model.get_sound()

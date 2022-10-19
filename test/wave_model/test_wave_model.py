@@ -1,4 +1,4 @@
-from src.wave_model.wave_model import SinWave
+from src.wave_model.wave_model import SinWave, PowerSpectrum
 import numpy as np
 import unittest
 
@@ -26,6 +26,15 @@ class TestSinWave(unittest.TestCase):
         expected_arr = np.array([0, 0.5877852523, 0.9510565163, 0.9510565163, 0.5877852523])
         np.testing.assert_allclose(self.wave.get_array(10, 0.5), expected_arr, self.tolerance)
 
+
+class TestPowerSpectrum(unittest.TestCase):
+    def setUp(self):
+        self.spectrum = PowerSpectrum()
+
+    def test_adds_freqs(self):
+        self.spectrum.add_element(1000, 1, 10)
+        self.spectrum.add_element(2000, 3, 10)
+        assert self.spectrum.freqs.shape == (2,10)
 
 if __name__ == '__main__':
     unittest.main()

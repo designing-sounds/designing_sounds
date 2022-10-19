@@ -12,12 +12,12 @@ class WaveSound:
         self.time = time
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.sample_rate, output=True,
-                                  stream_callback=self.callback, frames_per_buffer=int(self.sample_rate*time))
+                                  stream_callback=self.callback, frames_per_buffer=int(self.sample_rate * time))
         self.stream.stop_stream()
         Window.bind(on_request_close=self.shutdown_audio)
 
     def callback(self, in_data, frame_count, time_info, flag):
-        sound: np.ndarray = self.sound[0]
+        sound: np.ndarray = self.sound[self.chunk_index]
         self.chunk_index = (self.chunk_index + 1) % len(self.sound)
         return sound, pyaudio.paContinue
 

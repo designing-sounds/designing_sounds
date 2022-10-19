@@ -3,22 +3,23 @@ import typing
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import LinePlot
-import numpy as np
 
-from src.wave_model.wave_model import SinWave
+from src.wave_model.wave_model import SoundModel
 from src.waveview.wave_sound import WaveSound
 from src.waveview.wave_graph import RootGraph
+import numpy as np
 
 
 class RootWave(BoxLayout):
     sample_rate = 44100
     num_samples = 44100
-    time = 0.1
+    time = 1
 
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
-        self.points = np.array([])
+
         self.wave_sound = WaveSound(self.sample_rate, self.time)
+        self.sound_model = SoundModel(self.sample_rate)
 
         self.play.bind(on_press=self.press_button_play)
         self.clear.bind(on_press=self.clear_button_play)
@@ -30,15 +31,18 @@ class RootWave(BoxLayout):
 
         self.plot = LinePlot(color=[1, 1, 0, 1], line_width=1)
         self.graph.add_plot(self.plot)
-        self.sin_wave = SinWave(self.freq.value, self.amp.value / 100)
-        self.update_plot(self.freq.value, self.amp.value)
 
-    def update_plot(self, freq: int, amp: int) -> None:
-        self.sin_wave.freq = freq
-        self.sin_wave.amp = amp / 100.0
-        self.points = self.sin_wave.get_array(self.num_samples, self.time)
-        self.plot.points = [(x / self.points.size * self.num_samples, self.points[x]) for x in range(self.points.size)]
-        self.wave_sound.update_sound(np.reshape(self.points, (1, -1)))
+        self.update(self.freq.value, self.amp.value)
+
+    def update(self, freq: int, amp: int):
+        self.sound_model.model_sound(self.time)
+        self.sound_model.normalize_sound(amp / 100)
+        self.update_plot()
+        self.wave_sound.update_sound(np.reshape(self.sound_model.get_sound(), (1, -1)))
+
+    def update_plot(self) -> None:
+        points = self.sound_model.get_sound()
+        self.plot.points = [(x / points.size * self.num_samples, points[x]) for x in range(points.size)]
 
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()
@@ -48,5 +52,5 @@ class RootWave(BoxLayout):
 
 
 class WaveApp(App):
-    def build(self):
+    def build(self) -> RootWave:
         return RootWave()

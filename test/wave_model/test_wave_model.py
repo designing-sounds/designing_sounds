@@ -34,7 +34,7 @@ class TestPowerSpectrum(unittest.TestCase):
     def test_adds_freqs(self):
         self.spectrum.add_element(1000, 1, 10)
         self.spectrum.add_element(2000, 3, 10)
-        assert self.spectrum.freqs.shape == (10, 2)
+        assert self.spectrum.freqs.shape == (2,10)
 
 if __name__ == '__main__':
     unittest.main()

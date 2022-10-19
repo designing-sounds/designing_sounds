@@ -56,12 +56,11 @@ class RootGraph(Graph):
         self.add_widget(self.graph_canvas)
 
     def on_touch_down(self, touch) -> bool:
-        graph_canvas = self.children[0]
         if self.collide_point(touch.x, touch.y):
             color = (1, 1, 1)
             d = 10
             pos = (touch.x - d / 2, touch.y - d / 2)
-            with graph_canvas.canvas:
+            with self.graph_canvas.canvas:
                 Color(*color, mode='hsv')
                 Ellipse(pos=pos, size=(d, d))
 

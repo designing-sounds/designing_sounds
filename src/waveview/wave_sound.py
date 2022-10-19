@@ -5,8 +5,9 @@ from kivy.core.window import Window
 
 class WaveSound:
     def __init__(self, sample_rate, time):
+        self.chunk_index = 0
         self.is_playing = False
-        self.sound = np.array([])
+        self.sound = np.array(np.array([]))
         self.sample_rate = sample_rate
         self.time = time
         self.p = pyaudio.PyAudio()
@@ -16,11 +17,12 @@ class WaveSound:
         Window.bind(on_request_close=self.shutdown_audio)
 
     def callback(self, in_data, frame_count, time_info, flag):
-        return self.sound, pyaudio.paContinue
+        sound: np.ndarray = self.sound[0]
+        self.chunk_index = (self.chunk_index + 1) % len(self.sound)
+        return sound, pyaudio.paContinue
 
     def update_sound(self, sound:  np.ndarray) -> None:
-        self.sound = np.copy(sound)
-
+        self.sound = sound
 
     def press_button_play(self) -> None:
         if not self.is_playing:

@@ -34,8 +34,10 @@ class SoundModel:
         self.power_spectrum.add_element(mean=means[1], std=3, num_samples=250)
         self.power_spectrum.add_element(mean=means[2], std=3, num_samples=250)
         self.power_spectrum.add_element(mean=means[3], std=3, num_samples=250)
+        self.duration = 0
 
     def model_sound(self, duration: float):
+        self.duration = duration
         length = 1000
         amps = np.random.randn(length)
         x = np.linspace(0, duration, int(duration * self.sample_rate), endpoint=False)
@@ -55,3 +57,9 @@ class SoundModel:
 
     def get_sound(self):
         return self.sound
+
+    def reshape(self, chunk_duration: float):
+        samples_per_chunk = (chunk_duration / self.duration) * len(self.sound)
+        num_chunks = len(self.sound) / samples_per_chunk
+        assert(samples_per_chunk.is_integer() and num_chunks.is_integer())
+        return np.reshape(self.sound, (int(num_chunks), int(samples_per_chunk)))

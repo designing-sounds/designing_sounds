@@ -1,4 +1,5 @@
 <RootWave>:
+    clear: clear_button
     play: play_button
     freq: freq
     amp: amp
@@ -12,7 +13,6 @@
         BoxLayout:
             id: modulation
             size_hint: 1, 0.5
-            orientation: 'vertical'
 
         BoxLayout:
             size_hint: 1, 0.5
@@ -22,10 +22,20 @@
             BoxLayout:
                 size_hint: 0.5, 1
                 orientation: 'vertical'
-                padding: 40
-                Button:
-                    id: play_button
-                    text: 'Play/Pause'
+
+                BoxLayout:
+                    size_hint: 1, 0.5
+                    padding: 20
+                    Button:
+                        id: play_button
+                        text: 'Play/Pause'
+
+                BoxLayout:
+                    size_hint: 1, 0.5
+                    padding: 20
+                    Button:
+                        id: clear_button
+                        text: 'Clear'
 
             BoxLayout:
                 size_hint: 0.5, 1

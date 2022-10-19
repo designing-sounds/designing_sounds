@@ -16,11 +16,12 @@ class PowerSpectrum:
         self.freqs = None
 
     def add_element(self, mean: float, std: float, num_samples: float) -> None:
-        new_freqs = np.random.randn(num_samples, 1) * std + mean
+        new_freqs = np.random.randn(1, num_samples) * std + mean
+
         if self.freqs is None:
             self.freqs = new_freqs
         else:
-            self.freqs = np.append(self.freqs, new_freqs, 1)
+            self.freqs = np.append(self.freqs, new_freqs, 0)
 
 
 class SoundModel:
@@ -38,8 +39,8 @@ class SoundModel:
         length = 1000
         amps = np.random.randn(length)
         x = np.linspace(0, duration, int(duration * self.sample_rate), endpoint=False)
-        weights = 1.0 / np.arange(1, 5) ** 2.0
-        sins = np.sin(x[:, None, None] * 2 * np.pi * self.power_spectrum.freqs) * weights[None, None, :]
+
+        sins = np.sin(x[:, None, None] * 2 * np.pi * self.power_spectrum.freqs)
         sins = sins.reshape(-1, length)
 
         self.sound = (sins @ amps).astype(np.float32)

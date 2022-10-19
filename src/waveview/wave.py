@@ -36,7 +36,6 @@ class RootWave(BoxLayout):
 
     def update_plot(self) -> None:
         points = self.sound_model.get_sound()
-        print(points.max())
         self.plot.points = [(x / points.size * self.num_samples, points[x]) for x in range(points.size)]
 
     def press_button_play(self, arg: typing.Any) -> None:

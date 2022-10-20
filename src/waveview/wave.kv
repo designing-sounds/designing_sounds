@@ -1,8 +1,10 @@
 <RootWave>:
     clear: clear_button
     play: play_button
-    freq: freq
-    amp: amp
+    sd: sd
+    amplitude: amplitude
+    offset: offset
+
 
     BoxLayout:
         size_hint: 1, 1
@@ -18,9 +20,62 @@
             size_hint: 1, 0.5
             orientation: 'horizontal'
 
+            BoxLayout:
+                size_hint: 0.7, 1
+                orientation: 'horizontal'
+
+                BoxLayout:
+                    id: power_spectrum
+                    size_hint: 0.6, 1
+                    padding: [0, 20, 20, 20]
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint: 0.4, 1
+                    border: 1
+
+                    BoxLayout:
+                        size_hint: 1, 0.3
+                        orientation: 'vertical'
+                        padding: 40
+                        Label:
+                            text: str(sd.value) + ' SD '
+                        Slider:
+                            id: sd
+                            value: 1
+                            min: 1
+                            max: 10
+                            step: 0.1
+                    BoxLayout:
+                        size_hint: 1, 0.3
+                        orientation: 'vertical'
+                        padding: 40
+                        Label:
+                            text: str(offset.value) + ' Offset'
+                        Slider:
+                            id: offset
+                            value: 0
+                            min: -1
+                            max: 1
+                            step: 0.1
+                    BoxLayout:
+                        size_hint: 1, 0.3
+                        orientation: 'vertical'
+                        padding: 40
+                        Label:
+                            text: str(amplitude.value) + '% Amplitude'
+                        Slider:
+                            id: amplitude
+                            value: 100
+                            min: 1
+                            max: 100
+                            step: 1
+                            on_value: root.update_power_spectrum(sd.value, offset.value, amplitude.value)
+                    BoxLayout:
+                        size_hint: 1, 0.1
 
             BoxLayout:
-                size_hint: 0.5, 1
+                size_hint: 0.3, 1
                 orientation: 'vertical'
 
                 BoxLayout:
@@ -37,36 +92,6 @@
                         id: clear_button
                         text: 'Clear'
 
-            BoxLayout:
-                size_hint: 0.5, 1
-                orientation: 'vertical'
-
-                BoxLayout:
-                    size_hint: 1, 0.5
-                    orientation: 'vertical'
-                    padding: 40
-                    Label:
-                        text: 'Frequency ' + str(freq.value) + ' Hz'
-                    Slider:
-                        id: freq
-                        value: 100
-                        min: 10
-                        max: 8000
-                        step: 10
-                        on_value: root.update(freq.value, amp.value)
-                BoxLayout:
-                    size_hint: 1, 0.5
-                    orientation: 'vertical'
-                    padding: 40
-                    Label:
-                        text: 'Amplitude ' + str(amp.value) + ' %'
-                    Slider:
-                        id: amp
-                        value: 100
-                        min: 0
-                        max: 100
-                        step: 1
-                        on_value: root.update(freq.value, amp.value)
 
 
 

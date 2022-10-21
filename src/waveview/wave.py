@@ -59,7 +59,7 @@ class RootWave(BoxLayout):
 
     def update_plot(self) -> None:
         points = self.sound_model.get_sound()
-        self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size // self.time), points))
+        self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size)[::self.time], points[::self.time]))
 
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()

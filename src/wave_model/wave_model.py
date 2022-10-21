@@ -26,11 +26,11 @@ class PowerSpectrum:
             self.freqs = np.append(self.freqs, new_freqs, 0)
 
     @staticmethod
-    def get_normal_distribution_points(mean: float, std: float, amplitude: float, num_samples: int) -> (
+    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> (
             np.array, np.array):
         x_vals = np.linspace(mean - 3 * std, mean + 3 * std, num_samples)
         find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x))
-        return x_vals, amplitude * find_normal(x_vals)
+        return x_vals, find_normal(x_vals)
 
 
 class SoundModel:
@@ -39,12 +39,11 @@ class SoundModel:
         self.sample_rate = sample_rate
         self.duration = 1
         self.power_spectrum = PowerSpectrum()
-        self.update_power_spectrum(np.reshape(np.array([440, 3, 250]), (1, -1)))
 
     def update_power_spectrum(self, powers: np.array) -> None:
         spectrum = PowerSpectrum()
         for power in powers:
-            spectrum.add_element(power[0], power[1], power[2])
+            spectrum.add_element(power[0], power[1], 250)
         self.power_spectrum = spectrum
 
     def model_sound(self, duration: float):
@@ -58,13 +57,13 @@ class SoundModel:
 
         self.sound = (sins @ amps).astype(np.float32)
 
-    def normalize_sound(self, amp: float):
+    def normalize_sound(self):
         if self.sound is None:
             normalized = 1
         else:
             normalized = self.sound.max()
 
-        self.sound = self.sound * amp / normalized
+        self.sound = self.sound / normalized
 
     def get_sound(self) -> np.array:
         return self.sound

@@ -1,4 +1,7 @@
+import threading
 import typing
+
+from multiprocessing import Process
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -41,13 +44,23 @@ class RootWave(BoxLayout):
 
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
-        self.update_power_spectrum(self.sd.value, self.offset.value)
+
+        self.p = None
+
+        self.update_with_thread(self.sd.value, self.offset.value)
 
     def update(self) -> None:
         self.sound_model.model_sound(self.time)
         self.sound_model.normalize_sound()
         self.update_plot()
         self.wave_sound.update_sound(self.sound_model.reshape(self.chunk_time))
+
+    def update_with_thread(self, sd: int, offset: int) -> None:
+        if self.p:
+            if self.p.is_alive():
+                self.p.terminate()
+        self.p = Process(target=self.update_power_spectrum, args=(sd, offset))
+        self.p.start()
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
         xs, ys = PowerSpectrum.get_normal_distribution_points(offset, sd, 500)
@@ -61,6 +74,7 @@ class RootWave(BoxLayout):
     def update_plot(self) -> None:
         points = self.sound_model.get_sound()
         self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size // self.time), points))
+
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()
 

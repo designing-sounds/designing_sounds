@@ -37,7 +37,7 @@
                     BoxLayout:
                         size_hint: 1, 0.3
                         orientation: 'vertical'
-                        padding: 40
+
                         Label:
                             text: str(sd.value) + ' SD '
                         Slider:
@@ -49,19 +49,18 @@
                     BoxLayout:
                         size_hint: 1, 0.3
                         orientation: 'vertical'
-                        padding: 40
                         Label:
                             text: str(offset.value) + ' Offset'
                         Slider:
                             id: offset
                             value: 0
-                            min: -1
-                            max: 1
-                            step: 0.1
+                            min: 0
+                            max: 5000
+                            step: 10
                     BoxLayout:
                         size_hint: 1, 0.3
                         orientation: 'vertical'
-                        padding: 40
+
                         Label:
                             text: str(amplitude.value) + '% Amplitude'
                         Slider:

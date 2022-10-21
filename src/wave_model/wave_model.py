@@ -28,21 +28,19 @@ class SoundModel:
     def __init__(self, sample_rate: int):
         self.sound = np.array([])
         self.sample_rate = sample_rate
+        self.duration = 1
         self.power_spectrum = PowerSpectrum()
-        means = 440 * np.arange(1, 5)
-        self.power_spectrum.add_element(mean=means[0], std=3, num_samples=250)
-        self.duration = 0
+        self.update_power_spectrum(np.reshape(np.array([440, 3, 250]), (1, -1)))
 
-    def update_power_spectrum(self, powers: np.array):
+    def update_power_spectrum(self, powers: np.array) -> None:
         spectrum = PowerSpectrum()
         for power in powers:
             spectrum.add_element(power[0], power[1], power[2])
         self.power_spectrum = spectrum
-        self.model_sound()
 
     def model_sound(self, duration: float):
         self.duration = duration
-        length = 1000
+        length = self.power_spectrum.freqs.shape[0] * self.power_spectrum.freqs.shape[1]
         amps = np.random.randn(length)
         x = np.linspace(0, duration, int(duration * self.sample_rate), endpoint=False)
 

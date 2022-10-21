@@ -4,15 +4,14 @@ from kivy.core.window import Window
 
 
 class WaveSound:
-    def __init__(self, sample_rate, time):
+    def __init__(self, sample_rate, chunk_time):
         self.chunk_index = 0
         self.is_playing = False
         self.sound = np.array(np.array([]))
         self.sample_rate = sample_rate
-        self.time = time
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.sample_rate, output=True,
-                                  stream_callback=self.callback, frames_per_buffer=int(self.sample_rate * time))
+                                  stream_callback=self.callback, frames_per_buffer=int(self.sample_rate * chunk_time))
         self.stream.stop_stream()
         Window.bind(on_request_close=self.shutdown_audio)
 

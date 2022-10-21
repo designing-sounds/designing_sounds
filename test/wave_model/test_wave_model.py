@@ -30,11 +30,20 @@ class TestSinWave(unittest.TestCase):
 class TestPowerSpectrum(unittest.TestCase):
     def setUp(self):
         self.spectrum = PowerSpectrum()
+        self.tolerance = 1e-6
 
     def test_adds_freqs(self):
         self.spectrum.add_element(1000, 1, 10)
         self.spectrum.add_element(2000, 3, 10)
-        assert self.spectrum.freqs.shape == (2,10)
+        assert self.spectrum.freqs.shape == (2, 10)
+
+    def test_get_normal_distribution_points(self):
+        x_vals, y_vals = self.spectrum.get_normal_distribution_points(1, 2, 3, 3)
+        expected_x = np.array([-5, 1, 7])
+        expected_y = np.array([0.0066477727, 0.5984134206, 0.0066477727])
+        np.testing.assert_allclose(x_vals, expected_x, self.tolerance)
+        np.testing.assert_allclose(y_vals, expected_y, self.tolerance)
+
 
 if __name__ == '__main__':
     unittest.main()

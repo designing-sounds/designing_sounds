@@ -1,3 +1,5 @@
+from statistics import NormalDist
+
 import numpy as np
 
 
@@ -22,6 +24,13 @@ class PowerSpectrum:
             self.freqs = new_freqs
         else:
             self.freqs = np.append(self.freqs, new_freqs, 0)
+
+    @staticmethod
+    def get_normal_distribution_points(mean: float, std: float, amplitude: float, num_samples: int) -> (
+            np.array, np.array):
+        x_vals = np.linspace(mean - 3 * std, mean + 3 * std, num_samples)
+        find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x))
+        return x_vals, amplitude * find_normal(x_vals)
 
 
 class SoundModel:
@@ -61,5 +70,5 @@ class SoundModel:
     def reshape(self, chunk_duration: float):
         samples_per_chunk = (chunk_duration / self.duration) * len(self.sound)
         num_chunks = len(self.sound) / samples_per_chunk
-        assert(samples_per_chunk.is_integer() and num_chunks.is_integer())
+        assert (samples_per_chunk.is_integer() and num_chunks.is_integer())
         return np.reshape(self.sound, (int(num_chunks), int(samples_per_chunk)))

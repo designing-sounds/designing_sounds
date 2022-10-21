@@ -1,6 +1,7 @@
-simpleaudio
-Kivy
-numpy
+Kivy~=2.1.0
+numpy~=1.23.3
 pytest
 pytest-cov
 kivy_garden.graph
+PyAudio~=0.2.12
+scipy~=1.9.2

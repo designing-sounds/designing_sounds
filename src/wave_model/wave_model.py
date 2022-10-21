@@ -37,17 +37,19 @@ class SoundModel:
     def __init__(self, sample_rate: int):
         self.sound = np.array([])
         self.sample_rate = sample_rate
+        self.duration = 1
         self.power_spectrum = PowerSpectrum()
-        means = 440 * np.arange(1, 5)
-        self.power_spectrum.add_element(mean=means[0], std=3, num_samples=250)
-        self.power_spectrum.add_element(mean=means[1], std=3, num_samples=250)
-        self.power_spectrum.add_element(mean=means[2], std=3, num_samples=250)
-        self.power_spectrum.add_element(mean=means[3], std=3, num_samples=250)
-        self.duration = 0
+        self.update_power_spectrum(np.reshape(np.array([440, 3, 250]), (1, -1)))
+
+    def update_power_spectrum(self, powers: np.array) -> None:
+        spectrum = PowerSpectrum()
+        for power in powers:
+            spectrum.add_element(power[0], power[1], power[2])
+        self.power_spectrum = spectrum
 
     def model_sound(self, duration: float):
         self.duration = duration
-        length = 1000
+        length = self.power_spectrum.freqs.shape[0] * self.power_spectrum.freqs.shape[1]
         amps = np.random.randn(length)
         x = np.linspace(0, duration, int(duration * self.sample_rate), endpoint=False)
 
@@ -64,10 +66,10 @@ class SoundModel:
 
         self.sound = self.sound * amp / normalized
 
-    def get_sound(self):
+    def get_sound(self) -> np.array:
         return self.sound
 
-    def reshape(self, chunk_duration: float):
+    def reshape(self, chunk_duration: float) -> np.array:
         samples_per_chunk = (chunk_duration / self.duration) * len(self.sound)
         num_chunks = len(self.sound) / samples_per_chunk
         assert (samples_per_chunk.is_integer() and num_chunks.is_integer())

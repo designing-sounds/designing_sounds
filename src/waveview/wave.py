@@ -13,7 +13,7 @@ import numpy as np
 class RootWave(BoxLayout):
     sample_rate = 44100
     num_samples = 44100
-    time = 5
+    time = 2
     chunk_time = 0.1
 
     def __init__(self, **kwargs: typing.Any):
@@ -27,7 +27,7 @@ class RootWave(BoxLayout):
         self.waveform_graph = RootGraph(border_color=[0, 1, 1, 1],
                                         xmin=0, xmax=self.time,
                                         ymin=-1.0, ymax=1.0,
-                                        draw_border=True)
+                                        draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
         self.power_spectrum_graph = Graph(border_color=[0, 1, 1, 1],
                                           xmin=0, xmax=500,
                                           ymin=0, ymax=1.0,
@@ -50,8 +50,7 @@ class RootWave(BoxLayout):
         self.wave_sound.update_sound(self.sound_model.reshape(self.chunk_time))
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
-        xs, ys = PowerSpectrum.get_normal_distribution_points(offset, sd, 500)
-        self.power_plot.points = list(zip(xs, ys))
+        self.power_plot.points = PowerSpectrum.get_normal_distribution_points(offset, sd, 500)
         self.sound_model.update_power_spectrum(np.reshape(np.array([offset, sd]), (1, -1)))
 
         self.update()
@@ -61,6 +60,7 @@ class RootWave(BoxLayout):
     def update_plot(self) -> None:
         points = self.sound_model.get_sound()
         self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size // self.time), points))
+
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()
 

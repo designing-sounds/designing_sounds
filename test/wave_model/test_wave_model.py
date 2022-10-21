@@ -38,9 +38,9 @@ class TestPowerSpectrum(unittest.TestCase):
         assert self.spectrum.freqs.shape == (2, 10)
 
     def test_get_normal_distribution_points(self):
-        x_vals, y_vals = self.spectrum.get_normal_distribution_points(1, 2, 3, 3)
+        x_vals, y_vals = self.spectrum.get_normal_distribution_points(1, 2, 3)
         expected_x = np.array([-5, 1, 7])
-        expected_y = np.array([0.0066477727, 0.5984134206, 0.0066477727])
+        expected_y = np.array([0.00221592422, 0.1994711402007, 0.00221592422])
         np.testing.assert_allclose(x_vals, expected_x, self.tolerance)
         np.testing.assert_allclose(y_vals, expected_y, self.tolerance)
 

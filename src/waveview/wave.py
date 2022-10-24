@@ -1,4 +1,4 @@
-import threading
+from threading import Thread
 import typing
 
 from multiprocessing import Process
@@ -45,7 +45,7 @@ class RootWave(BoxLayout):
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
 
-        self.p = None
+        self.t = None
 
         self.update_with_thread(self.sd.value, self.offset.value)
 
@@ -56,11 +56,10 @@ class RootWave(BoxLayout):
         self.wave_sound.update_sound(self.sound_model.reshape(self.chunk_time))
 
     def update_with_thread(self, sd: int, offset: int) -> None:
-        if self.p:
-            if self.p.is_alive():
-                self.p.terminate()
-        self.p = Process(target=self.update_power_spectrum, args=(sd, offset))
-        self.p.start()
+        if self.t:
+            self.t.join()
+        self.t = Thread(target=self.update_power_spectrum, args=(sd, offset))
+        self.t.start()
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
         xs, ys = PowerSpectrum.get_normal_distribution_points(offset, sd, 500)

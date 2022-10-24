@@ -37,7 +37,7 @@ class TestSoundModel(unittest.TestCase):
         test = test.flatten()
         expected = self.sound_model.model_sound(sample_rate, 1, 0)
 
-        np.testing.assert_allclose(expected, test)
+        np.testing.assert_allclose(expected, test, self.tolerance)
 
 
 

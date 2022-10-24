@@ -1,31 +1,6 @@
-from src.wave_model.wave_model import SinWave, PowerSpectrum
+from src.wave_model.wave_model import PowerSpectrum, SoundModel
 import numpy as np
 import unittest
-
-
-class TestSinWave(unittest.TestCase):
-    def setUp(self):
-        self.wave = SinWave(freq=1, amp=1)
-        self.tolerance = 1e-6
-
-    def test_calculate_sine_correctly(self):
-        expected_arr = np.array([0, 0.9510565163, 0.5877852523, -0.5877852523, -0.9510565163])
-        np.testing.assert_allclose(self.wave.get_array(5), expected_arr, self.tolerance)
-
-    def test_altering_amplitude_calculates_sine_correctly(self):
-        self.wave.amp = 3
-        expected_arr = np.array([0, 2.853169549, 1.763355757, -1.763355757, -2.853169549])
-        np.testing.assert_allclose(self.wave.get_array(5), expected_arr, self.tolerance)
-
-    def test_altering_frequency_calculates_sine_correctly(self):
-        self.wave.freq = 2
-        expected_arr = np.array([0, 0.5877852523, -0.9510565163, 0.9510565163, -0.5877852523])
-        np.testing.assert_allclose(self.wave.get_array(5), expected_arr, self.tolerance)
-
-    def test_altering_time_constraint_calculates_sine_correctly(self):
-        expected_arr = np.array([0, 0.5877852523, 0.9510565163, 0.9510565163, 0.5877852523])
-        np.testing.assert_allclose(self.wave.get_array(10, 0.5), expected_arr, self.tolerance)
-
 
 class TestPowerSpectrum(unittest.TestCase):
     def setUp(self):
@@ -43,6 +18,28 @@ class TestPowerSpectrum(unittest.TestCase):
         expected_y = np.array([0.00221592422, 0.1994711402007, 0.00221592422])
         np.testing.assert_allclose(x_vals, expected_x, self.tolerance)
         np.testing.assert_allclose(y_vals, expected_y, self.tolerance)
+
+
+class TestSoundModel(unittest.TestCase):
+
+    def setUp(self):
+        self.sound_model = SoundModel()
+
+        self.tolerance = 1e-5
+
+    def test_model_chunk_sound(self):
+        self.sound_model.update_power_spectrum(np.reshape(np.array([1000, 1]), (1, -1)))
+        sample_rate = 44100
+        test = np.zeros((10, 4410))
+        for i in range(10):
+            test[i] = self.sound_model.model_sound(sample_rate, 0.1, i * 0.1)
+
+        test = test.flatten()
+        expected = self.sound_model.model_sound(sample_rate, 1, 0)
+
+        np.testing.assert_allclose(expected, test)
+
+
 
 
 if __name__ == '__main__':

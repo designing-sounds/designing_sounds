@@ -1,7 +1,5 @@
-from threading import Thread
+from threading import Thread, Event
 import typing
-
-from multiprocessing import Process
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -16,14 +14,14 @@ import numpy as np
 class RootWave(BoxLayout):
     sample_rate = 44100
     num_samples = 44100
-    time = 5
+    time = 2
     chunk_time = 0.1
 
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
 
-        self.wave_sound = WaveSound(self.sample_rate, self.chunk_time)
-        self.sound_model = SoundModel(self.sample_rate)
+        self.sound_model = SoundModel()
+        self.wave_sound = WaveSound(self.sample_rate, self.time, self.chunk_time, self.sound_model)
 
         self.play.bind(on_press=self.press_button_play)
         self.clear.bind(on_press=self.clear_button_play)
@@ -45,38 +43,20 @@ class RootWave(BoxLayout):
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
 
-        self.newsd = 0
-        self.newoffset = 0
-        self.t = Thread(target=self.run_power_spectrum_thread)
-
-        self.update_with_thread(self.sd.value, self.offset.value)
-
-    def update(self) -> None:
-        self.sound_model.model_sound(self.time)
-        self.sound_model.normalize_sound()
-        self.update_plot()
-        self.wave_sound.update_sound(self.sound_model.reshape(self.chunk_time))
-
-    def update_with_thread(self, sd: int, offset: int) -> None:
-        self.newsd = sd
-        self.newoffset = offset
-        self.t.start()
-
-    def run_power_spectrum_thread(self):
-        self.update_power_spectrum(self.newsd, self.newoffset)
+        self.update_power_spectrum(self.sd.value, self.offset.value)
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
         xs, ys = PowerSpectrum.get_normal_distribution_points(offset, sd, 500)
         self.power_plot.points = list(zip(xs, ys))
         self.sound_model.update_power_spectrum(np.reshape(np.array([offset, sd]), (1, -1)))
 
-        self.update()
+        self.update_plot()
         # update plot of power spectrum with new normal distribution
         # update main graph and sound possibly calling other update function
 
     def update_plot(self) -> None:
-        points = self.sound_model.get_sound()
-        self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size // self.time), points))
+        points = self.sound_model.model_sound(1000 * self.time, self.time, 0)
+        self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size), points))
 
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()

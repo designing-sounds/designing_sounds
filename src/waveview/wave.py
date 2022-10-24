@@ -4,7 +4,7 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import LinePlot, Graph
 
-from src.wave_model.wave_model import SoundModel, PowerSpectrum
+from src.wave_model.wave_model import SoundModel
 from src.waveview.wave_sound import WaveSound
 from src.waveview.wave_graph import RootGraph
 import numpy as np
@@ -42,11 +42,13 @@ class RootWave(BoxLayout):
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
 
+        harmonic = self.sound_model.add_to_power_spectrum()
+        self.harmonics = [harmonic]
         self.update_power_spectrum(self.sd.value, self.offset.value)
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
-        self.power_plot.points = PowerSpectrum.get_normal_distribution_points(offset, sd, 500)
-        self.sound_model.update_power_spectrum(np.reshape(np.array([offset, sd]), (1, -1)))
+        self.power_plot.points = SoundModel.get_normal_distribution_points(offset, sd, 500)
+        self.sound_model.update_power_spectrum(self.harmonics[0], offset, sd, 250)
 
         self.update_plot()
         # update plot of power spectrum with new normal distribution

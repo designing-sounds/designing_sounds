@@ -47,6 +47,9 @@ class RootWave(BoxLayout):
 
         self.t = None
 
+        self.newsd = 0
+        self.newoffset = 0
+
         self.update_with_thread(self.sd.value, self.offset.value)
 
     def update(self) -> None:
@@ -55,11 +58,20 @@ class RootWave(BoxLayout):
         self.update_plot()
         self.wave_sound.update_sound(self.sound_model.reshape(self.chunk_time))
 
-    def update_with_thread(self, sd: int, offset: int) -> None:
-        if self.t:
-            self.t.join()
-        self.t = Thread(target=self.update_power_spectrum, args=(sd, offset))
-        self.t.start()
+    def update_with_thread(self, sd: int, offset: int, *args, **kwargs) -> None:
+        self.newsd = sd
+        self.newoffset = offset
+        if not self.t:
+            self.t = Thread(target = self.run_update_thread)
+            self.t.start()
+        else:
+            self.t._target = self.run_update_thread
+            self.t._args = args
+            self.t._kwargs = kwargs
+            self.t.run()
+
+    def run_update_thread(self):
+        self.update_power_spectrum(self.newsd, self.newoffset)
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
         xs, ys = PowerSpectrum.get_normal_distribution_points(offset, sd, 500)

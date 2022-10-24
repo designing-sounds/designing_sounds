@@ -1,4 +1,3 @@
-from threading import Thread, Event
 import typing
 
 from kivy.app import App

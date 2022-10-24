@@ -16,11 +16,10 @@ class PowerSpectrum:
             self.freqs = np.append(self.freqs, new_freqs, 0)
 
     @staticmethod
-    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> (
-            np.array, np.array):
+    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> []:
         x_vals = np.linspace(mean - 3 * std, mean + 3 * std, num_samples)
         find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x))
-        return x_vals, find_normal(x_vals)
+        return list(zip(x_vals, find_normal(x_vals)))
 
 
 class SoundModel:

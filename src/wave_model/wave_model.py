@@ -36,7 +36,6 @@ class PowerSpectrum:
         self.lock.release()
         i = 0
         for harmonic in self.harmonics:
-            print(flatten_freqs.shape, len(self.harmonics))
             flatten_freqs.put(np.arange(i, i + harmonic.freqs.size), harmonic.freqs)
             i += harmonic.freqs.size
         return flatten_freqs

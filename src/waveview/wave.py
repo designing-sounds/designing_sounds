@@ -55,7 +55,8 @@ class RootWave(BoxLayout):
         # update main graph and sound possibly calling other update function
 
     def update_plot(self) -> None:
-        points = self.sound_model.model_sound(1000 * self.time, self.time, 0)
+        sample_rate = 2000
+        points = self.sound_model.model_sound(sample_rate, self.time, 0)
         self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size), points))
 
     def press_button_play(self, arg: typing.Any) -> None:

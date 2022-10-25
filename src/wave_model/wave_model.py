@@ -1,5 +1,6 @@
+import typing
 from statistics import NormalDist
-
+import threading
 import numpy as np
 
 
@@ -15,21 +16,27 @@ class PowerSpectrum:
     def __init__(self):
         self.harmonics = []
         self.total_size = 0
+        self.lock = threading.Lock()
 
     def add_harmonic(self) -> Harmonic:
         harmonic = Harmonic()
         self.harmonics.append(harmonic)
         return harmonic
 
-    def update_harmonic(self, harmonic, mean: int, std: float, num_samples: int):
+    def update_harmonic(self, harmonic: Harmonic, mean: int, std: float, num_samples: int):
+        self.lock.acquire()
         self.total_size -= harmonic.freqs.size
         harmonic.update_freq(mean, std, num_samples)
         self.total_size += num_samples
+        self.lock.release()
 
     def get_flatten_freqs(self) -> np.ndarray:
+        self.lock.acquire()
         flatten_freqs = np.empty(self.total_size)
+        self.lock.release()
         i = 0
         for harmonic in self.harmonics:
+            print(flatten_freqs.shape, len(self.harmonics))
             flatten_freqs.put(np.arange(i, i + harmonic.freqs.size), harmonic.freqs)
             i += harmonic.freqs.size
         return flatten_freqs
@@ -42,7 +49,7 @@ class SoundModel:
         self.power_spectrum = PowerSpectrum()
 
     @staticmethod
-    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> []:
+    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> typing.List[typing.Tuple[float, float]]:
         x_vals = np.linspace(mean - 3 * std, mean + 3 * std, num_samples)
         find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x))
         return list(zip(x_vals, find_normal(x_vals)))

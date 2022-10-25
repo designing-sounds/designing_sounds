@@ -42,13 +42,12 @@ class RootWave(BoxLayout):
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
 
-        harmonic = self.sound_model.add_to_power_spectrum()
-        self.harmonics = [harmonic]
+        self.sound_model.add_to_power_spectrum()
         self.update_power_spectrum(self.sd.value, self.offset.value)
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
         self.power_plot.points = SoundModel.get_normal_distribution_points(offset, sd, 500)
-        self.sound_model.update_power_spectrum(self.harmonics[0], offset, sd, 250)
+        self.sound_model.update_power_spectrum(0, offset, sd, 250)
 
         self.update_plot()
         # update plot of power spectrum with new normal distribution
@@ -64,6 +63,9 @@ class RootWave(BoxLayout):
 
     def clear_button_play(self, arg: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
+        self.sound_model.add_to_power_spectrum()
+        self.sound_model.update_power_spectrum(-1, np.random.randint(100, 1000), np.random.rand(), 250)
+
 
 
 class WaveApp(App):

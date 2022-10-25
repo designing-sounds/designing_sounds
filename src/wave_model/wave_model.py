@@ -32,7 +32,7 @@ class SoundModel:
     @staticmethod
     def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> []:
         x_vals = np.linspace(mean - 4 * std, mean + 4 * std, num_samples)
-        find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x))
+        find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x) if std != 0 else num_samples)
         return list(zip(x_vals, find_normal(x_vals)))
 
     def add_to_power_spectrum(self, mean, std, num_samples):
@@ -57,7 +57,7 @@ class SoundModel:
             self.amps = np.random.randn(self.max_samples)
             self.phases = np.random.randn(self.max_samples)
 
-        sins = np.sin(x[:, None] * 2 * np.pi * freqs)
+        sins = np.sin(x[:, None] * 2 * np.pi * freqs + self.phases)
 
         sound = (sins @ self.amps).astype(np.float32) / self.max_samples
 

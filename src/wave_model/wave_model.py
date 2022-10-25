@@ -20,7 +20,9 @@ class PowerSpectrum:
 
     def add_harmonic(self) -> Harmonic:
         harmonic = Harmonic()
+        self.lock.acquire()
         self.harmonics.append(harmonic)
+        self.lock.release()
         return harmonic
 
     def update_harmonic(self, harmonic: Harmonic, mean: int, std: float, num_samples: int):
@@ -33,11 +35,11 @@ class PowerSpectrum:
     def get_flatten_freqs(self) -> np.ndarray:
         self.lock.acquire()
         flatten_freqs = np.empty(self.total_size)
-        self.lock.release()
         i = 0
         for harmonic in self.harmonics:
             flatten_freqs.put(np.arange(i, i + harmonic.freqs.size), harmonic.freqs)
             i += harmonic.freqs.size
+        self.lock.release()
         return flatten_freqs
 
 

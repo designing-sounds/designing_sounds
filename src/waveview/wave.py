@@ -15,6 +15,7 @@ class RootWave(BoxLayout):
     num_samples = 44100
     time = 2
     chunk_time = 0.1
+    i = 1
 
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
@@ -42,20 +43,19 @@ class RootWave(BoxLayout):
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
 
-        self.sound_model.add_to_power_spectrum()
+        self.sound_model.add_to_power_spectrum(self.sd.value, self.offset.value, 50)
         self.update_power_spectrum(self.sd.value, self.offset.value)
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
         self.power_plot.points = SoundModel.get_normal_distribution_points(offset, sd, 500)
-        self.sound_model.update_power_spectrum(0, offset, sd, 250)
+        self.sound_model.update_power_spectrum(0, offset, sd, 50)
 
         self.update_plot()
         # update plot of power spectrum with new normal distribution
         # update main graph and sound possibly calling other update function
 
     def update_plot(self) -> None:
-        sample_rate = 2000
-        points = self.sound_model.model_sound(sample_rate, self.time, 0)
+        points = self.sound_model.model_sound(1500, self.time, 0)
         self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size), points))
 
     def press_button_play(self, arg: typing.Any) -> None:
@@ -63,10 +63,9 @@ class RootWave(BoxLayout):
 
     def clear_button_play(self, arg: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
-        self.sound_model.add_to_power_spectrum()
-        self.sound_model.update_power_spectrum(-1, np.random.randint(100, 1000), np.random.rand(), 250)
-
-
+        self.sound_model.add_to_power_spectrum(np.random.randint(100, 1000), np.random.randn(), 50)
+        self.i += 1
+        print(self.i)
 
 class WaveApp(App):
     def build(self) -> RootWave:

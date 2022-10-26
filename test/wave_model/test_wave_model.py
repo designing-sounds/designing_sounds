@@ -20,7 +20,7 @@ class TestSoundModel(unittest.TestCase):
     def setUp(self):
         self.max_harmonics = 1000
         self.max_samples_per_harmonic = 4
-        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic)
+        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, self.max_samples_per_harmonic)
         self.tolerance = 1e-9
 
     def test_get_normal_distribution_points(self):
@@ -29,7 +29,7 @@ class TestSoundModel(unittest.TestCase):
 
         np.testing.assert_allclose(vals, expected, self.tolerance)
 
-    def test_normal_distribuition_with_different_num_samples(self):
+    def test_normal_distribution_with_different_num_samples(self):
         vals = self.sound_model.get_normal_distribution_points(1, 0.1, 2, 3)
 
         test = np.array([y for _, y in vals])

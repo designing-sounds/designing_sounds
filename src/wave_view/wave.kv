@@ -65,9 +65,9 @@
                             text: str(int(mean.value)) + ' mean'
                         Slider:
                             id: mean
-                            value: 250
+                            value: 500
                             min: 0
-                            max: 500
+                            max: 1000
                             step: 10
                             on_value: root.update_power_spectrum(mean.value, sd.value, samples.value)
                     BoxLayout:

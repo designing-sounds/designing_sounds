@@ -17,16 +17,17 @@ class RootWave(BoxLayout):
     power_spectrum_graph_samples = 1000
     waveform_duration = 1
     chunk_duration = 0.1
-    max_samples_per_harmonic = 100
+
     max_harmonics = 10
     num_harmonics = 0
     current_harmonic_index = 0
 
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
+        self.max_samples_per_harmonic = int(self.harmonic_samples.max)
 
         self.change_harmonic = False
-        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic)
+        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
         self.play.bind(on_press=self.press_button_play)
@@ -41,8 +42,8 @@ class RootWave(BoxLayout):
                                             ymin=-1.0, ymax=1.0,
                                             draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
         self.power_spectrum_graph = Graph(border_color=border_color,
-                                          xmin=0, xmax=500,
-                                          ymin=0, ymax=100,
+                                          xmin=0, xmax=self.mean.max,
+                                          ymin=0, ymax=self.harmonic_samples.max,
                                           draw_border=True)
 
         self.ids.modulation.add_widget(self.waveform_graph)

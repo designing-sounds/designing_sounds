@@ -1,3 +1,4 @@
+import typing
 from statistics import NormalDist
 
 import numpy as np
@@ -49,6 +50,9 @@ class SoundModel:
 
     def add_to_power_spectrum(self) -> Harmonic:
         return self.power_spectrum.add_harmonic()
+
+    def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
+        pass
 
     def update_power_spectrum(self, harmonic: Harmonic, mean: int, std: float, num_samples: int) -> None:
         self.power_spectrum.update_harmonic(harmonic, mean, std, num_samples)

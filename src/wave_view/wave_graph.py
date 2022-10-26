@@ -25,7 +25,6 @@ class WaveformGraph(Graph):
                 Ellipse(pos=pos, size=(d, d))
 
             self.__selected_points.append(self.convert_points(pos))
-            self.model.interpolate_points(self.__selected_points)
             self.update()
         return super(WaveformGraph, self).on_touch_down(touch)
 

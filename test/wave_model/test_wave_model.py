@@ -29,12 +29,6 @@ class TestSoundModel(unittest.TestCase):
 
         np.testing.assert_allclose(vals, expected, self.tolerance)
 
-    def test_normal_distribution_with_different_num_samples(self):
-        vals = self.sound_model.get_normal_distribution_points(1, 0.1, 2, 3)
-
-        test = np.array([y for _, y in vals])
-
-        assert (test.max() <= 2)
 
     def test_model_chunk_sound(self):
         samples = self.max_samples_per_harmonic

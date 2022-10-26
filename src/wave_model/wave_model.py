@@ -18,10 +18,10 @@ class PowerSpectrum:
 
 class SoundModel:
     def __init__(self, max_harmonics: int, max_samples_per_harmonic: int):
-        self.amps = None
-        self.phases = None
         self.max_harmonics = max_harmonics
         self.max_samples_per_harmonic = max_samples_per_harmonic
+        self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics), dtype=np.float32)
+        self.phases = None
         self.power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
         self.samples_per_harmonic = np.zeros(self.max_harmonics)
         self.lock = threading.Lock()
@@ -39,13 +39,19 @@ class SoundModel:
         return list(zip(x_vals, y_vals))
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
-        pass
+        if points:
+            x, y = (np.array([i for i, _ in points]), np.array([j for _, j in points]))
+            self.lock.acquire()
+            freqs = self.power_spectrum.harmonics.flatten()
+            sins = np.sin(x[:, None] * 2 * np.pi * freqs)
+            self.amps, _, _, _ = np.linalg.lstsq(sins, y * np.sum(self.samples_per_harmonic), rcond=None)
+            self.amps = np.asarray(self.amps, dtype=np.float32)
+            self.lock.release()
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int) -> None:
         self.lock.acquire()
         self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples)
         self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
-        self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics), dtype=np.float32)
         # self.phases = np.asarray(np.random.randn(self.max_harmonics, self.max_samples_per_harmonic), dtype=np.float32)
         self.lock.release()
 

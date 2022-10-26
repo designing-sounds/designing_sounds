@@ -13,7 +13,7 @@ import numpy as np
 class RootWave(BoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
-    waveform_duration = 2
+    waveform_duration = 1
     chunk_duration = 0.1
     max_samples_per_harmonic = 100
     max_harmonics = 10
@@ -69,13 +69,16 @@ class RootWave(BoxLayout):
 
     def clear_button_play(self, arg: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
+        for index in range(1, self.max_harmonics):
+            self.sound_model.update_power_spectrum(index, 0, 0, self.max_samples_per_harmonic)
+        self.update_waveform()
 
     def add_button_play(self, arg: typing.Any) -> None:
         self.sound_model.update_power_spectrum(self.index, np.random.randint(100, 500), np.random.randn(),
                                                self.max_samples_per_harmonic)
         self.update_waveform()
         self.index += 1
-        if self.index >= 10:
+        if self.index >= self.max_harmonics:
             self.index = 1
 
 

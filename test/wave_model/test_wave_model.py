@@ -18,8 +18,10 @@ class TestPowerSpectrum(unittest.TestCase):
 class TestSoundModel(unittest.TestCase):
 
     def setUp(self):
-        self.sound_model = SoundModel(10, 100)
-        self.tolerance = 1e-5
+        self.max_harmonics = 1000
+        self.max_samples_per_harmonic = 4
+        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic)
+        self.tolerance = 1e-9
 
     def test_get_normal_distribution_points(self):
         vals = self.sound_model.get_normal_distribution_points(1, 2, 3)
@@ -28,15 +30,17 @@ class TestSoundModel(unittest.TestCase):
         np.testing.assert_allclose(vals, expected, self.tolerance)
 
     def test_model_chunk_sound(self):
-        self.sound_model.update_power_spectrum(0, 1000, 1, 100)
-        sample_rate = 44100
-        test = np.zeros((10, 4410))
-        for i in range(10):
-            test[i] = self.sound_model.model_sound(sample_rate, 0.1, i * 0.1)
+        samples = self.max_samples_per_harmonic
+        num_harmonics = self.max_harmonics
+        sample_rate = samples * num_harmonics
+        test = np.zeros((num_harmonics, samples))
+        self.sound_model.update_power_spectrum(0, 1000, 1, samples)
+        for i in range(num_harmonics):
+            test[i] = self.sound_model.model_sound(sample_rate, samples / sample_rate, i * samples / sample_rate)
 
         test = test.flatten()
         expected = self.sound_model.model_sound(sample_rate, 1, 0)
-
+        print(expected==test)
         np.testing.assert_allclose(expected, test, self.tolerance)
 
 

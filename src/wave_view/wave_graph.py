@@ -5,7 +5,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import Graph
 
 
-class RootGraph(Graph):
+class WaveformGraph(Graph):
     __selected_points = []
 
     def __init__(self, **kwargs):
@@ -23,7 +23,7 @@ class RootGraph(Graph):
                 Ellipse(pos=pos, size=(d, d))
 
             self.__selected_points.append(self.convert_points(pos))
-        return super(RootGraph, self).on_touch_down(touch)
+        return super(WaveformGraph, self).on_touch_down(touch)
 
     def get_selected_points(self) -> typing.List[typing.Tuple[int, int]]:
         return self.__selected_points

@@ -13,23 +13,23 @@ import numpy as np
 class RootWave(BoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
-    time = 2
-    chunk_time = 0.1
-    max_power_spectrum_samples = 100
+    waveform_duration = 2
+    chunk_duration = 0.1
+    max_samples_per_harmonic = 100
     max_harmonics = 10
     index = 1
 
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
 
-        self.sound_model = SoundModel(self.max_harmonics, self.max_power_spectrum_samples)
-        self.wave_sound = WaveSound(self.sample_rate, self.time, self.chunk_time, self.sound_model)
+        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic)
+        self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
         self.play.bind(on_press=self.press_button_play)
         self.clear.bind(on_press=self.clear_button_play)
         self.add.bind(on_press=self.add_button_play)
         self.waveform_graph = RootGraph(border_color=[0, 1, 1, 1],
-                                        xmin=0, xmax=self.time,
+                                        xmin=0, xmax=self.waveform_duration,
                                         ymin=-1.0, ymax=1.0,
                                         draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
         self.power_spectrum_graph = Graph(border_color=[0, 1, 1, 1],
@@ -50,12 +50,12 @@ class RootWave(BoxLayout):
 
     def update_power_spectrum(self, sd: int, offset: int) -> None:
         self.power_plot.points = SoundModel.get_normal_distribution_points(offset, sd, 500)
-        self.sound_model.update_power_spectrum(0, offset, sd, self.max_power_spectrum_samples)
+        self.sound_model.update_power_spectrum(0, offset, sd, self.max_samples_per_harmonic)
         self.update_plot()
 
     def update_plot(self) -> None:
-        points = self.sound_model.model_sound(self.graph_sample_rate, self.time, 0)
-        self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size), points))
+        points = self.sound_model.model_sound(self.graph_sample_rate, self.waveform_duration, 0)
+        self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
 
     def press_button_play(self, arg: typing.Any) -> None:
         self.wave_sound.press_button_play()
@@ -65,7 +65,7 @@ class RootWave(BoxLayout):
 
     def add_button_play(self, arg: typing.Any) -> None:
         self.sound_model.update_power_spectrum(self.index, np.random.randint(100, 500), np.random.randn(),
-                                               self.max_power_spectrum_samples)
+                                               self.max_samples_per_harmonic)
         self.update_plot()
         self.index += 1
         if self.index >= 10:

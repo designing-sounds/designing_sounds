@@ -20,7 +20,7 @@ class TestSoundModel(unittest.TestCase):
     def setUp(self):
         self.max_harmonics = 1000
         self.max_samples_per_harmonic = 4
-        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic)
+        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, 1000)
         self.tolerance = 1e-9
 
     def test_get_normal_distribution_points(self):

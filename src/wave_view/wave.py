@@ -22,7 +22,7 @@ class RootWave(BoxLayout):
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
 
-        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic)
+        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, self.mean.max)
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
         self.play.bind(on_press=self.press_button_play)

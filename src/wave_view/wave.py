@@ -30,7 +30,7 @@ class RootWave(BoxLayout):
         self.add.bind(on_press=self.add_button_play)
 
         border_color = [0, 1, 1, 1]
-        
+
         self.waveform_graph = WaveformGraph(border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration,
                                             ymin=-1.0, ymax=1.0,

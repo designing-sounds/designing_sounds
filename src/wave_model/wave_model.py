@@ -15,6 +15,7 @@ class PowerSpectrum:
         self.harmonics[harmonic_index] = np.zeros(self.max_samples_per_harmonic)
         self.harmonics[harmonic_index, :num_harmonic_samples] = freqs
 
+
 class SoundModel:
     def __init__(self, max_harmonics: int, max_samples_per_harmonic: int):
         self.amps = None
@@ -26,7 +27,8 @@ class SoundModel:
         self.lock = threading.Lock()
 
     @staticmethod
-    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> typing.List[typing.Tuple[float, float]]:
+    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> typing.List[
+        typing.Tuple[float, float]]:
         if std == 0:
             y_vals = np.linspace(0, num_samples, num_samples)
             x_vals = np.repeat(mean, num_samples)
@@ -45,7 +47,8 @@ class SoundModel:
         self.lock.release()
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
-        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False, dtype=np.float32)
+        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
+                        dtype=np.float32)
 
         self.lock.acquire()
 

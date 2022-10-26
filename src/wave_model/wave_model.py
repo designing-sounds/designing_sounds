@@ -38,6 +38,9 @@ class SoundModel:
             y_vals = find_normal(x_vals)
         return list(zip(x_vals, y_vals))
 
+    def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
+        pass
+
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int) -> None:
         self.lock.acquire()
         self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples)

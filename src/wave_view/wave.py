@@ -31,7 +31,8 @@ class RootWave(BoxLayout):
 
         border_color = [0, 1, 1, 1]
 
-        self.waveform_graph = WaveformGraph(border_color=border_color,
+        self.waveform_graph = WaveformGraph(update=self.update_waveform,
+                                            border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration,
                                             ymin=-1.0, ymax=1.0,
                                             draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
@@ -58,6 +59,8 @@ class RootWave(BoxLayout):
         self.update_waveform()
 
     def update_waveform(self) -> None:
+        inputted_points = self.waveform_graph.get_selected_points()
+        self.sound_model.interpolate_points(inputted_points)
         points = self.sound_model.model_sound(self.graph_sample_rate, self.waveform_duration, 0)
         self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
 

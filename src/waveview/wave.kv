@@ -1,6 +1,7 @@
 <RootWave>:
     clear: clear_button
     play: play_button
+    add: add_button
     sd: sd
     offset: offset
 
@@ -42,7 +43,7 @@
                         Slider:
                             id: sd
                             value: 1
-                            min: 0.1
+                            min: 0
                             max: 10
                             step: 0.1
                             on_value: root.update_power_spectrum(sd.value, offset.value)
@@ -61,6 +62,10 @@
                     BoxLayout:
                         size_hint: 1, 0.4
                         orientation: 'vertical'
+                        padding: 20
+                        Button:
+                            id: add_button
+                            text: 'Add Harmonic'
 
 
             BoxLayout:

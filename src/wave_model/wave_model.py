@@ -1,63 +1,53 @@
+import threading
+import typing
 from statistics import NormalDist
 
 import numpy as np
 
 
-class Harmonic:
-    def __init__(self):
-        self.freqs = np.array([])
-
-    def update_freq(self, mean: int, std: float, num_samples: int) -> None:
-        self.freqs = np.random.randn(1, num_samples) * std + mean
-
-
 class PowerSpectrum:
-    def __init__(self):
-        self.harmonics = []
-        self.total_size = 0
+    def __init__(self, max_harmonics: int, max_samples: int):
+        self.max_samples = max_samples
+        self.harmonics = np.zeros((max_harmonics, self.max_samples), dtype=np.float32)
 
-    def add_harmonic(self) -> Harmonic:
-        harmonic = Harmonic()
-        self.harmonics.append(harmonic)
-        return harmonic
-
-    def update_harmonic(self, harmonic, mean: int, std: float, num_samples: int):
-        self.total_size -= harmonic.freqs.size
-        harmonic.update_freq(mean, std, num_samples)
-        self.total_size += num_samples
-
-    def get_flatten_freqs(self) -> np.ndarray:
-        flatten_freqs = np.empty(self.total_size)
-        i = 0
-        for harmonic in self.harmonics:
-            flatten_freqs.put(np.arange(i, i + harmonic.freqs.size), harmonic.freqs)
-            i += harmonic.freqs.size
-        return flatten_freqs
+    def update_harmonic(self, index, mean: int, std: float, num_samples: int) -> None:
+        freqs = np.random.randn(1, num_samples) * std + mean
+        self.harmonics[index] = np.zeros(self.max_samples)
+        self.harmonics[index].put(np.arange(0, freqs.size), freqs)
 
 
 class SoundModel:
-    def __init__(self):
+    def __init__(self, max_harmonics: int, max_samples: int):
         self.amps = None
         self.phases = None
-        self.power_spectrum = PowerSpectrum()
+        self.max_harmonics = max_harmonics
+        self.max_samples = max_samples
+        self.power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples)
+        self.actual_sizes = np.zeros(self.max_harmonics)
+        self.lock = threading.Lock()
 
     @staticmethod
-    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> []:
-        x_vals = np.linspace(mean - 3 * std, mean + 3 * std, num_samples)
-        find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x))
+    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> typing.List[typing.Tuple[float, float]]:
+        x_vals = np.linspace(mean - 4 * std, mean + 4 * std, num_samples)
+        find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x) if std != 0 else num_samples)
         return list(zip(x_vals, find_normal(x_vals)))
 
-    def add_to_power_spectrum(self) -> Harmonic:
-        return self.power_spectrum.add_harmonic()
-
-    def update_power_spectrum(self, harmonic: Harmonic, mean: int, std: float, num_samples: int) -> None:
-        self.power_spectrum.update_harmonic(harmonic, mean, std, num_samples)
-        self.amps = np.random.randn(self.power_spectrum.total_size)
-        self.phases = np.random.randn(self.power_spectrum.total_size)
+    def update_power_spectrum(self, index: int, mean: int, std: float, num_samples: int) -> None:
+        self.lock.acquire()
+        self.power_spectrum.update_harmonic(index, mean, std, num_samples)
+        self.actual_sizes[index] = num_samples
+        self.amps = np.asarray(np.random.randn(self.max_samples * self.max_harmonics), dtype=np.float32)
+        self.phases = np.asarray(np.random.randn(self.max_harmonics, self.max_samples), dtype=np.float32)
+        self.lock.release()
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
-        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False)
-        sins = np.sin(x[:, None] * 2 * np.pi * self.power_spectrum.get_flatten_freqs() + self.phases)
+        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False, dtype=np.float32)
 
-        sound = (sins @ self.amps).astype(np.float32) / self.power_spectrum.total_size
+        self.lock.acquire()
+        sins = np.sin(x[:, None, None] * 2 * np.pi * self.power_spectrum.harmonics)
+        sins = sins.reshape(-1, self.max_samples * self.max_harmonics)
+
+        sound = (sins @ self.amps) / np.sum(self.actual_sizes)
+        self.lock.release()
+
         return sound

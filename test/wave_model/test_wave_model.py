@@ -5,34 +5,30 @@ import unittest
 
 class TestPowerSpectrum(unittest.TestCase):
     def setUp(self):
-        self.spectrum = PowerSpectrum()
+        self.spectrum = PowerSpectrum(10, 100)
         self.tolerance = 1e-6
 
-    def test_get_flatten_freqs(self):
-        harmonic1 = self.spectrum.add_harmonic()
-        harmonic2 = self.spectrum.add_harmonic()
+    def test_update_harmonics(self):
+        self.spectrum.update_harmonic(0, 1000, 1, 10)
+        self.spectrum.update_harmonic(1, 2000, 3, 20)
 
-        self.spectrum.update_harmonic(harmonic1, 1000, 1, 10)
-        self.spectrum.update_harmonic(harmonic2, 2000, 3, 20)
-
-        assert self.spectrum.get_flatten_freqs().size == 30
+        assert self.spectrum.harmonics[0].nonzero()[0].size == 10 and self.spectrum.harmonics[1].nonzero()[0].size == 20
 
 
 class TestSoundModel(unittest.TestCase):
 
     def setUp(self):
-        self.sound_model = SoundModel()
+        self.sound_model = SoundModel(10, 100)
         self.tolerance = 1e-5
 
     def test_get_normal_distribution_points(self):
         vals = self.sound_model.get_normal_distribution_points(1, 2, 3)
-        expected = np.array([[-5, 0.00221592422], [1, 0.1994711402007], [7, 0.00221592422]])
+        expected = np.array([[-7, 6.6915112882443E-5], [1, 0.19947114020072], [9, 6.6915112882443E-5]])
 
         np.testing.assert_allclose(vals, expected, self.tolerance)
 
     def test_model_chunk_sound(self):
-        harmonic = self.sound_model.add_to_power_spectrum()
-        self.sound_model.update_power_spectrum(harmonic, 1000, 1, 100)
+        self.sound_model.update_power_spectrum(0, 1000, 1, 100)
         sample_rate = 44100
         test = np.zeros((10, 4410))
         for i in range(10):

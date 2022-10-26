@@ -1,8 +1,9 @@
 <RootWave>:
     clear: clear_button
     play: play_button
+    add: add_button
     sd: sd
-    offset: offset
+    mean: mean
 
 
     BoxLayout:
@@ -42,25 +43,29 @@
                         Slider:
                             id: sd
                             value: 1
-                            min: 0.1
+                            min: 0
                             max: 10
                             step: 0.1
-                            on_value: root.update_power_spectrum(sd.value, offset.value)
+                            on_value: root.update_power_spectrum(mean.value, sd.value)
                     BoxLayout:
                         size_hint: 1, 0.3
                         orientation: 'vertical'
                         Label:
-                            text: str(offset.value) + ' Offset'
+                            text: str(mean.value) + ' mean'
                         Slider:
-                            id: offset
+                            id: mean
                             value: 250
                             min: 0
                             max: 500
                             step: 10
-                            on_value: root.update_power_spectrum(sd.value, offset.value)
+                            on_value: root.update_power_spectrum(mean.value, sd.value)
                     BoxLayout:
                         size_hint: 1, 0.4
                         orientation: 'vertical'
+                        padding: 20
+                        Button:
+                            id: add_button
+                            text: 'Add Harmonic'
 
 
             BoxLayout:

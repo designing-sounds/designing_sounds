@@ -3,10 +3,9 @@ import typing
 from kivy.graphics import Color, Ellipse
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import Graph
-from src.wave_model.wave_model import SoundModel
 
 
-class RootGraph(Graph):
+class WaveformGraph(Graph):
     __selected_points = []
 
     def __init__(self, update, **kwargs):
@@ -28,7 +27,7 @@ class RootGraph(Graph):
             self.__selected_points.append(self.convert_points(pos))
             self.model.interpolate_points(self.__selected_points)
             self.update()
-        return super(RootGraph, self).on_touch_down(touch)
+        return super(WaveformGraph, self).on_touch_down(touch)
 
     def get_selected_points(self) -> typing.List[typing.Tuple[int, int]]:
         return self.__selected_points

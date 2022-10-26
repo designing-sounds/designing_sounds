@@ -45,6 +45,7 @@ class SoundModel:
             freqs = self.power_spectrum.harmonics.flatten()
             sins = np.sin(x[:, None] * 2 * np.pi * freqs)
             self.amps, _, _, _ = np.linalg.lstsq(sins, y * np.sum(self.samples_per_harmonic), rcond=None)
+            self.amps = np.asarray(self.amps, dtype=np.float32)
             self.lock.release()
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int) -> None:

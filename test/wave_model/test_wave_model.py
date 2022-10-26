@@ -24,10 +24,17 @@ class TestSoundModel(unittest.TestCase):
         self.tolerance = 1e-9
 
     def test_get_normal_distribution_points(self):
-        vals = self.sound_model.get_normal_distribution_points(1, 2, 3)
+        vals = self.sound_model.get_normal_distribution_points(1, 2, 1, 3)
         expected = np.array([[-7, 6.6915112882443E-5], [1, 0.19947114020072], [9, 6.6915112882443E-5]])
 
         np.testing.assert_allclose(vals, expected, self.tolerance)
+
+    def test_normal_distribuition_with_different_num_samples(self):
+        vals = self.sound_model.get_normal_distribution_points(1, 0.1, 2, 3)
+
+        test = np.array([y for _, y in vals])
+
+        assert (test.max() <= 2)
 
     def test_model_chunk_sound(self):
         samples = self.max_samples_per_harmonic
@@ -40,7 +47,6 @@ class TestSoundModel(unittest.TestCase):
 
         test = test.flatten()
         expected = self.sound_model.model_sound(sample_rate, 1, 0)
-        print(expected==test)
         np.testing.assert_allclose(expected, test, self.tolerance)
 
 

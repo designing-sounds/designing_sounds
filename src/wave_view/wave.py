@@ -14,6 +14,7 @@ import numpy as np
 class RootWave(BoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
+    power_spectrum_graph_samples = 1000
     waveform_duration = 1
     chunk_duration = 0.1
     max_samples_per_harmonic = 100
@@ -41,7 +42,7 @@ class RootWave(BoxLayout):
                                             draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=500,
-                                          ymin=0, ymax=1.0,
+                                          ymin=0, ymax=100,
                                           draw_border=True)
 
         self.ids.modulation.add_widget(self.waveform_graph)
@@ -49,19 +50,19 @@ class RootWave(BoxLayout):
 
         plot_color = [1, 1, 0, 1]
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
-        self.power_plot = LinePlot(color=plot_color, line_width=3)
+        self.power_plot = LinePlot(color=plot_color, line_width=2)
 
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
 
         self.power_buttons = []
-        self.harmonic_list = np.zeros((self.max_harmonics, 2))
+        self.harmonic_list = np.zeros((self.max_harmonics, 3))
         self.press_button_add(None)
 
-    def update_power_spectrum(self, mean: int, sd: int) -> None:
-        self.power_plot.points = SoundModel.get_normal_distribution_points(mean, sd, 500)
+    def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
+        self.power_plot.points = SoundModel.get_normal_distribution_points(mean, sd, num_samples, self.power_spectrum_graph_samples)
         if not self.change_harmonic:
-            self.sound_model.update_power_spectrum(self.current_harmonic_index, mean, sd, self.max_samples_per_harmonic)
+            self.sound_model.update_power_spectrum(self.current_harmonic_index, mean, sd, int(num_samples))
             self.update_waveform()
         self.change_harmonic = False
 
@@ -81,16 +82,17 @@ class RootWave(BoxLayout):
     def press_button_add(self, instance: typing.Any) -> None:
         if self.num_harmonics < self.max_harmonics:
             self.add_power_spectrum_button()
-            self.update_power_spectrum(self.mean.value, self.sd.value)
+            self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
 
     def press_button_display_power_spectrum(self, instance: typing.Any):
         self.change_harmonic = True
-        self.harmonic_list[self.current_harmonic_index] = np.array([self.mean.value, self.sd.value])
+        self.harmonic_list[self.current_harmonic_index] = np.array([self.mean.value, self.sd.value, self.harmonic_samples.value])
         harmonic_index = int(instance.text) - 1
         self.current_harmonic_index = harmonic_index
-        mean, sd = self.harmonic_list[harmonic_index]
+        mean, sd, num_samples = self.harmonic_list[harmonic_index]
         self.mean.value = int(mean)
         self.sd.value = float(sd)
+        self.harmonic_samples.value = int(num_samples)
 
     def add_power_spectrum_button(self) -> None:
         self.num_harmonics += 1
@@ -98,7 +100,7 @@ class RootWave(BoxLayout):
         button.bind(on_press=self.press_button_display_power_spectrum)
         self.power_buttons.append(button)
         self.ids.power_spectrum_buttons.add_widget(button)
-        self.harmonic_list[self.num_harmonics - 1] = np.array([self.mean.max // 2, 1])
+        self.harmonic_list[self.num_harmonics - 1] = np.array([self.mean.max // 2, 1, self.harmonic_samples.max // 2])
 
 
 class WaveApp(App):

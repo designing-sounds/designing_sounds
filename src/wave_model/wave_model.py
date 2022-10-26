@@ -27,14 +27,14 @@ class SoundModel:
         self.lock = threading.Lock()
 
     @staticmethod
-    def get_normal_distribution_points(mean: float, std: float, num_samples: int) -> typing.List[
+    def get_normal_distribution_points(mean: float, std: float, num_samples: int, num_points: int) -> typing.List[
         typing.Tuple[float, float]]:
         if std == 0:
-            y_vals = np.linspace(0, num_samples, num_samples)
-            x_vals = np.repeat(mean, num_samples)
+            y_vals = np.linspace(0, num_samples, num_points)
+            x_vals = np.repeat(mean, num_points)
         else:
-            x_vals = np.linspace(mean - 4 * std, mean + 4 * std, num_samples)
-            find_normal = np.vectorize(lambda x: NormalDist(mu=mean, sigma=std).pdf(x))
+            x_vals = np.linspace(mean - 4 * std, mean + 4 * std, num_points)
+            find_normal = np.vectorize(lambda x: num_samples * NormalDist(mu=mean, sigma=std).pdf(x))
             y_vals = find_normal(x_vals)
         return list(zip(x_vals, y_vals))
 
@@ -44,7 +44,7 @@ class SoundModel:
             self.lock.acquire()
             freqs = self.power_spectrum.harmonics.flatten()
             sins = np.sin(x[:, None] * 2 * np.pi * freqs)
-            self.amps, _, _, _ = np.linalg.lstsq(sins, y * np.sum(self.samples_per_harmonic), rcond=None)
+            self.amps, _, _, _ = np.linalg.lstsq(sins, y * (self.max_harmonics * self.max_samples_per_harmonic), rcond=None)
             self.amps = np.asarray(self.amps, dtype=np.float32)
             self.lock.release()
 
@@ -64,7 +64,7 @@ class SoundModel:
         freqs = self.power_spectrum.harmonics.flatten()
         sins = np.sin(x[:, None] * 2 * np.pi * freqs)
 
-        sound = (sins @ self.amps) / np.sum(self.samples_per_harmonic)
+        sound = (sins @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
         self.lock.release()
 
         return sound

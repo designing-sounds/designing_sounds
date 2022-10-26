@@ -24,7 +24,8 @@ class RootWave(BoxLayout):
 
         self.play.bind(on_press=self.press_button_play)
         self.clear.bind(on_press=self.clear_button_play)
-        self.waveform_graph = RootGraph(border_color=[0, 1, 1, 1],
+        self.waveform_graph = RootGraph(update=self.update_plot,
+                                        border_color=[0, 1, 1, 1],
                                         xmin=0, xmax=self.time,
                                         ymin=-1.0, ymax=1.0,
                                         draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
@@ -55,6 +56,8 @@ class RootWave(BoxLayout):
         # update main graph and sound possibly calling other update function
 
     def update_plot(self) -> None:
+        inputted_points = self.waveform_graph.get_selected_points()
+        self.sound_model.interpolate_points(inputted_points)
         points = self.sound_model.model_sound(1000 * self.time, self.time, 0)
         self.wave_plot.points = list(zip(np.linspace(0, self.time, points.size), points))
 

@@ -5,14 +5,15 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import Graph
 from src.wave_model.wave_model import SoundModel
 
+
 class RootGraph(Graph):
     __selected_points = []
 
-    def __init__(self, model: SoundModel, **kwargs):
+    def __init__(self, update, **kwargs):
         super().__init__(**kwargs)
         self.graph_canvas = BoxLayout(size_hint=(1, 1))
         self.add_widget(self.graph_canvas)
-        self.model = model
+        self.update = update
 
     def on_touch_down(self, touch) -> bool:
         if self.collide_point(touch.x, touch.y):
@@ -26,6 +27,7 @@ class RootGraph(Graph):
 
             self.__selected_points.append(self.convert_points(pos))
             self.model.interpolate_points(self.__selected_points)
+            self.update()
         return super(RootGraph, self).on_touch_down(touch)
 
     def get_selected_points(self) -> typing.List[typing.Tuple[int, int]]:

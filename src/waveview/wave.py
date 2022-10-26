@@ -6,7 +6,7 @@ from kivy_garden.graph import LinePlot, Graph
 
 from src.wave_model.wave_model import SoundModel
 from src.waveview.wave_sound import WaveSound
-from src.waveview.wave_graph import RootGraph
+from src.waveview.wave_graph import WaveformGraph
 import numpy as np
 
 
@@ -28,11 +28,14 @@ class RootWave(BoxLayout):
         self.play.bind(on_press=self.press_button_play)
         self.clear.bind(on_press=self.clear_button_play)
         self.add.bind(on_press=self.add_button_play)
-        self.waveform_graph = RootGraph(border_color=[0, 1, 1, 1],
-                                        xmin=0, xmax=self.waveform_duration,
-                                        ymin=-1.0, ymax=1.0,
-                                        draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
-        self.power_spectrum_graph = Graph(border_color=[0, 1, 1, 1],
+
+        border_color = [0, 1, 1, 1]
+        
+        self.waveform_graph = WaveformGraph(border_color=border_color,
+                                            xmin=0, xmax=self.waveform_duration,
+                                            ymin=-1.0, ymax=1.0,
+                                            draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
+        self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=500,
                                           ymin=0, ymax=1.0,
                                           draw_border=True)
@@ -40,20 +43,21 @@ class RootWave(BoxLayout):
         self.ids.modulation.add_widget(self.waveform_graph)
         self.ids.power_spectrum.add_widget(self.power_spectrum_graph)
 
-        self.wave_plot = LinePlot(color=[1, 1, 0, 1], line_width=1)
-        self.power_plot = LinePlot(color=[1, 1, 0, 1], line_width=3)
+        plot_color = [1, 1, 0, 1]
+        self.wave_plot = LinePlot(color=plot_color, line_width=1)
+        self.power_plot = LinePlot(color=plot_color, line_width=3)
 
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
 
-        self.update_power_spectrum(self.sd.value, self.offset.value)
+        self.update_power_spectrum(self.mean.value, self.sd.value)
 
-    def update_power_spectrum(self, sd: int, offset: int) -> None:
-        self.power_plot.points = SoundModel.get_normal_distribution_points(offset, sd, 500)
-        self.sound_model.update_power_spectrum(0, offset, sd, self.max_samples_per_harmonic)
-        self.update_plot()
+    def update_power_spectrum(self, mean: int, sd: int) -> None:
+        self.power_plot.points = SoundModel.get_normal_distribution_points(mean, sd, 500)
+        self.sound_model.update_power_spectrum(0, mean, sd, self.max_samples_per_harmonic)
+        self.update_waveform()
 
-    def update_plot(self) -> None:
+    def update_waveform(self) -> None:
         points = self.sound_model.model_sound(self.graph_sample_rate, self.waveform_duration, 0)
         self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
 
@@ -66,7 +70,7 @@ class RootWave(BoxLayout):
     def add_button_play(self, arg: typing.Any) -> None:
         self.sound_model.update_power_spectrum(self.index, np.random.randint(100, 500), np.random.randn(),
                                                self.max_samples_per_harmonic)
-        self.update_plot()
+        self.update_waveform()
         self.index += 1
         if self.index >= 10:
             self.index = 1

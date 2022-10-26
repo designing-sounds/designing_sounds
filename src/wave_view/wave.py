@@ -3,7 +3,7 @@ import typing
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy_garden.graph import LinePlot, Graph
+from kivy_garden.graph import LinePlot, Graph, BarPlot
 
 from src.wave_model.wave_model import SoundModel
 from src.wave_view.wave_sound import WaveSound
@@ -14,7 +14,7 @@ import numpy as np
 class RootWave(BoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
-    power_spectrum_graph_samples = 1000
+    power_spectrum_graph_samples = 10
     waveform_duration = 1
     chunk_duration = 0.1
 
@@ -51,7 +51,7 @@ class RootWave(BoxLayout):
 
         plot_color = [1, 1, 0, 1]
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
-        self.power_plot = LinePlot(color=plot_color, line_width=2)
+        self.power_plot = BarPlot(color=plot_color, bar_width=4)
 
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
@@ -61,7 +61,7 @@ class RootWave(BoxLayout):
         self.press_button_add(None)
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
-        self.power_plot.points = SoundModel.get_normal_distribution_points(mean, sd, num_samples, self.power_spectrum_graph_samples)
+        self.power_plot.points = self.sound_model.get_normal_distribution_points(self.current_harmonic_index, self.power_spectrum_graph_samples)
         if not self.change_harmonic:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, mean, sd, int(num_samples))
             self.update_waveform()

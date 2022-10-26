@@ -5,8 +5,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import LinePlot, Graph
 
 from src.wave_model.wave_model import SoundModel
-from src.waveview.wave_sound import WaveSound
-from src.waveview.wave_graph import WaveformGraph
+from src.wave_view.wave_sound import WaveSound
+from src.wave_view.wave_graph import WaveformGraph
 import numpy as np
 
 

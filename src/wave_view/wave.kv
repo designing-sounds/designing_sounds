@@ -25,9 +25,19 @@
                 orientation: 'horizontal'
 
                 BoxLayout:
-                    id: power_spectrum
                     size_hint: 0.6, 1
-                    padding: [0, 20, 20, 20]
+                    orientation: 'vertical'
+                    BoxLayout:
+                        id: power_spectrum
+                        size_hint: 1, 0.9
+                        padding: [0, 20, 20, 20]
+
+                    BoxLayout:
+                        id: power_spectrum_buttons
+                        size_hint: 1, 0.1
+                        orientation: 'horizontal'
+
+
 
                 BoxLayout:
                     orientation: 'vertical'

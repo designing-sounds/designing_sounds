@@ -64,10 +64,9 @@ class RootWave(BoxLayout):
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
         if not self.do_not_change_waveform:
-            self.sound_model.update_power_spectrum(self.current_harmonic_index, mean, sd, int(num_samples))
+            self.sound_model.update_power_spectrum(self.current_harmonic_index, int(mean), sd, int(num_samples))
             self.update_waveform()
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index, self.power_spectrum_graph_samples)
-        self.do_not_change_waveform = False
 
     def update_waveform(self) -> None:
         inputted_points = self.waveform_graph.get_selected_points()
@@ -88,15 +87,16 @@ class RootWave(BoxLayout):
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
 
     def update_display_power_spectrum(self, harmonic_index: int, change_harmonic: bool):
-        self.do_not_change_waveform = change_harmonic
         self.change_selected_power_spectrum_button(harmonic_index)
         self.harmonic_list[self.current_harmonic_index] = np.array(
             [self.mean.value, self.sd.value, self.harmonic_samples.value])
         self.current_harmonic_index = harmonic_index
         mean, sd, num_samples = self.harmonic_list[harmonic_index]
+        self.do_not_change_waveform = change_harmonic
         self.mean.value = int(mean)
         self.sd.value = float(sd)
         self.harmonic_samples.value = int(num_samples)
+        self.do_not_change_waveform = False
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
 
     def press_button_display_power_spectrum(self, instance: typing.Any):
@@ -104,7 +104,6 @@ class RootWave(BoxLayout):
 
     def add_power_spectrum_button(self) -> None:
         self.num_harmonics += 1
-        self.power_button_colors.append(self.selected_button_color)
         button = Button(
             text=str(self.num_harmonics),
             size_hint=(0.1, 1),

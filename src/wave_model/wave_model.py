@@ -1,6 +1,5 @@
 import threading
 import typing
-from statistics import NormalDist
 
 import numpy as np
 
@@ -27,17 +26,13 @@ class SoundModel:
         self.samples_per_harmonic = np.zeros(self.max_harmonics)
         self.lock = threading.Lock()
 
-    @staticmethod
-    def get_normal_distribution_points(mean: float, std: float, num_samples: int, num_points: int) -> typing.List[
-        typing.Tuple[float, float]]:
-        if std == 0:
-            y_vals = np.linspace(0, num_samples, num_points)
-            x_vals = np.repeat(mean, num_points)
-        else:
-            x_vals = np.linspace(mean - 4 * std, mean + 4 * std, num_points)
-            find_normal = np.vectorize(lambda x: num_samples * NormalDist(mu=mean, sigma=std).pdf(x))
-            y_vals = find_normal(x_vals)
-        return list(zip(x_vals, y_vals))
+    def get_power_spectrum_histogram(self, harmonic_index: int, num_bins: int) -> typing.List[typing.Tuple[float, float]]:
+        self.lock.acquire()
+        freqs = self.power_spectrum.harmonics[harmonic_index]
+        freqs = freqs[np.nonzero(freqs)]
+        histogram, bin_edges = np.histogram(freqs, num_bins)
+        self.lock.release()
+        return list(zip(bin_edges, histogram))
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         if points:

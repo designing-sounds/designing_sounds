@@ -64,7 +64,7 @@ class RootWave(BoxLayout):
         if not self.change_harmonic:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, mean, sd, int(num_samples))
             self.update_waveform()
-        self.power_plot.points = self.sound_model.get_normal_distribution_points(self.current_harmonic_index, self.power_spectrum_graph_samples)
+        self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index, self.power_spectrum_graph_samples)
         self.change_harmonic = False
 
     def update_waveform(self) -> None:

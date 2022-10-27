@@ -26,7 +26,7 @@ class SoundModel:
         self.samples_per_harmonic = np.zeros(self.max_harmonics)
         self.lock = threading.Lock()
 
-    def get_normal_distribution_points(self, harmonic_index: int, num_bins: int) -> typing.List[typing.Tuple[float, float]]:
+    def get_power_spectrum_histogram(self, harmonic_index: int, num_bins: int) -> typing.List[typing.Tuple[float, float]]:
         self.lock.acquire()
         freqs = self.power_spectrum.harmonics[harmonic_index]
         freqs = freqs[np.nonzero(freqs)]

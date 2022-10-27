@@ -26,7 +26,7 @@ class RootWave(BoxLayout):
         super(RootWave, self).__init__(**kwargs)
         self.max_samples_per_harmonic = int(self.harmonic_samples.max)
 
-        self.change_harmonic = False
+        self.do_not_change_waveform = False
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
@@ -61,11 +61,11 @@ class RootWave(BoxLayout):
         self.press_button_add(None)
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
-        if not self.change_harmonic:
+        if not self.do_not_change_waveform:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, mean, sd, int(num_samples))
             self.update_waveform()
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index, self.power_spectrum_graph_samples)
-        self.change_harmonic = False
+        self.do_not_change_waveform = False
 
     def update_waveform(self) -> None:
         inputted_points = self.waveform_graph.get_selected_points()
@@ -86,7 +86,7 @@ class RootWave(BoxLayout):
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
 
     def update_display_power_spectrum(self, harmonic_index: int, change_harmonic: bool):
-        self.change_harmonic = change_harmonic
+        self.do_not_change_waveform = change_harmonic
         self.harmonic_list[self.current_harmonic_index] = np.array(
             [self.mean.value, self.sd.value, self.harmonic_samples.value])
         self.current_harmonic_index = harmonic_index

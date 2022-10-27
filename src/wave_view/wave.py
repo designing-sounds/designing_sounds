@@ -85,16 +85,19 @@ class RootWave(BoxLayout):
             self.add_power_spectrum_button()
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
 
-    def press_button_display_power_spectrum(self, instance: typing.Any):
-        self.change_harmonic = True
-        self.harmonic_list[self.current_harmonic_index] = np.array([self.mean.value, self.sd.value, self.harmonic_samples.value])
-        harmonic_index = int(instance.text) - 1
+    def update_display_power_spectrum(self, harmonic_index: int, change_harmonic: bool):
+        self.change_harmonic = change_harmonic
+        self.harmonic_list[self.current_harmonic_index] = np.array(
+            [self.mean.value, self.sd.value, self.harmonic_samples.value])
         self.current_harmonic_index = harmonic_index
         mean, sd, num_samples = self.harmonic_list[harmonic_index]
         self.mean.value = int(mean)
         self.sd.value = float(sd)
         self.harmonic_samples.value = int(num_samples)
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
+
+    def press_button_display_power_spectrum(self, instance: typing.Any):
+        self.update_display_power_spectrum(int(instance.text) - 1, True)
 
     def add_power_spectrum_button(self) -> None:
         self.num_harmonics += 1
@@ -103,6 +106,7 @@ class RootWave(BoxLayout):
         self.power_buttons.append(button)
         self.ids.power_spectrum_buttons.add_widget(button)
         self.harmonic_list[self.num_harmonics - 1] = np.array([self.mean.max // 2, 1, self.harmonic_samples.max // 2])
+        self.update_display_power_spectrum(self.num_harmonics - 1, False)
 
 
 class WaveApp(App):

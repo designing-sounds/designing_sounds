@@ -96,6 +96,7 @@ class RootWave(BoxLayout):
         self.mean.value = int(mean)
         self.sd.value = float(sd)
         self.harmonic_samples.value = int(num_samples)
+        self.update_power_spectrum(mean, sd, num_samples)
         self.do_not_change_waveform = False
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
 

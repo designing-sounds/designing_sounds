@@ -2,6 +2,9 @@ from src.wave_model.wave_model import PowerSpectrum, SoundModel
 import numpy as np
 import unittest
 
+if __name__ == '__main__':
+    unittest.main()
+
 
 class TestPowerSpectrum(unittest.TestCase):
     def setUp(self):
@@ -29,7 +32,6 @@ class TestSoundModel(unittest.TestCase):
 
         np.testing.assert_allclose(vals, expected, self.tolerance)
 
-
     def test_model_chunk_sound(self):
         samples = self.max_samples_per_harmonic
         num_harmonics = self.max_harmonics
@@ -42,7 +44,3 @@ class TestSoundModel(unittest.TestCase):
         test = test.flatten()
         expected = self.sound_model.model_sound(sample_rate, 1, 0)
         np.testing.assert_allclose(expected, test, self.tolerance)
-
-
-if __name__ == '__main__':
-    unittest.main()

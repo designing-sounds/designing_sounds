@@ -51,7 +51,7 @@ class RootWave(BoxLayout):
 
         plot_color = [1, 1, 0, 1]
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
-        self.power_plot = BarPlot(color=plot_color, bar_width=4)
+        self.power_plot = BarPlot(color=plot_color)
 
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
@@ -61,10 +61,10 @@ class RootWave(BoxLayout):
         self.press_button_add(None)
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
-        self.power_plot.points = self.sound_model.get_normal_distribution_points(self.current_harmonic_index, self.power_spectrum_graph_samples)
         if not self.change_harmonic:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, mean, sd, int(num_samples))
             self.update_waveform()
+        self.power_plot.points = self.sound_model.get_normal_distribution_points(self.current_harmonic_index, self.power_spectrum_graph_samples)
         self.change_harmonic = False
 
     def update_waveform(self) -> None:
@@ -94,6 +94,7 @@ class RootWave(BoxLayout):
         self.mean.value = int(mean)
         self.sd.value = float(sd)
         self.harmonic_samples.value = int(num_samples)
+        # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
 
     def add_power_spectrum_button(self) -> None:
         self.num_harmonics += 1

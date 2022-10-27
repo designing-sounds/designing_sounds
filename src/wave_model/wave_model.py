@@ -1,6 +1,5 @@
 import threading
 import typing
-from statistics import NormalDist
 
 import numpy as np
 
@@ -31,11 +30,9 @@ class SoundModel:
         self.lock.acquire()
         freqs = self.power_spectrum.harmonics[harmonic_index]
         freqs = freqs[np.nonzero(freqs)]
-        print(freqs.size)
         histogram, bin_edges = np.histogram(freqs, num_bins)
         self.lock.release()
-        ret = list(zip(bin_edges, histogram))
-        return ret
+        return list(zip(bin_edges, histogram))
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         if points:

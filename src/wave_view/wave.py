@@ -41,8 +41,9 @@ class RootWave(BoxLayout):
                                             xmin=0, xmax=self.waveform_duration,
                                             ymin=-1.0, ymax=1.0,
                                             draw_border=True,
-                                            padding=0,
-                                            x_grid_label=True, y_grid_label=False)
+                                            x_grid_label=True, y_grid_label=True,
+                                            xlabel='Time', ylabel='Amplitude',
+                                            x_grid=True, y_grid=True, x_ticks_major=0.05, y_ticks_major=0.25)
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max,
                                           ymin=0, ymax=self.harmonic_samples.max,

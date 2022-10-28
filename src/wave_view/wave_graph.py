@@ -1,8 +1,10 @@
 import typing
+from typing import Tuple, Any
 
 from kivy.graphics import Color, Ellipse
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import Graph
+from kivy.input.motionevent import MotionEvent
 
 import numpy as np
 
@@ -17,20 +19,27 @@ class WaveformGraph(Graph):
         self.update = update
         self.current_point = None
         self.old_pos = 0
-        self.d = 15
+        self.d = 10
 
-    def on_touch_down(self, touch) -> bool:
+    def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
         if self.collide_plot(a_x, a_y):
-
             ellipse = self.touching_point((touch.x, touch.y))
-
             if ellipse:
+                if touch.button == 'right':
+                    to_remove = self.graph_canvas.canvas.children.index(ellipse)
+                    self.graph_canvas.canvas.children.pop(to_remove)
+                    self.graph_canvas.canvas.children.pop(to_remove - 1)
+                    self.graph_canvas.canvas.children.pop(to_remove - 2)
+                    self.__selected_points.remove(self.convert_point(ellipse.pos))
+                    self.update()
+                    return True
                 self.current_point = ellipse
-                self.old_pos = self.convert_point()
+                self.old_pos = self.convert_point(self.current_point.pos)
                 touch.grab(self)
                 return True
-            color = (1, 1, 1)
+
+            color = (0, 0, 1)
 
             pos = (touch.x - self.d / 2, touch.y - self.d / 2)
 
@@ -43,7 +52,7 @@ class WaveformGraph(Graph):
 
         return super(WaveformGraph, self).on_touch_down(touch)
 
-    def on_touch_move(self, touch) -> bool:
+    def on_touch_move(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):
@@ -51,11 +60,11 @@ class WaveformGraph(Graph):
                 self.current_point.pos = (touch.x - r, touch.y - r)
             return True
 
-    def on_touch_up(self, touch) -> bool:
+    def on_touch_up(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
             self.__selected_points.remove(self.old_pos)
-            self.__selected_points.append(self.convert_point())
+            self.__selected_points.append(self.convert_point(self.current_point.pos))
             self.update()
         return super(WaveformGraph, self).on_touch_up(touch)
 
@@ -74,9 +83,9 @@ class WaveformGraph(Graph):
         exp_x, exp_y = ellipse.pos
         return np.sqrt(np.power(exp_x - x, 2) + np.power(exp_y - y, 2)) < (ellipse.size[0] / 2)
 
-    def convert_point(self) -> typing.Tuple:
+    def convert_point(self, point: typing.Tuple[float, float]) -> Tuple[Any, ...]:
         r = self.d / 2
-        e_x, e_y = (self.current_point.pos[0] + r, self.current_point.pos[1] + r)
+        e_x, e_y = (point[0] + r, point[1] + r)
         a_x, a_y = self.to_widget(e_x, e_y, relative=True)
         return tuple(map(lambda x: round(x, 6), self.to_data(a_x, a_y)))
 

@@ -41,6 +41,9 @@ class SoundModel:
             self.amps, _, _, _ = np.linalg.lstsq(self.calculate_sins(x), y * self.max_harmonics * self.max_samples_per_harmonic, rcond=None)
             self.amps = np.asarray(self.amps, dtype=np.float32)
             self.lock.release()
+        else:
+            self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics),
+                                   dtype=np.float32)
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int) -> None:
         self.lock.acquire()

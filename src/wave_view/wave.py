@@ -1,3 +1,4 @@
+import itertools
 import typing
 
 from kivy.app import App
@@ -33,6 +34,7 @@ class RootWave(BoxLayout):
         self.play.bind(on_press=self.press_button_play)
         self.clear.bind(on_press=self.press_button_clear)
         self.add.bind(on_press=self.press_button_add)
+        self.power_spectrum.bind(on_press=self.press_button_all_power_spectrum)
 
         border_color = [0, 1, 1, 1]
 
@@ -66,7 +68,8 @@ class RootWave(BoxLayout):
         if not self.do_not_change_waveform:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, int(mean), sd, int(num_samples))
             self.update_waveform()
-        self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index, self.power_spectrum_graph_samples)
+        self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
+                                                                               self.power_spectrum_graph_samples)
 
     def update_waveform(self) -> None:
         inputted_points = self.waveform_graph.get_selected_points()
@@ -85,6 +88,13 @@ class RootWave(BoxLayout):
         if self.num_harmonics < self.max_harmonics:
             self.add_power_spectrum_button()
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
+
+    def press_button_all_power_spectrum(self, instance: typing.Any) -> None:
+        self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
+        plots = [self.sound_model.get_power_spectrum_histogram(i, self.power_spectrum_graph_samples) for i in
+                 range(self.power_spectrum_graph_samples)]
+        power_spectrum_plot = itertools.chain(*plots)
+        self.power_plot.points = power_spectrum_plot
 
     def update_display_power_spectrum(self, harmonic_index: int, change_harmonic: bool):
         self.change_selected_power_spectrum_button(harmonic_index)

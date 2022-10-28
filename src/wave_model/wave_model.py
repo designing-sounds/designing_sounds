@@ -30,7 +30,15 @@ class SoundModel:
         self.lock.acquire()
         freqs = self.power_spectrum.harmonics[harmonic_index]
         freqs = freqs[np.nonzero(freqs)]
-        histogram, bin_edges = np.histogram(freqs, num_bins)
+        histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, 1000))
+        self.lock.release()
+        return list(zip(bin_edges, histogram))
+
+    def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
+        self.lock.acquire()
+        freqs = self.power_spectrum.harmonics.flatten()
+        freqs = freqs[np.nonzero(freqs)]
+        histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, 1000))
         self.lock.release()
         return list(zip(bin_edges, histogram))
 

@@ -1,3 +1,4 @@
+import itertools
 import typing
 
 from kivy.app import App
@@ -14,7 +15,7 @@ import numpy as np
 class RootWave(BoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
-    power_spectrum_graph_samples = 10
+    power_spectrum_graph_samples = 500
     waveform_duration = 1
     chunk_duration = 0.1
 
@@ -33,6 +34,7 @@ class RootWave(BoxLayout):
         self.play.bind(on_press=self.press_button_play)
         self.clear.bind(on_press=self.press_button_clear)
         self.add.bind(on_press=self.press_button_add)
+        self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
 
         border_color = [0, 1, 1, 1]
 
@@ -48,7 +50,7 @@ class RootWave(BoxLayout):
                                             x_grid=True, y_grid=True, x_ticks_major=0.05, y_ticks_major=0.25)
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max,
-                                          ymin=0, ymax=self.harmonic_samples.max,
+                                          ymin=0, ymax=20,
                                           draw_border=True)
 
         self.ids.modulation.add_widget(self.waveform_graph)
@@ -71,7 +73,9 @@ class RootWave(BoxLayout):
         if not self.do_not_change_waveform:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, int(mean), sd, int(num_samples))
             self.update_waveform()
-        self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index, self.power_spectrum_graph_samples)
+        self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
+                                                                               self.power_spectrum_graph_samples)
+        self.power_spectrum_graph.ymax = int(max(self.power_plot.points, key=lambda x: x[1])[1])
 
     def update_waveform(self) -> None:
         inputted_points = self.waveform_graph.get_selected_points()
@@ -90,6 +94,13 @@ class RootWave(BoxLayout):
         if self.num_harmonics < self.max_harmonics:
             self.add_power_spectrum_button()
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
+
+    def press_button_all_power_spectrum(self, instance: typing.Any) -> None:
+        self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
+        self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()
+        self.power_spectrum_graph.ymax = int(max(self.power_plot.points, key=lambda x: x[1])[1])
+        self.all_power_spectrums.background_color = self.selected_button_color
+
 
     def update_display_power_spectrum(self, harmonic_index: int, change_harmonic: bool):
         self.change_selected_power_spectrum_button(harmonic_index)
@@ -122,6 +133,7 @@ class RootWave(BoxLayout):
         self.update_display_power_spectrum(self.num_harmonics - 1, False)
 
     def change_selected_power_spectrum_button(self, new_selection: int):
+        self.all_power_spectrums.background_color = self.unselected_button_color
         self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
         self.power_buttons[new_selection].background_color = self.selected_button_color
 

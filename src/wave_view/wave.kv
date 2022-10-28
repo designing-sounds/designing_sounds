@@ -2,6 +2,7 @@
     clear: clear_button
     play: play_button
     add: add_button
+    all_power_spectrums: all_power_spectrum_button
     sd: sd
     mean: mean
     harmonic_samples: samples
@@ -50,7 +51,7 @@
                         orientation: 'vertical'
 
                         Label:
-                            text: 'SD: ' + str(round(float(sd.value), 1))
+                            text: 'Standard Deviation: ' + str(round(float(sd.value), 1))
                         Slider:
                             id: sd
                             value: 1
@@ -82,13 +83,24 @@
                             max: 100
                             step: 1
                             on_value: root.update_power_spectrum(mean.value, sd.value, samples.value)
+
                     BoxLayout:
-                        size_hint: 1, 0.4
-                        orientation: 'vertical'
-                        padding: 20
-                        Button:
-                            id: add_button
-                            text: 'Add Harmonic'
+                        orientation: 'horizontal'
+
+                        BoxLayout:
+                            size_hint: 0.5, 1
+                            orientation: 'vertical'
+                            padding: 20
+                            Button:
+                                id: add_button
+                                text: 'Add Harmonic'
+                        BoxLayout:
+                            size_hint: 0.5, 1
+                            orientation: 'vertical'
+                            padding: 20
+                            Button:
+                                id: all_power_spectrum_button
+                                text: 'Display power spectrum'
 
 
             BoxLayout:

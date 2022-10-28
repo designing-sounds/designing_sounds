@@ -15,7 +15,11 @@ class WaveformGraph(Graph):
         self.update = update
 
     def on_touch_down(self, touch) -> bool:
-        if self.collide_point(touch.x, touch.y):
+        x, y = self.pos
+        pad_x, pad_y = self.view_pos
+        pad = self.padding
+
+        if pad_x <= touch.x - x <= self.width - pad and pad_y <= touch.y - y <= self.height - pad:
             color = (1, 1, 1)
             d = 10
             pos = (touch.x - d / 2, touch.y - d / 2)

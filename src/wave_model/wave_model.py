@@ -59,7 +59,7 @@ class SoundModel:
 
     def calculate_sins(self, x):
         freqs = self.power_spectrum.harmonics.flatten()
-        sins = np.sin((x[:, None] - self.phases) * 2 * np.pi * freqs)
+        sins = np.sin((x[:, None]) * 2 * np.pi * freqs)
         return sins
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:

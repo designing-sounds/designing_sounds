@@ -1,6 +1,7 @@
 import typing
 
 from kivy.app import App
+from kivy.properties import NumericProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy_garden.graph import LinePlot, Graph, BarPlot
@@ -12,6 +13,7 @@ import numpy as np
 
 
 class RootWave(BoxLayout):
+    zoom = NumericProperty(1)
     sample_rate = 44100
     graph_sample_rate = 2500
     power_spectrum_graph_samples = 10
@@ -25,6 +27,7 @@ class RootWave(BoxLayout):
     def __init__(self, **kwargs: typing.Any):
         super(RootWave, self).__init__(**kwargs)
         self.max_samples_per_harmonic = int(self.harmonic_samples.max)
+        self.zoom = 1
 
         self.do_not_change_waveform = False
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
@@ -119,6 +122,15 @@ class RootWave(BoxLayout):
     def change_selected_power_spectrum_button(self, new_selection: int):
         self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
         self.power_buttons[new_selection].background_color = self.selected_button_color
+
+    def update_zoom(self, value):
+        if value == '+' and self.zoom < 8:
+            self.zoom *= 2
+            self.waveform_graph.x_ticks_major /= 2
+        elif value == '-' and self.zoom > 1:
+            self.zoom /= 2
+            self.waveform_graph.x_ticks_major *= 2
+        self.waveform_graph.translate_points(self.zoom)
 
 
 class WaveApp(App):

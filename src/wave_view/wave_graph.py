@@ -1,8 +1,7 @@
 import typing
 
-from kivy.graphics import Color, Ellipse, Rectangle
+from kivy.graphics import Color, Ellipse
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.scatterlayout import ScatterLayout
 from kivy_garden.graph import Graph
 
 import numpy as np
@@ -28,10 +27,7 @@ class WaveformGraph(Graph):
 
             if ellipse:
                 self.current_point = ellipse
-                r = self.d / 2
-                e_x, e_y = (self.current_point.pos[0] + r, self.current_point.pos[1] + r)
-                a_x, a_y = self.to_widget(e_x, e_y, relative=True)
-                self.old_pos = list(map(lambda x: round(x, 6), self.to_data(a_x, a_y)))
+                self.old_pos = self.convert_point()
                 touch.grab(self)
                 return True
             color = (1, 1, 1)
@@ -42,8 +38,7 @@ class WaveformGraph(Graph):
                 Color(*color, mode='hsv')
                 Ellipse(source='src/20221028_144310.jpg', pos=pos, size=(self.d, self.d))
 
-            self.__selected_points.append(list(map(lambda x: round(x, 6), self.to_data(a_x, a_y))))
-
+            self.__selected_points.append(tuple(map(lambda x: round(x, 6), self.to_data(a_x, a_y))))
             self.update()
 
         return super(WaveformGraph, self).on_touch_down(touch)
@@ -59,29 +54,31 @@ class WaveformGraph(Graph):
     def on_touch_up(self, touch) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
-            print(self.old_pos)
             self.__selected_points.remove(self.old_pos)
-            r = self.d / 2
-            e_x, e_y = (self.current_point.pos[0] + r, self.current_point.pos[1] + r)
-            a_x, a_y = self.to_widget(e_x, e_y, relative=True)
-            self.__selected_points.append(list(map(lambda x: round(x, 6), self.to_data(a_x, a_y))))
+            self.__selected_points.append(self.convert_point())
             self.update()
         return super(WaveformGraph, self).on_touch_up(touch)
 
-    def touching_point(self, pos: typing.Tuple[int, int]) -> typing.Optional[Ellipse]:
+    def touching_point(self, pos: typing.Tuple[float, float]) -> typing.Optional[Ellipse]:
         points = self.graph_canvas.canvas.children[2::3]
-        print(points)
         result = None
         for point in points:
-            if self.is_touching_point(point, pos):
+            if self.is_inside_ellipse(point, pos):
                 result = point
         return result
 
-    def is_touching_point(self, ellipse: Ellipse, pos: typing.Tuple[int, int]) -> bool:
+    @staticmethod
+    def is_inside_ellipse(ellipse: Ellipse, pos: typing.Tuple[float, float]) -> bool:
         r = ellipse.size[0] / 2
         x, y = (pos[0] - r, pos[1] - r)
         exp_x, exp_y = ellipse.pos
         return np.sqrt(np.power(exp_x - x, 2) + np.power(exp_y - y, 2)) < (ellipse.size[0] / 2)
+
+    def convert_point(self) -> typing.Tuple:
+        r = self.d / 2
+        e_x, e_y = (self.current_point.pos[0] + r, self.current_point.pos[1] + r)
+        a_x, a_y = self.to_widget(e_x, e_y, relative=True)
+        return tuple(map(lambda x: round(x, 6), self.to_data(a_x, a_y)))
 
     def get_selected_points(self) -> typing.List[typing.Tuple[int, int]]:
         return self.__selected_points

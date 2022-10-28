@@ -40,7 +40,9 @@ class RootWave(BoxLayout):
                                             border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration,
                                             ymin=-1.0, ymax=1.0,
-                                            draw_border=True, padding=0, x_grid_label=True, y_grid_label=False)
+                                            draw_border=True,
+                                            padding=0,
+                                            x_grid_label=True, y_grid_label=False)
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max,
                                           ymin=0, ymax=self.harmonic_samples.max,
@@ -91,12 +93,12 @@ class RootWave(BoxLayout):
         self.harmonic_list[self.current_harmonic_index] = np.array(
             [self.mean.value, self.sd.value, self.harmonic_samples.value])
         self.current_harmonic_index = harmonic_index
-        mean, sd, num_samples = self.harmonic_list[harmonic_index]
+        mean, sd, harmonic_samples = self.harmonic_list[harmonic_index]
         self.do_not_change_waveform = change_harmonic
         self.mean.value = int(mean)
         self.sd.value = float(sd)
-        self.harmonic_samples.value = int(num_samples)
-        self.update_power_spectrum(mean, sd, num_samples)
+        self.harmonic_samples.value = int(harmonic_samples)
+        self.update_power_spectrum(mean, sd, harmonic_samples)
         self.do_not_change_waveform = False
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
 

@@ -37,9 +37,11 @@ class RootWave(BoxLayout):
         border_color = [0, 1, 1, 1]
 
         self.waveform_graph = WaveformGraph(update=self.update_waveform,
+                                            size_hint=(1,1),
                                             border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration,
                                             ymin=-1.0, ymax=1.0,
+                                            padding=10,
                                             draw_border=True,
                                             x_grid_label=True, y_grid_label=True,
                                             xlabel='Time', ylabel='Amplitude',

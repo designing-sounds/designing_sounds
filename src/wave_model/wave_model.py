@@ -30,7 +30,15 @@ class SoundModel:
         self.lock.acquire()
         freqs = self.power_spectrum.harmonics[harmonic_index]
         freqs = freqs[np.nonzero(freqs)]
-        histogram, bin_edges = np.histogram(freqs, num_bins)
+        histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, 1000))
+        self.lock.release()
+        return list(zip(bin_edges, histogram))
+
+    def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
+        self.lock.acquire()
+        freqs = self.power_spectrum.harmonics.flatten()
+        freqs = freqs[np.nonzero(freqs)]
+        histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, 1000))
         self.lock.release()
         return list(zip(bin_edges, histogram))
 
@@ -41,6 +49,9 @@ class SoundModel:
             self.amps, _, _, _ = np.linalg.lstsq(self.calculate_sins(x), y * self.max_harmonics * self.max_samples_per_harmonic, rcond=None)
             self.amps = np.asarray(self.amps, dtype=np.float32)
             self.lock.release()
+        else:
+            self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics),
+                                   dtype=np.float32)
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int) -> None:
         self.lock.acquire()
@@ -51,7 +62,7 @@ class SoundModel:
 
     def calculate_sins(self, x):
         freqs = self.power_spectrum.harmonics.flatten()
-        sins = np.sin((x[:, None] - self.phases) * 2 * np.pi * freqs)
+        sins = np.sin((x[:, None]) * 2 * np.pi * freqs)
         return sins
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:

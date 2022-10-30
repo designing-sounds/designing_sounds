@@ -1,6 +1,7 @@
 import typing
 
 from kivy.app import App
+from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy_garden.graph import LinePlot, Graph, BarPlot
@@ -9,6 +10,8 @@ from src.wave_model.wave_model import SoundModel
 from src.wave_view.wave_sound import WaveSound
 from src.wave_view.wave_graph import WaveformGraph
 import numpy as np
+
+Builder.load_file('wave.kv')
 
 
 class RootWave(BoxLayout):

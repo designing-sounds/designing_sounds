@@ -133,8 +133,9 @@
                         id: panning
                         value: 0
                         min: 0
-                        max: 10
+                        max: (10 / max(zoom.value, 1)) * (zoom.value - 1)
                         step: 0.1
+                        on_value: root.update_panning(zoom.value, panning.value)
 
                 BoxLayout:
                     size_hint: 1, 0.3

@@ -140,6 +140,11 @@ class RootWave(BoxLayout):
         self.waveform_graph.xmax = self.waveform_duration / zoom
         self.update_waveform()
 
+    def update_panning(self, zoom: int, pan: float):
+        self.waveform_graph.xmin = round((pan / 10) * self.waveform_duration, 3)
+        self.waveform_graph.xmax = self.waveform_graph.xmin + self.waveform_duration / zoom
+        self.update_waveform()
+
 
 class WaveApp(App):
     def build(self) -> RootWave:

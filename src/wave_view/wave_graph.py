@@ -47,7 +47,7 @@ class WaveformGraph(Graph):
                 Color(*color, mode='hsv')
                 Ellipse(source='src/20221028_144310.jpg', pos=pos, size=(self.d, self.d))
 
-            self.__selected_points.append(tuple(map(lambda x: round(x, 6), self.to_data(a_x, a_y))))
+            self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
             self.update()
 
         return super(WaveformGraph, self).on_touch_down(touch)
@@ -57,15 +57,17 @@ class WaveformGraph(Graph):
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):
                 r = self.d / 2
+                self.__selected_points.remove(self.old_pos)
                 self.current_point.pos = (touch.x - r, touch.y - r)
+                self.old_pos = self.convert_point(self.current_point.pos)
+                self.__selected_points.append(self.convert_point(self.current_point.pos))
+                self.update()
             return True
 
     def on_touch_up(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
-            self.__selected_points.remove(self.old_pos)
-            self.__selected_points.append(self.convert_point(self.current_point.pos))
-            self.update()
+
         return super(WaveformGraph, self).on_touch_up(touch)
 
     def touching_point(self, pos: typing.Tuple[float, float]) -> typing.Optional[Ellipse]:
@@ -87,7 +89,7 @@ class WaveformGraph(Graph):
         r = self.d / 2
         e_x, e_y = (point[0] + r, point[1] + r)
         a_x, a_y = self.to_widget(e_x, e_y, relative=True)
-        return tuple(map(lambda x: round(x, 6), self.to_data(a_x, a_y)))
+        return tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y)))
 
     def get_selected_points(self) -> typing.List[typing.Tuple[int, int]]:
         return self.__selected_points

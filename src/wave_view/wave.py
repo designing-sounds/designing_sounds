@@ -5,7 +5,7 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy_garden.graph import LinePlot, Graph, BarPlot
-
+from kivy.uix.slider import Slider
 from src.wave_model.wave_model import SoundModel
 from src.wave_view.wave_sound import WaveSound
 from src.wave_view.wave_graph import WaveformGraph
@@ -37,7 +37,6 @@ class RootWave(BoxLayout):
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
 
         border_color = [0, 1, 1, 1]
-
         self.waveform_graph = WaveformGraph(update=self.update_waveform,
                                             size_hint=(1, 1),
                                             border_color=border_color,
@@ -135,6 +134,11 @@ class RootWave(BoxLayout):
         self.all_power_spectrums.background_color = self.unselected_button_color
         self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
         self.power_buttons[new_selection].background_color = self.selected_button_color
+
+    def update_zoom(self, zoom: int):
+        self.waveform_graph.x_ticks_major = round(0.05 / zoom, 3)
+        self.waveform_graph.xmax = self.waveform_duration / zoom
+        self.update_waveform()
 
 
 class WaveApp(App):

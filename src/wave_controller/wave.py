@@ -7,11 +7,11 @@ from kivy.uix.button import Button
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 
 from src.wave_model.wave_model import SoundModel
-from src.wave_view.wave_sound import WaveSound
-from src.wave_view.wave_graph import WaveformGraph
+from src.wave_controller.wave_sound import WaveSound
+from src.wave_controller.wave_graph import WaveformGraph
 import numpy as np
 
-Builder.load_file('wave.kv')
+Builder.load_file('src/wave_view/wave.kv')
 
 
 class RootWave(BoxLayout):

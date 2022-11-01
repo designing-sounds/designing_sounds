@@ -28,9 +28,9 @@ jobs:
             ./build_mac.sh
             zip -r sounds.zip sounds.dmg
             ls
- #     - store_artifacts:
-  #        path: build/mac/dist/sounds.dmg
-  #        destination: cli-mac  
+      - store_artifacts:
+          path: build/mac/dist/sounds.zip
+          destination: sounds_mac.zip  
   
   publish-github-release:
     docker:

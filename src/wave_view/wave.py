@@ -1,4 +1,3 @@
-import itertools
 import typing
 
 from kivy.app import App
@@ -103,7 +102,6 @@ class RootWave(BoxLayout):
         self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()
         self.power_spectrum_graph.ymax = int(max(self.power_plot.points, key=lambda x: x[1])[1])
         self.all_power_spectrums.background_color = self.selected_button_color
-
 
     def update_display_power_spectrum(self, harmonic_index: int, change_harmonic: bool):
         self.change_selected_power_spectrum_button(harmonic_index)

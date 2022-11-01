@@ -45,7 +45,7 @@ class WaveformGraph(Graph):
 
             with self.graph_canvas.canvas:
                 Color(*color, mode='hsv')
-                Ellipse(source='src/20221028_144310.jpg', pos=pos, size=(self.d, self.d))
+                Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.d, self.d))
 
             self.__selected_points.append(tuple(map(lambda x: round(x, 6), self.to_data(a_x, a_y))))
             self.update()

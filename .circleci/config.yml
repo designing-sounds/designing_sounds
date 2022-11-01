@@ -26,24 +26,8 @@ jobs:
             sudo pip3 install pyobjc
             cd build/mac
             ./build_mac.sh
-            ls
- #     - store_artifacts:
-  #        path: build/mac/dist/sounds.dmg
-  #        destination: cli-mac  
-  
-  publish-github-release:
-    docker:
-      - image: cibuilds/github:0.10
-    steps:
-      - attach_workspace:
-          at: ./artifacts
-      - run:
-          name: "Publish Release on GitHub"
-          command: |
-            cd build/mac/
-            ls
             VERSION=v2.0.0
-            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete "${VERSION}" ./artifacts/
+            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete "${VERSION}" ./sounds.dmg
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows

@@ -28,7 +28,7 @@ jobs:
             ./build_mac.sh
             ls
       - store_artifacts:
-          path: dist/dfm
+          path: build/mac/dist/sounds.dmg
           destination: cli-mac  
 
 # Invoke jobs via workflows

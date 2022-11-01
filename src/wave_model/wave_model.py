@@ -2,6 +2,7 @@ import threading
 import typing
 
 import numpy as np
+import gpflow
 
 
 class PowerSpectrum:
@@ -25,6 +26,14 @@ class SoundModel:
         self.power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
         self.samples_per_harmonic = np.zeros(self.max_harmonics)
         self.lock = threading.Lock()
+        kern = gpflow.kernels.Periodic(base_kernel=gpflow.kernels.SquaredExponential())
+        kern.period.assign(0.02)
+        kern.base_kernel.lengthscales.assign(0.5)
+        sqexp = gpflow.kernels.SquaredExponential()
+        sqexp.lengthscales.assign(7.0)
+        self.kern = kern * sqexp
+        self.m = None
+        self.interpolate_points([])
 
     def get_power_spectrum_histogram(self, harmonic_index: int, num_bins: int) -> typing.List[typing.Tuple[float, float]]:
         self.lock.acquire()
@@ -43,15 +52,14 @@ class SoundModel:
         return list(zip(bin_edges, histogram))
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
-        if points:
-            x, y = (np.array([i for i, _ in points]), np.array([j for _, j in points]))
-            self.lock.acquire()
-            self.amps, _, _, _ = np.linalg.lstsq(self.calculate_sins(x), y * self.max_harmonics * self.max_samples_per_harmonic, rcond=None)
-            self.amps = np.asarray(self.amps, dtype=np.float32)
-            self.lock.release()
-        else:
-            self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics),
-                                   dtype=np.float32)
+        if not points:
+            points = [(0., 0.)]
+
+        X, Y = [x for (x, _) in points], [y for (_, y) in points]
+        X, Y = np.array(X)[:, None], np.array(Y)[:, None]
+        m = gpflow.models.GPR((X, Y), self.kern)
+        m.likelihood.variance.assign(1e-2)
+        self.m = m
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int) -> None:
         self.lock.acquire()
@@ -66,11 +74,12 @@ class SoundModel:
         return sins
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
-        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
-                        dtype=np.float32)
+        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False)
 
         self.lock.acquire()
-        sound = (self.calculate_sins(x) @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
+        predict_stats = self.m.predict_f(x[:, None])
+        sound, _ = [d.numpy() for d in predict_stats]
+        sound = np.asarray(sound.flatten(), dtype=np.float32)
         self.lock.release()
 
         return sound

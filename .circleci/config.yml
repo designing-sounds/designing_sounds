@@ -50,5 +50,8 @@ workflows:
   create-cli:
     jobs:
       - create-cli-mac
-      - publish-github-release
+      - publish-github-release:
+          requires:
+            - create-cli-mac
+
        # filter on main

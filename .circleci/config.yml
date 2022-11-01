@@ -13,6 +13,8 @@ jobs:
     resource_class: medium
     steps:
       - checkout
+      - python/install-packages:
+          pkg-manager: pip
       - run:
           name: Build Mac CLI
           command: |

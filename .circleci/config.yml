@@ -27,9 +27,9 @@ jobs:
             cd build/mac
             ./build_mac.sh
             ls
-      - store_artifacts:
-          path: build/mac/dist/sounds.dmg
-          destination: cli-mac  
+ #     - store_artifacts:
+  #        path: build/mac/dist/sounds.dmg
+  #        destination: cli-mac  
   
   publish-github-release:
     docker:

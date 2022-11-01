@@ -43,12 +43,12 @@ jobs:
     steps:
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
-          at: workspace
+          at: .
       - run:
           name: "Publish Release on GitHub"
           command: |
             ls
-            cd workspace/mac
+            cd build/mac
             ls
             VERSION=v2.0.0
             ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete "${VERSION}" ./sounds.zip

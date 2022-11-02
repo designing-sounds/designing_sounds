@@ -80,13 +80,13 @@ class SoundModel:
         # sound, _ = [d.numpy() for d in predict_stats]
         # sound = np.asarray(sound.flatten(), dtype=np.float32)
         sound = self.matrix_covariance(x, self.X) @ inv(self.matrix_covariance(self.X, self.X)) @ self.Y.T
-
+        sound = np.asarray(sound, dtype=np.float32)
         self.lock.release()
 
         return sound
 
-    def covariance(self, x1, x2):
-        return np.exp(-0.5 * np.square(x1 - x2))
+    def covariance(self, x1, x2, period, lengthscale):
+        return np.exp(-0.5 * np.square(np.sin(np.pi * (x1 - x2) / period)) / lengthscale)
 
     def matrix_covariance(self, x1, x2):
         n = len(x1)
@@ -94,5 +94,5 @@ class SoundModel:
         res = np.zeros((n, m))
         for i in range(n):
             for j in range(m):
-                res[i, j] = self.covariance(x1[i], x2[j])
+                res[i, j] = self.covariance(x1[i], x2[j], 1 / 440, 1)
         return res

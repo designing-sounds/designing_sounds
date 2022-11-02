@@ -1,4 +1,4 @@
-import itertools
+import threading
 import typing
 
 from kivy.app import App
@@ -10,6 +10,9 @@ from src.wave_model.wave_model import SoundModel
 from src.wave_view.wave_sound import WaveSound
 from src.wave_view.wave_graph import WaveformGraph
 import numpy as np
+
+
+# from src.utils.DoubleTapButton import DoubleTapButton
 
 
 class RootWave(BoxLayout):
@@ -68,6 +71,7 @@ class RootWave(BoxLayout):
         self.unselected_button_color = [1, 1, 1, 1]
         self.harmonic_list = np.zeros((self.max_harmonics, 3))
         self.press_button_add(None)
+        self.lock = threading.Lock()
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
         if not self.do_not_change_waveform:
@@ -115,8 +119,8 @@ class RootWave(BoxLayout):
         self.do_not_change_waveform = False
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
 
-    def press_button_display_power_spectrum(self, instance: typing.Any):
-        self.update_display_power_spectrum(int(instance.text) - 1, True)
+    def press_button_display_power_spectrum(self, button: Button):
+        self.update_display_power_spectrum(int(button.text) - 1, True)
 
     def add_power_spectrum_button(self) -> None:
         self.num_harmonics += 1
@@ -124,8 +128,10 @@ class RootWave(BoxLayout):
             text=str(self.num_harmonics),
             size_hint=(0.1, 1),
             background_color=self.selected_button_color,
-            on_press=self.press_button_display_power_spectrum
+            on_press=self.press_button_display_power_spectrum,
+            on_release=self.remove_power_spectrum
         )
+        button.root_wave = self
         self.power_buttons.append(button)
         self.ids.power_spectrum_buttons.add_widget(button)
         self.harmonic_list[self.num_harmonics - 1] = np.array([self.mean.max // 2, 1, self.harmonic_samples.max // 2])
@@ -136,7 +142,88 @@ class RootWave(BoxLayout):
         self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
         self.power_buttons[new_selection].background_color = self.selected_button_color
 
+    def remove_power_spectrum(self, button: Button):
+        # Ensure at least one power spectrum remains
+        if len(self.power_buttons) == 1:
+            return
+
+        removal_index = int(button.text) - 1
+
+        removal_of_last_graph = self.current_harmonic_index == len(self.power_buttons) - 1
+
+        button_to_remove = self.power_buttons[removal_index]
+
+        index_to_remove = self.current_harmonic_index + 1
+
+        start_removal = self.current_harmonic_index + 1
+        end_removal = len(self.power_buttons)
+
+        for i in range(start_removal, end_removal):
+            text = str(i)
+            new_button = Button(
+                text=text,
+                size_hint=(0.1, 1),
+                background_color=self.selected_button_color,
+                on_press=self.press_button_display_power_spectrum,
+                on_release=self.remove_power_spectrum
+            )
+            self.power_buttons.append(new_button)
+            self.ids.power_spectrum_buttons.add_widget(new_button)
+            self.power_buttons[len(self.power_buttons) - 1].background_color = self.unselected_button_color
+
+        self.num_harmonics -= 1
+
+        self.power_buttons.remove(button_to_remove)
+        self.ids.power_spectrum_buttons.remove_widget(button_to_remove)
+
+        for i in range(start_removal, end_removal):
+            button = self.power_buttons[self.current_harmonic_index]
+            self.power_buttons.remove(button)
+            self.ids.power_spectrum_buttons.remove_widget(button)
+
+        self.harmonic_list[self.current_harmonic_index] = np.array((0, 0, 0))
+
+        for i in range(start_removal, end_removal):
+            self.harmonic_list[i - 1] = self.harmonic_list[i]
+
+        self.harmonic_list[end_removal - 1] = np.array((0, 0, 0))
+
+        self.sound_model.power_spectrum.update_harmonic(self.current_harmonic_index, 0, 0, 0)
+
+        for i in range(start_removal, end_removal):
+            (mean, sd, num_samples) = self.harmonic_list[i]
+            self.sound_model.power_spectrum.update_harmonic(i - 1, mean, sd, int(num_samples))
+
+        self.sound_model.power_spectrum.update_harmonic(end_removal, 0, 0, 0)
+
+        if self.current_harmonic_index == len(self.power_buttons):
+            self.current_harmonic_index = len(self.power_buttons) - 1
+        self.power_buttons[self.current_harmonic_index].background_color = self.selected_button_color
+
+        (mean, sd, num_samples) = self.harmonic_list[start_removal - 1]
+        if removal_of_last_graph:
+            (mean, sd, num_samples) = self.harmonic_list[start_removal - 2]
+
+        self.do_not_change_waveform = False
+        self.update_power_spectrum(mean, sd, num_samples)
+
 
 class WaveApp(App):
     def build(self) -> RootWave:
         return RootWave()
+
+
+class DoubleTapButton(Button):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.root_wave = None
+
+    def trigger_action(self, duration=0.1):
+        return
+
+    def on_touch_down(self, touch):
+        print(self.text)
+        if touch.is_double_tap:
+            self.root_wave.remove_power_spectrum()
+        else:
+            self.root_wave.press_button_display_power_spectrum(self.text)

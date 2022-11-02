@@ -9,12 +9,10 @@ from numpy.linalg import inv
 class PowerSpectrum:
     def __init__(self, max_harmonics: int, max_samples_per_harmonic: int):
         self.max_samples_per_harmonic = max_samples_per_harmonic
-        self.harmonics = np.zeros((max_harmonics, self.max_samples_per_harmonic), dtype=np.float32)
+        self.harmonics = np.zeros((max_harmonics, 1), dtype=np.float32)
 
     def update_harmonic(self, harmonic_index, mean: int, std: float, num_harmonic_samples: int) -> None:
-        freqs = np.random.randn(num_harmonic_samples) * std + mean
-        self.harmonics[harmonic_index] = np.zeros(self.max_samples_per_harmonic)
-        self.harmonics[harmonic_index, :num_harmonic_samples] = freqs
+        self.harmonics[harmonic_index] = mean
 
 
 class SoundModel:
@@ -67,7 +65,7 @@ class SoundModel:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False)
 
         self.lock.acquire()
-        sound = self.matrix_covariance(x, self.X, 440) @ inv(self.matrix_covariance(self.X, self.X, 440)) @ self.Y.T
+        sound = self.matrix_covariance(x, self.X) @ inv(self.matrix_covariance(self.X, self.X)) @ self.Y.T
         sound = np.asarray(sound, dtype=np.float32)
         self.lock.release()
 
@@ -76,11 +74,14 @@ class SoundModel:
     def covariance(self, x1, x2, period, lengthscale):
         return np.exp(-0.5 * np.square(np.sin(np.pi * (x1 - x2) / period)) / lengthscale)
 
-    def matrix_covariance(self, x1, x2, freq):
+    def matrix_covariance(self, x1, x2):
         n = len(x1)
         m = len(x2)
         res = np.zeros((n, m))
         for i in range(n):
             for j in range(m):
-                res[i, j] = self.covariance(x1[i], x2[j], 1 / freq, 1)
+                res[i, j] = 0
+                for harmonic in self.power_spectrum.harmonics:
+                    for freq in harmonic:
+                        res[i, j] += self.covariance(x1[i], x2[j], 1 / freq, 1)
         return res

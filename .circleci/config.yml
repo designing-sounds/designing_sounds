@@ -14,6 +14,7 @@ jobs:
       - run:
           name: Python
           command: |
+            echo "This is pipeline ID << pipeline.number >>"
             python3 --version
             sudo apt-get update
             sudo apt-get install libasound-dev libportaudio2 libportaudiocpp0 portaudio19-dev -y

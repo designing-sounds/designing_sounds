@@ -67,7 +67,9 @@ jobs:
             echo "This is pipeline number << pipeline.number >>"
             cd build/mac
             ls
-            VERSION=v2.{<< pipeline.number >> - 68 }
+            NUMBER=${<< pipeline.number >> - 68 }
+            echo NUMBER
+            VERSION=v2.${NUMBER}
             echo VERSION
             ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete "${VERSION}" ./sounds.zip
 # Invoke jobs via workflows

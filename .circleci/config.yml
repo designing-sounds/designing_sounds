@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Install
           command: |
-            apt-get install libjpeg-dev zlib1g-dev
+            sudo apt-get install libjpeg-dev zlib1g-dev
             python -m pip install Pillow
             python -m pip install "kivy[base]" kivy_examples
 

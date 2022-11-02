@@ -97,9 +97,17 @@ workflows:
       - create-cli-windows:
           requires:
             - test
+          filters:
+            branches:
+              only:
+                - main
       - create-cli-linux:
           requires:
             - test
+          filters:
+            branches:
+              only:
+                - main
 
       - publish-github-release:
           requires:

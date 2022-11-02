@@ -135,9 +135,15 @@ class RootWave(BoxLayout):
         self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
         self.power_buttons[new_selection].background_color = self.selected_button_color
 
-    def update_zoom(self, zoom: int):
+    def update_zoom(self, zoom: int, pan: float):
+        x, y = self.waveform_graph.get_selected_points()[0]
+        print(self.waveform_graph.to_pixels((x, y)))
         self.waveform_graph.x_ticks_major = round(0.05 / zoom, 3)
-        self.waveform_graph.xmax = self.waveform_duration / zoom
+        self.waveform_graph.xmax = min((pan + 1) * (self.waveform_duration / zoom), self.waveform_duration)
+        self.waveform_graph.xmin = round(self.waveform_graph.xmax - self.waveform_duration / zoom, 3)
+        print(self.waveform_graph.graph_canvas.canvas.children[2].pos)
+
+        self.waveform_graph.graph_canvas.canvas.clear()
         self.update_waveform()
 
     def update_panning(self, zoom: int, pan: float):

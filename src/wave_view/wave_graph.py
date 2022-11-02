@@ -48,6 +48,7 @@ class WaveformGraph(Graph):
                 Ellipse(source='src/20221028_144310.jpg', pos=pos, size=(self.d, self.d))
 
             self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
+
             self.update()
 
         return super(WaveformGraph, self).on_touch_down(touch)
@@ -97,3 +98,19 @@ class WaveformGraph(Graph):
     def clear_selected_points(self) -> None:
         self.__selected_points.clear()
         self.graph_canvas.canvas.clear()
+
+    def to_pixels(self, data_pos: (int, int)) -> (int, int):
+        (old_x, old_y) = data_pos[0], data_pos[1]
+
+        old_range_x = self.xmax - self.xmin
+        new_range_x = self.get_root_window().width
+        print(new_range_x)
+        new_x = ((old_x * new_range_x) / old_range_x)
+
+        old_range_y = self.ymax - self.ymin
+        new_range_y = self.get_root_window().height
+        new_y = ((old_y * new_range_y) / old_range_y)
+        print(new_range_y)
+        return int(new_x), int(new_y)
+
+

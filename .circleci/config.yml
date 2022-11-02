@@ -14,7 +14,10 @@ jobs:
       - checkout # checkout source code
       - run:
           name: Install
-          command: python -m pip install "kivy[base]" kivy_examples
+          command: |
+            apt-get install libjpeg-dev zlib1g-dev
+            python -m pip install Pillow
+            python -m pip install "kivy[base]" kivy_examples
 
       - python/install-packages:
           pkg-manager: pip

@@ -46,10 +46,7 @@ jobs:
             zip -r sounds.zip sounds.dmg
             ls
       - persist_to_workspace:
-          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
-          # taken to be the root directory of the workspace.
-          root: . 
-          # Must be relative path from root
+          root: .
           paths:
             - build/mac/sounds.zip
 
@@ -64,7 +61,8 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            let num=<< pipeline.number >>-81
+            cd build/mac
+            let num=<< pipeline.number >>-84
             echo ${NUMBER}
             VER=v2.$num.0
             echo $VER

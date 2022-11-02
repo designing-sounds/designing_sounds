@@ -9,7 +9,7 @@ orbs:
 jobs:
   test: # this can be any name you choose
     docker: # executor type
-      - image: cimg/base:stable
+      - image: cimg/python:3.8.0
     steps:
       - checkout # checkout source code
       - python/install-packages:

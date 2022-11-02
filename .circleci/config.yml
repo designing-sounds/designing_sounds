@@ -23,6 +23,22 @@ jobs:
       - run:
           name: Run tests
           command: python -m pytest
+  
+  create-cli-windows:
+    executor: python/default
+    steps:
+      - run:
+          name: Build Windows CLI
+          command: |
+            echo "Nothing here but us chickens"
+  
+  create-cli-linux:
+    executor: python/default
+    steps:
+      - run:
+          name: Build Linux CLI
+          command: |
+            echo "Nothing here but us chickens"
 
   create-cli-mac:
     macos:
@@ -62,10 +78,8 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             cd build/mac
-            let num=<< pipeline.number >>-84
-            echo ${NUMBER}
+            let num=<< pipeline.number >>-88
             VER=v2.$num.0
-            echo $VER
             ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete $VER ./sounds.zip
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -76,8 +90,23 @@ workflows:
       - create-cli-mac:
           requires:
             - test
+          filters:
+            branches:
+              only:
+                - main
+      - create-cli-windows:
+          requires:
+            - test
+      - create-cli-linux:
+          requires:
+            - test
+
       - publish-github-release:
           requires:
             - create-cli-mac
+          filters:
+            branches:
+              only:
+                - main
 
        # filter on main

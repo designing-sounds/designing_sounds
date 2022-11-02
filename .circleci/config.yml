@@ -7,6 +7,16 @@ orbs:
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
+  test: # this can be any name you choose
+    executor: python/default # use the default executor defined within the orb
+    steps:
+      - checkout # checkout source code
+      - python/install-packages:
+          pkg-manager: pip
+      - run:
+          name: Run tests
+          command: python -m pytest
+
   create-cli-mac:
     macos:
       xcode: 13.4.1
@@ -57,7 +67,10 @@ jobs:
 workflows:
   create-cli:
     jobs:
-      - create-cli-mac
+      - test
+      - create-cli-mac:
+          requires:
+            - test
       - publish-github-release:
           requires:
             - create-cli-mac

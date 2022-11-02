@@ -15,9 +15,9 @@ jobs:
           name: Python
           command: |
             python3 --version
-            apt-get update
-            apt-get install libasound-dev libportaudio2 libportaudiocpp0 portaudio19-dev -y
-            pip install pyaudio
+            sudo apt-get update
+            sudo apt-get install libasound-dev libportaudio2 libportaudiocpp0 portaudio19-dev -y
+            python -m pip install pyaudio
       - python/install-packages:
           pkg-manager: pip
       - run:

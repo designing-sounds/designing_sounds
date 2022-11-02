@@ -23,6 +23,9 @@ class WaveformGraph(Graph):
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
+        print("Coordinates to convert")
+        print(touch.x, touch.y)
+
         if self.collide_plot(a_x, a_y):
             ellipse = self.touching_point((touch.x, touch.y))
             if ellipse:
@@ -97,3 +100,15 @@ class WaveformGraph(Graph):
     def clear_selected_points(self) -> None:
         self.__selected_points.clear()
         self.graph_canvas.canvas.clear()
+
+    def to_pixels(self, data_pos: (int, int)) -> (int, int):
+        (old_x, old_y) = data_pos
+
+        old_range_x = self.xmax - self.xmin
+        new_range_x = self._plot_area.size[0]
+        new_x = (((old_x - self.xmin) * new_range_x) / old_range_x) + self._plot_area.pos[0] + self.x
+
+        old_range_y = self.ymax - self.ymin
+        new_range_y = self._plot_area.size[1]
+        new_y = (((old_y - self.ymin) * new_range_y) / old_range_y) + self._plot_area.pos[1] + self.y
+        return round(new_x), round(new_y)

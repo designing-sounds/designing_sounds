@@ -14,6 +14,9 @@ jobs:
       - run:
           name: Python
           command: |
+            let num=<< pipeline.number >> - 79
+            echo ${NUMBER}
+            let version=v2.$num.0
             python3 --version
             sudo apt-get update
             sudo apt-get install libasound-dev libportaudio2 libportaudiocpp0 portaudio19-dev -y
@@ -67,11 +70,10 @@ jobs:
             echo "This is pipeline number << pipeline.number >>"
             cd build/mac
             ls
-            NUMBER= expr << pipeline.number >> - 72
+            let num=<< pipeline.number >> - 79
             echo ${NUMBER}
-            VERSION=v2.${NUMBER}.0
-            echo ${VERSION}
-            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete "${VERSION}" ./sounds.zip
+            let version=v2.$num.0
+            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete $version ./sounds.zip
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:

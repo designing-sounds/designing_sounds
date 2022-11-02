@@ -69,7 +69,7 @@ jobs:
             ls
             NUMBER= expr << pipeline.number >> - 71
             echo NUMBER
-            VERSION=v2.${NUMBER}
+            VERSION=v2.${NUMBER}.0
             echo VERSION
             ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete "${VERSION}" ./sounds.zip
 # Invoke jobs via workflows

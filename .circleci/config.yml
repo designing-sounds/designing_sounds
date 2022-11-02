@@ -12,13 +12,6 @@ jobs:
       image: ubuntu-2004:202010-01
     steps:
       - checkout # checkout source code
-      - run:
-          name: Install
-          command: |
-            sudo apt-get install libjpeg-dev zlib1g-dev
-            python -m pip install Pillow
-            python -m pip install "kivy[base]" kivy_examples
-
       - python/install-packages:
           pkg-manager: pip
       - run:

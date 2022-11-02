@@ -8,10 +8,13 @@ orbs:
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
   test: # this can be any name you choose
-    machine: # executor type
-      image: ubuntu-2004:202010-01
+    executor: python/default # use the default executor defined within the orb
     steps:
       - checkout # checkout source code
+      - run:
+          name: Python
+          command: |
+            python3 --version
       - python/install-packages:
           pkg-manager: pip
       - run:

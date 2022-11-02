@@ -14,7 +14,6 @@ jobs:
       - run:
           name: Python
           command: |
-            echo "This is pipeline ID << pipeline.number >>"
             python3 --version
             sudo apt-get update
             sudo apt-get install libasound-dev libportaudio2 libportaudiocpp0 portaudio19-dev -y
@@ -65,10 +64,11 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            ls
+            echo "This is pipeline number << pipeline.number >>"
             cd build/mac
             ls
-            VERSION=v2.0.0
+            VERSION=v2.{<< pipeline.number >> - 68 }
+            echo VERSION
             ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete "${VERSION}" ./sounds.zip
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows

@@ -67,7 +67,7 @@ jobs:
             echo "This is pipeline number << pipeline.number >>"
             cd build/mac
             ls
-            NUMBER=${<< pipeline.number >> - 68 }
+            NUMBER= expr << pipeline.number >> - 71
             echo NUMBER
             VERSION=v2.${NUMBER}
             echo VERSION

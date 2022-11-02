@@ -78,9 +78,9 @@
                             text: 'Samples: ' + str(int(samples.value)) + '%'
                         Slider:
                             id: samples
-                            value: 50
+                            value: 1
                             min: 0
-                            max: 100
+                            max: 1
                             step: 1
                             on_value: root.update_power_spectrum(mean.value, sd.value, samples.value)
 

@@ -11,6 +11,10 @@ jobs:
     executor: python/default # use the default executor defined within the orb
     steps:
       - checkout # checkout source code
+      - run:
+          name: Installs
+          command: |
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install portaudio
       - python/install-packages:
           pkg-manager: pip
       - run:

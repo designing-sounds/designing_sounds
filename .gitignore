@@ -4,10 +4,14 @@ scripts/flow/*/.flowconfig
 .flowconfig
 *~
 *.pyc
+*.dmg
 .grunt
 _SpecRunner.html
 __benchmarks__
-build/
+build/mac/build
+build/mac/dist
+build/windows/build
+build/windows/dist
 remote-repo/
 coverage/
 .module-cache
@@ -23,7 +27,6 @@ chrome-user-data
 .vscode
 *.swp
 *.swo
-*.spec
 
 /dist
 packages/react-devtools-core/dist

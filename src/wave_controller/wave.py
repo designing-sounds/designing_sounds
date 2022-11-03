@@ -1,14 +1,20 @@
 import typing
 
 from kivy.app import App
+from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 
 from src.wave_model.wave_model import SoundModel, PowerSpectrum
-from src.wave_view.wave_sound import WaveSound
-from src.wave_view.wave_graph import WaveformGraph
+from kivy.uix.slider import Slider
+from kivy.graphics import Color, Ellipse
+from src.wave_model.wave_model import SoundModel
+from src.wave_controller.wave_sound import WaveSound
+from src.wave_controller.wave_graph import WaveformGraph
 import numpy as np
+
+Builder.load_file('src/wave_view/wave.kv')
 
 
 class RootWave(BoxLayout):
@@ -36,7 +42,6 @@ class RootWave(BoxLayout):
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
 
         border_color = [0, 1, 1, 1]
-
         self.waveform_graph = WaveformGraph(update=self.update_waveform,
                                             size_hint=(1, 1),
                                             border_color=border_color,
@@ -189,6 +194,19 @@ class RootWave(BoxLayout):
         (self.mean.value, self.sd.value, self.harmonic_samples.value) = (int(mean), float(sd), int(num_samples))
 
         self.update_power_spectrum(mean, sd, num_samples)
+
+    def update_zoom(self, zoom: int, pan: float):
+        self.waveform_graph.x_ticks_major = round(0.05 / zoom, 3)
+        self.waveform_graph.xmax = min((pan + 1) * (self.waveform_duration / zoom), self.waveform_duration)
+        self.waveform_graph.xmin = round(self.waveform_graph.xmax - self.waveform_duration / zoom, 3)
+        self.waveform_graph.update_graph_points()
+        self.update_waveform()
+
+    def update_panning(self, zoom: int, pan: float):
+        self.waveform_graph.xmin = round((pan / 10) * self.waveform_duration, 3)
+        self.waveform_graph.xmax = self.waveform_graph.xmin + self.waveform_duration / zoom
+        self.waveform_graph.update_graph_points()
+        self.update_waveform()
 
 
 class WaveApp(App):

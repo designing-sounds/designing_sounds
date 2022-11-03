@@ -4,3 +4,4 @@ pytest
 pytest-cov
 kivy_garden.graph
 PyAudio~=0.2.12
+pyinstaller

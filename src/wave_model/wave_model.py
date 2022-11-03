@@ -10,6 +10,7 @@ class PowerSpectrum:
     def __init__(self, max_harmonics: int, max_samples_per_harmonic: int):
         self.max_samples_per_harmonic = max_samples_per_harmonic
         self.harmonics = np.zeros((max_harmonics, 1), dtype=np.float32)
+        self.harmonic_sounds = None
 
     def update_harmonic(self, harmonic_index, mean: int, std: float, num_harmonic_samples: int) -> None:
         self.harmonics[harmonic_index] = mean
@@ -29,9 +30,11 @@ class SoundModel:
         self.m = None
         self.X = np.array([0])
         self.Y = None
+        self.current_harmonic_index = -1
         self.interpolate_points([])
 
-    def get_power_spectrum_histogram(self, harmonic_index: int, num_bins: int) -> typing.List[typing.Tuple[float, float]]:
+    def get_power_spectrum_histogram(self, harmonic_index: int, num_bins: int) -> typing.List[
+        typing.Tuple[float, float]]:
         self.lock.acquire()
         freqs = self.power_spectrum.harmonics[harmonic_index]
         freqs = freqs[np.nonzero(freqs)]
@@ -59,29 +62,39 @@ class SoundModel:
         self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
         self.lock.release()
 
-    def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
+    def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float,
+                    only_add_harmonic: bool = False) -> np.ndarray:
         if self.X.size == 0:
             return np.array([])
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False)
 
         self.lock.acquire()
-        sound = self.matrix_covariance(x, self.X) @ inv(self.matrix_covariance(self.X, self.X)) @ self.Y.T
+        if only_add_harmonic:
+            freq = self.power_spectrum.harmonics[self.current_harmonic_index][0]
+            self.power_spectrum.harmonic_sounds[self.current_harmonic_index] = self.matrix_covariance(x, self.X, freq) @ inv(
+                self.matrix_covariance(self.X, self.X, freq)) @ self.Y.T
+        else:
+            self.recompute_harmonic_sounds(x, chunk_duration, sample_rate)
+        sound = np.sum(self.power_spectrum.harmonic_sounds, axis=0)
         sound = np.asarray(sound, dtype=np.float32)
         self.lock.release()
-
         return sound
+
+    def recompute_harmonic_sounds(self, x, chunk_duration: float, sample_rate: int):
+        self.power_spectrum.harmonic_sounds = np.zeros((self.max_harmonics, int(chunk_duration * sample_rate)))
+        for i, harmonic_sound in enumerate(self.power_spectrum.harmonic_sounds):
+            freq = self.power_spectrum.harmonics[i][0]
+            self.power_spectrum.harmonic_sounds[i] = self.matrix_covariance(x, self.X, freq) @ inv(
+                self.matrix_covariance(self.X, self.X, freq)) @ self.Y.T
 
     def covariance(self, x1, x2, period, lengthscale):
         return np.exp(-0.5 * np.square(np.sin(np.pi * (x1 - x2) / period)) / lengthscale)
 
-    def matrix_covariance(self, x1, x2):
+    def matrix_covariance(self, x1, x2, freq):
         n = len(x1)
         m = len(x2)
         res = np.zeros((n, m))
         for i in range(n):
             for j in range(m):
-                res[i, j] = 0
-                for harmonic in self.power_spectrum.harmonics:
-                    for freq in harmonic:
-                        res[i, j] += self.covariance(x1[i], x2[j], 1 / freq, 1)
+                res[i, j] = self.covariance(x1[i], x2[j], 1 / freq, 1)
         return res

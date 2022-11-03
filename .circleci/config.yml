@@ -3,10 +3,14 @@ orbs:
   python: circleci/python@2.1.1
   win: circleci/windows@5.0
   macos: circleci/macos@2
+  pylint: rdgozum/python@x.y.z
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
+  lint:
+    - python/pylint
+
   test: # this can be any name you choose
     executor: python/default # use the default executor defined within the orb
     steps:
@@ -86,10 +90,12 @@ jobs:
 workflows:
   create-cli:
     jobs:
+      - lint
       - test
       - create-cli-mac:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -97,6 +103,7 @@ workflows:
       - create-cli-windows:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -104,6 +111,7 @@ workflows:
       - create-cli-linux:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -112,6 +120,8 @@ workflows:
       - publish-github-release:
           requires:
             - create-cli-mac
+            - create-cli-windows
+            - create-cli-linux
           filters:
             branches:
               only:

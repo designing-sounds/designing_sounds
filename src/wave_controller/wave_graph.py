@@ -33,8 +33,9 @@ class WaveformGraph(Graph):
                     self.graph_canvas.canvas.children.pop(to_remove)
                     self.graph_canvas.canvas.children.pop(to_remove - 1)
                     self.graph_canvas.canvas.children.pop(to_remove - 2)
+                    x, y = self.convert_point(ellipse.pos)
                     for point in self.__selected_points:
-                        if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:
+                        if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
                             self.__selected_points.remove(point)
                             break
                     self.update()
@@ -127,6 +128,6 @@ class WaveformGraph(Graph):
                 pos = (new_x - self.d / 2, new_y - self.d / 2)
                 with self.graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source='src/20221028_144310.jpg', pos=pos,
+                    Ellipse(source='media/20221028_144310.jpg', pos=pos,
                             size=(self.d, self.d))
         self.update()

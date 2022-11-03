@@ -84,6 +84,8 @@ class SoundModel:
         self.power_spectrum.harmonic_sounds = np.zeros((self.max_harmonics, int(chunk_duration * sample_rate)))
         for i, harmonic_sound in enumerate(self.power_spectrum.harmonic_sounds):
             freq = self.power_spectrum.harmonics[i][0]
+            if freq == 0:
+                continue
             self.power_spectrum.harmonic_sounds[i] = self.matrix_covariance(x, self.X, freq) @ inv(
                 self.matrix_covariance(self.X, self.X, freq)) @ self.Y.T
 

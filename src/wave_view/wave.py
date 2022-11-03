@@ -12,9 +12,6 @@ from src.wave_view.wave_graph import WaveformGraph
 import numpy as np
 
 
-# from src.utils.DoubleTapButton import DoubleTapButton
-
-
 class RootWave(BoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
@@ -128,8 +125,7 @@ class RootWave(BoxLayout):
             text=str(self.num_harmonics),
             size_hint=(0.1, 1),
             background_color=self.selected_button_color,
-            on_press=self.press_button_display_power_spectrum,
-            on_release=self.remove_power_spectrum
+            on_touch_down=self.remove_power_spectrum
         )
         button.root_wave = self
         self.power_buttons.append(button)
@@ -142,13 +138,19 @@ class RootWave(BoxLayout):
         self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
         self.power_buttons[new_selection].background_color = self.selected_button_color
 
-    def remove_power_spectrum(self, button: Button):
+    def remove_power_spectrum(self, button: Button, touch):
+        self.press_button_display_power_spectrum(button)
+        if not touch.is_double_tap:
+            return
+
         # Ensure at least one power spectrum remains
         if len(self.power_buttons) == 1:
             return
 
-        removal_index = int(button.text) - 1
+        # TODO: fix first index removal + refactor
+        # remove graph 1, 2 and 3 remain
 
+        removal_index = int(button.text) - 1
         removal_of_last_graph = self.current_harmonic_index == len(self.power_buttons) - 1
 
         button_to_remove = self.power_buttons[removal_index]
@@ -164,8 +166,7 @@ class RootWave(BoxLayout):
                 text=text,
                 size_hint=(0.1, 1),
                 background_color=self.selected_button_color,
-                on_press=self.press_button_display_power_spectrum,
-                on_release=self.remove_power_spectrum
+                on_touch_down=self.remove_power_spectrum
             )
             self.power_buttons.append(new_button)
             self.ids.power_spectrum_buttons.add_widget(new_button)
@@ -211,19 +212,3 @@ class RootWave(BoxLayout):
 class WaveApp(App):
     def build(self) -> RootWave:
         return RootWave()
-
-
-class DoubleTapButton(Button):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.root_wave = None
-
-    def trigger_action(self, duration=0.1):
-        return
-
-    def on_touch_down(self, touch):
-        print(self.text)
-        if touch.is_double_tap:
-            self.root_wave.remove_power_spectrum()
-        else:
-            self.root_wave.press_button_display_power_spectrum(self.text)

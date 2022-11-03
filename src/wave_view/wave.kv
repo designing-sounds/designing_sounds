@@ -6,6 +6,8 @@
     sd: sd
     mean: mean
     harmonic_samples: samples
+    zoom: zoom
+    panning: panning
 
 
     BoxLayout:
@@ -106,17 +108,45 @@
             BoxLayout:
                 size_hint: 0.3, 1
                 orientation: 'vertical'
+                BoxLayout:
+                    size_hint: 1, 0.2
+                    orientation: 'vertical'
+
+                    Label:
+                        text: 'Zoom: ' + str(zoom.value) + 'x'
+                    Slider:
+                        id: zoom
+                        value: 1
+                        min: 1
+                        max: 10
+                        step: 1
+                        on_value: root.update_zoom(zoom.value, panning.value)
+
 
                 BoxLayout:
-                    size_hint: 1, 0.5
-                    padding: 20
+                    size_hint: 1, 0.2
+                    orientation: 'vertical'
+
+                    Label:
+                        text: 'Panning'
+                    Slider:
+                        id: panning
+                        value: 0
+                        min: 0
+                        max: (10 / max(zoom.value, 1)) * (zoom.value - 1)
+                        step: 1
+                        on_value: root.update_panning(zoom.value, panning.value)
+
+                BoxLayout:
+                    size_hint: 1, 0.3
+                    padding: 10
                     Button:
                         id: play_button
                         text: 'Play/Pause'
 
                 BoxLayout:
-                    size_hint: 1, 0.5
-                    padding: 20
+                    size_hint: 1, 0.3
+                    padding: 10
                     Button:
                         id: clear_button
                         text: 'Clear'

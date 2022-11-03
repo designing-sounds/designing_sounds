@@ -7,6 +7,7 @@ from kivy_garden.graph import Graph
 from kivy.input.motionevent import MotionEvent
 
 import numpy as np
+import math
 
 
 class WaveformGraph(Graph):
@@ -18,7 +19,7 @@ class WaveformGraph(Graph):
         self.add_widget(self.graph_canvas)
         self.update = update
         self.current_point = None
-        self.old_pos = 0
+        self.old_pos = None
         self.d = 10
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
@@ -32,7 +33,10 @@ class WaveformGraph(Graph):
                     self.graph_canvas.canvas.children.pop(to_remove)
                     self.graph_canvas.canvas.children.pop(to_remove - 1)
                     self.graph_canvas.canvas.children.pop(to_remove - 2)
-                    self.__selected_points.remove(self.convert_point(ellipse.pos))
+                    for point in self.__selected_points:
+                        if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:
+                            self.__selected_points.remove(point)
+                            break
                     self.update()
                     return True
                 self.current_point = ellipse
@@ -58,7 +62,10 @@ class WaveformGraph(Graph):
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):
                 r = self.d / 2
-                self.__selected_points.remove(self.old_pos)
+                for point in self.__selected_points:
+                    if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:
+                        self.__selected_points.remove(point)
+                        break
                 self.current_point.pos = (touch.x - r, touch.y - r)
                 self.old_pos = self.convert_point(self.current_point.pos)
                 self.__selected_points.append(self.convert_point(self.current_point.pos))

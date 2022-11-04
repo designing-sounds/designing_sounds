@@ -71,7 +71,8 @@ class SoundModel:
         self.lock.acquire()
         if only_add_harmonic:
             freq = self.power_spectrum.harmonics[self.current_harmonic_index, 0]
-            self.power_spectrum.harmonic_sounds[self.current_harmonic_index] = self.matrix_covariance(x, self.X, freq) @ inv(
+            self.power_spectrum.harmonic_sounds[self.current_harmonic_index] = self.matrix_covariance(x, self.X,
+                                                                                                      freq) @ inv(
                 self.matrix_covariance(self.X, self.X, freq)) @ self.Y.T
         else:
             self.recompute_harmonic_sounds(x, chunk_duration, sample_rate)
@@ -83,7 +84,7 @@ class SoundModel:
     def recompute_harmonic_sounds(self, x, chunk_duration: float, sample_rate: int):
         self.power_spectrum.harmonic_sounds = np.zeros((self.max_harmonics, int(chunk_duration * sample_rate)))
         for i, harmonic_sound in enumerate(self.power_spectrum.harmonic_sounds):
-            freq = self.power_spectrum.harmonics[i][0]
+            freq = self.power_spectrum.harmonics[i, 0]
             if freq == 0:
                 continue
             self.power_spectrum.harmonic_sounds[i] = self.matrix_covariance(x, self.X, freq) @ inv(

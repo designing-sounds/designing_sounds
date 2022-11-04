@@ -4,6 +4,7 @@ import typing
 import numpy as np
 
 from numpy.linalg import inv
+import gpflow
 
 
 class PowerSpectrum:
@@ -71,8 +72,7 @@ class SoundModel:
         self.lock.acquire()
         if only_add_harmonic:
             freq = self.power_spectrum.harmonics[self.current_harmonic_index][0]
-            self.power_spectrum.harmonic_sounds[self.current_harmonic_index] = self.matrix_covariance(x, self.X, freq) @ inv(
-                self.matrix_covariance(self.X, self.X, freq)) @ self.Y.T
+            self.power_spectrum.harmonic_sounds[self.current_harmonic_index] = np.array(self.calculate_sound(x, freq, 1, 1))
         else:
             self.recompute_harmonic_sounds(x, chunk_duration, sample_rate)
         sound = np.sum(self.power_spectrum.harmonic_sounds, axis=0)
@@ -86,8 +86,21 @@ class SoundModel:
             freq = self.power_spectrum.harmonics[i][0]
             if freq == 0:
                 continue
-            self.power_spectrum.harmonic_sounds[i] = self.matrix_covariance(x, self.X, freq) @ inv(
-                self.matrix_covariance(self.X, self.X, freq)) @ self.Y.T
+            self.power_spectrum.harmonic_sounds[i] = np.array(self.calculate_sound(x, freq, 1, 1))
+
+    def calculate_sound(self, x, freq, sd, length_scale):
+        sqexp = gpflow.kernels.SquaredExponential()
+        kern = gpflow.kernels.Periodic(base_kernel=gpflow.kernels.SquaredExponential())
+        kern.period.assign(1 / freq) if freq != 0 else kern.period.assign(1)
+        kern = kern * sqexp
+        sqexp.lengthscales.assign(length_scale)
+        #kern.variance.assign(sd**2)
+        m = gpflow.models.GPR((self.X[:, None], self.Y[:, None]), kern)
+        m.likelihood.variance.assign(1e-5)
+        predict_stats = m.predict_f(x[:, None])
+        sound, _ = [d.numpy() for d in predict_stats]
+        print(sound.shape)
+        return sound.flatten()
 
     def covariance(self, x1, x2, period, lengthscale):
         return np.exp(-0.5 * np.square(np.sin(np.pi * (x1 - x2) / period)) / lengthscale)

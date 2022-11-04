@@ -5,6 +5,8 @@ from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy_garden.graph import LinePlot, Graph, BarPlot
+
+from src.wave_model.wave_model import SoundModel, PowerSpectrum
 from kivy.uix.slider import Slider
 from kivy.graphics import Color, Ellipse
 from src.wave_model.wave_model import SoundModel
@@ -70,6 +72,7 @@ class RootWave(BoxLayout):
         self.unselected_button_color = [1, 1, 1, 1]
         self.harmonic_list = np.zeros((self.max_harmonics, 3))
         self.press_button_add(None)
+        self.double_tap = False
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
         if not self.do_not_change_waveform:
@@ -117,26 +120,80 @@ class RootWave(BoxLayout):
         self.do_not_change_waveform = False
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
 
-    def press_button_display_power_spectrum(self, instance: typing.Any):
-        self.update_display_power_spectrum(int(instance.text) - 1, True)
+    def press_button_display_power_spectrum(self, button: Button, touch):
+        self.update_display_power_spectrum(int(button.text) - 1, True)
+        self.double_tap = False
+        if touch.is_double_tap:
+            self.double_tap = True
 
     def add_power_spectrum_button(self) -> None:
         self.num_harmonics += 1
-        button = Button(
-            text=str(self.num_harmonics),
-            size_hint=(0.1, 1),
-            background_color=self.selected_button_color,
-            on_press=self.press_button_display_power_spectrum
-        )
+        button = self.create_button(self.num_harmonics)
+        button.root_wave = self
         self.power_buttons.append(button)
         self.ids.power_spectrum_buttons.add_widget(button)
         self.harmonic_list[self.num_harmonics - 1] = np.array([self.mean.max // 2, 1, self.harmonic_samples.max // 2])
         self.update_display_power_spectrum(self.num_harmonics - 1, False)
 
+    def create_button(self, button_num: int) -> Button:
+        return Button(
+            text=str(button_num),
+            size_hint=(0.1, 1),
+            background_color=self.selected_button_color,
+            on_touch_down=self.press_button_display_power_spectrum,
+            on_release=self.remove_power_spectrum
+        )
+
     def change_selected_power_spectrum_button(self, new_selection: int):
         self.all_power_spectrums.background_color = self.unselected_button_color
         self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
         self.power_buttons[new_selection].background_color = self.selected_button_color
+
+    def remove_power_spectrum(self, button: Button):
+        if not self.double_tap or len(self.power_buttons) == 1:
+            return
+
+        start_removal = self.current_harmonic_index + 1
+        end_removal = len(self.power_buttons)
+
+        # Create new buttons
+        for i in range(start_removal, end_removal):
+            new_button = self.create_button(i)
+            self.power_buttons.append(new_button)
+            self.ids.power_spectrum_buttons.add_widget(new_button)
+            self.power_buttons[len(self.power_buttons) - 1].background_color = self.unselected_button_color
+
+        # Remove old buttons
+        for i in range(start_removal - 1, end_removal):
+            button = self.power_buttons[self.current_harmonic_index]
+            self.power_buttons.remove(button)
+            self.ids.power_spectrum_buttons.remove_widget(button)
+
+        # shift harmonic list values
+        for i in range(start_removal, end_removal):
+            self.harmonic_list[i - 1] = self.harmonic_list[i]
+
+        # zero fill end of harmonic list to account for removal
+        self.harmonic_list[end_removal - 1] = np.array((0, 0, 0))
+        self.num_harmonics -= 1
+
+        # update power spectrum values
+        self.sound_model.power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
+        for i in range(self.max_harmonics):
+            (mean, sd, num_samples) = self.harmonic_list[i]
+            self.sound_model.power_spectrum.update_harmonic(i, mean, sd, int(num_samples))
+
+        # update current index selection
+        if self.current_harmonic_index == len(self.power_buttons):
+            self.current_harmonic_index -= 1
+        self.power_buttons[self.current_harmonic_index].background_color = self.selected_button_color
+
+        self.do_not_change_waveform = False
+
+        (mean, sd, num_samples) = self.harmonic_list[self.current_harmonic_index]
+        (self.mean.value, self.sd.value, self.harmonic_samples.value) = (int(mean), float(sd), int(num_samples))
+
+        self.update_power_spectrum(mean, sd, num_samples)
 
     def update_zoom(self, zoom: int, pan: float):
         self.waveform_graph.x_ticks_major = round(0.05 / zoom, 3)

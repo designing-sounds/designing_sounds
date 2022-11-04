@@ -70,7 +70,7 @@ class SoundModel:
 
         self.lock.acquire()
         if only_add_harmonic:
-            freq = self.power_spectrum.harmonics[self.current_harmonic_index][0]
+            freq = self.power_spectrum.harmonics[self.current_harmonic_index, 0]
             self.power_spectrum.harmonic_sounds[self.current_harmonic_index] = self.matrix_covariance(x, self.X, freq) @ inv(
                 self.matrix_covariance(self.X, self.X, freq)) @ self.Y.T
         else:

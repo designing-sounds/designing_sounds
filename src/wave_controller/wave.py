@@ -121,11 +121,8 @@ class RootWave(MDBoxLayout):
         self.do_not_change_waveform = False
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
 
-    def press_button_display_power_spectrum(self, button: MDRectangleFlatButton, touch):
+    def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
         self.update_display_power_spectrum(int(button.text) - 1, True)
-        self.double_tap = False
-        if touch.is_double_tap:
-            self.double_tap = True
 
     def add_power_spectrum_button(self) -> None:
         self.num_harmonics += 1
@@ -136,12 +133,18 @@ class RootWave(MDBoxLayout):
         self.harmonic_list[self.num_harmonics - 1] = np.array([self.mean.max // 2, 1, self.harmonic_samples.max // 2])
         self.update_display_power_spectrum(self.num_harmonics - 1, False)
 
+    def set_double_tap(self, button, touch):
+        self.double_tap = False
+        if touch.is_double_tap:
+            self.double_tap = True
+
     def create_button(self, button_num: int) -> MDRectangleFlatButton:
         return MDRectangleFlatButton(
             text=str(button_num),
             size_hint=(0.1, 1),
-            md_bg_color=self.unselected_button_color,
-            on_touch_down=self.press_button_display_power_spectrum,
+            md_bg_color=self.selected_button_color,
+            on_press=self.press_button_display_power_spectrum,
+            on_touch_down=self.set_double_tap,
             on_release=self.remove_power_spectrum,
             text_color="white",
             line_color=(0, 0, 0, 0),
@@ -150,7 +153,6 @@ class RootWave(MDBoxLayout):
     def change_selected_power_spectrum_button(self, new_selection: int):
         self.all_power_spectrums.md_bg_color = self.unselected_button_color
         self.power_buttons[self.current_harmonic_index].md_bg_color = self.unselected_button_color
-        print(new_selection)
         self.power_buttons[new_selection].md_bg_color = self.selected_button_color
 
     def remove_power_spectrum(self, button: MDRectangleFlatButton):

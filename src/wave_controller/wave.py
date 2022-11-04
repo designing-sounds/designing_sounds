@@ -1,23 +1,22 @@
 import typing
 
-from kivy.app import App
-from kivy.lang import Builder
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy_garden.graph import LinePlot, Graph, BarPlot
-
-from src.wave_model.wave_model import SoundModel, PowerSpectrum
-from kivy.uix.slider import Slider
-from kivy.graphics import Color, Ellipse
-from src.wave_model.wave_model import SoundModel
-from src.wave_controller.wave_sound import WaveSound
-from src.wave_controller.wave_graph import WaveformGraph
+import kivy.utils as utils
 import numpy as np
+from kivy.lang import Builder
+from kivy_garden.graph import LinePlot, Graph, BarPlot
+from kivymd.app import MDApp
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDRectangleFlatButton
+
+from src.wave_controller.wave_graph import WaveformGraph
+from src.wave_controller.wave_sound import WaveSound
+from src.wave_model.wave_model import PowerSpectrum
+from src.wave_model.wave_model import SoundModel
 
 Builder.load_file('src/wave_view/wave.kv')
 
 
-class RootWave(BoxLayout):
+class RootWave(MDBoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
     power_spectrum_graph_samples = 500
@@ -41,17 +40,18 @@ class RootWave(BoxLayout):
         self.add.bind(on_press=self.press_button_add)
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
 
-        border_color = [0, 1, 1, 1]
+        border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update=self.update_waveform,
                                             size_hint=(1, 1),
                                             border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration,
                                             ymin=-1.0, ymax=1.0,
                                             padding=10,
-                                            draw_border=True,
+                                            draw_border=False,
                                             x_grid_label=True, y_grid_label=True,
                                             xlabel='Time', ylabel='Amplitude',
-                                            x_grid=True, y_grid=True, x_ticks_major=0.05, y_ticks_major=0.25)
+                                            x_grid=True, y_grid=True, x_ticks_major=0.05, y_ticks_major=0.25,
+                                            label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max,
                                           ymin=0, ymax=20,
@@ -60,7 +60,8 @@ class RootWave(BoxLayout):
         self.ids.modulation.add_widget(self.waveform_graph)
         self.ids.power_spectrum.add_widget(self.power_spectrum_graph)
 
-        plot_color = [1, 1, 0, 1]
+        plot_color = utils.get_color_from_hex("#2596BE")
+
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
         self.power_plot = BarPlot(color=plot_color)
 
@@ -68,8 +69,8 @@ class RootWave(BoxLayout):
         self.power_spectrum_graph.add_plot(self.power_plot)
 
         self.power_buttons = []
-        self.selected_button_color = [0, 1, 1, 1]
-        self.unselected_button_color = [1, 1, 1, 1]
+        self.selected_button_color = utils.get_color_from_hex("#233D4D")
+        self.unselected_button_color = utils.get_color_from_hex("#3FA7D6")
         self.harmonic_list = np.zeros((self.max_harmonics, 3))
         self.press_button_add(None)
         self.double_tap = False
@@ -101,8 +102,8 @@ class RootWave(BoxLayout):
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
 
     def press_button_all_power_spectrum(self, instance: typing.Any) -> None:
-        self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
-        self.all_power_spectrums.background_color = self.selected_button_color
+        self.power_buttons[self.current_harmonic_index].md_bg_color = self.unselected_button_color
+        self.all_power_spectrums.md_bg_color = self.selected_button_color
         self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
 
@@ -120,7 +121,7 @@ class RootWave(BoxLayout):
         self.do_not_change_waveform = False
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
 
-    def press_button_display_power_spectrum(self, button: Button, touch):
+    def press_button_display_power_spectrum(self, button: MDRectangleFlatButton, touch):
         self.update_display_power_spectrum(int(button.text) - 1, True)
         self.double_tap = False
         if touch.is_double_tap:
@@ -135,21 +136,24 @@ class RootWave(BoxLayout):
         self.harmonic_list[self.num_harmonics - 1] = np.array([self.mean.max // 2, 1, self.harmonic_samples.max // 2])
         self.update_display_power_spectrum(self.num_harmonics - 1, False)
 
-    def create_button(self, button_num: int) -> Button:
-        return Button(
+    def create_button(self, button_num: int) -> MDRectangleFlatButton:
+        return MDRectangleFlatButton(
             text=str(button_num),
             size_hint=(0.1, 1),
-            background_color=self.selected_button_color,
+            md_bg_color=self.unselected_button_color,
             on_touch_down=self.press_button_display_power_spectrum,
-            on_release=self.remove_power_spectrum
+            on_release=self.remove_power_spectrum,
+            text_color="white",
+            line_color=(0, 0, 0, 0),
         )
 
     def change_selected_power_spectrum_button(self, new_selection: int):
-        self.all_power_spectrums.background_color = self.unselected_button_color
-        self.power_buttons[self.current_harmonic_index].background_color = self.unselected_button_color
-        self.power_buttons[new_selection].background_color = self.selected_button_color
+        self.all_power_spectrums.md_bg_color = self.unselected_button_color
+        self.power_buttons[self.current_harmonic_index].md_bg_color = self.unselected_button_color
+        print(new_selection)
+        self.power_buttons[new_selection].md_bg_color = self.selected_button_color
 
-    def remove_power_spectrum(self, button: Button):
+    def remove_power_spectrum(self, button: MDRectangleFlatButton):
         if not self.double_tap or len(self.power_buttons) == 1:
             return
 
@@ -161,7 +165,7 @@ class RootWave(BoxLayout):
             new_button = self.create_button(i)
             self.power_buttons.append(new_button)
             self.ids.power_spectrum_buttons.add_widget(new_button)
-            self.power_buttons[len(self.power_buttons) - 1].background_color = self.unselected_button_color
+            self.power_buttons[len(self.power_buttons) - 1].md_bg_color = self.unselected_button_color
 
         # Remove old buttons
         for i in range(start_removal - 1, end_removal):
@@ -186,7 +190,7 @@ class RootWave(BoxLayout):
         # update current index selection
         if self.current_harmonic_index == len(self.power_buttons):
             self.current_harmonic_index -= 1
-        self.power_buttons[self.current_harmonic_index].background_color = self.selected_button_color
+        self.power_buttons[self.current_harmonic_index].md_bg_color = self.selected_button_color
 
         self.do_not_change_waveform = False
 
@@ -209,6 +213,6 @@ class RootWave(BoxLayout):
         self.update_waveform()
 
 
-class WaveApp(App):
+class WaveApp(MDApp):
     def build(self) -> RootWave:
         return RootWave()

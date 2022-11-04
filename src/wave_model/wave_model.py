@@ -31,7 +31,6 @@ class SoundModel:
         self.m = None
         self.X = np.array([0])
         self.Y = None
-        self.current_harmonic_index = -1
         self.interpolate_points([])
 
     def get_power_spectrum_histogram(self, harmonic_index: int, num_bins: int) -> typing.List[
@@ -63,7 +62,7 @@ class SoundModel:
         self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
         self.lock.release()
 
-    def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float,
+    def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float, current_harmonic_index: int,
                     only_add_harmonic: bool = False) -> np.ndarray:
         if self.X.size == 0:
             return np.array([])
@@ -71,8 +70,8 @@ class SoundModel:
 
         self.lock.acquire()
         if only_add_harmonic:
-            freq = self.power_spectrum.harmonics[self.current_harmonic_index, 0]
-            self.power_spectrum.harmonic_sounds[self.current_harmonic_index] = np.array(self.calculate_sound(x, freq, 1, 1))
+            freq = self.power_spectrum.harmonics[current_harmonic_index, 0]
+            self.power_spectrum.harmonic_sounds[current_harmonic_index] = np.array(self.calculate_sound(x, freq, 1, 1))
         else:
             self.recompute_harmonic_sounds(x, chunk_duration, sample_rate)
         sound = np.sum(self.power_spectrum.harmonic_sounds, axis=0)
@@ -83,7 +82,7 @@ class SoundModel:
     def recompute_harmonic_sounds(self, x, chunk_duration: float, sample_rate: int):
         self.power_spectrum.harmonic_sounds = np.zeros((self.max_harmonics, int(chunk_duration * sample_rate)))
         for i, harmonic_sound in enumerate(self.power_spectrum.harmonic_sounds):
-            freq = self.power_spectrum.harmonics[i][0]
+            freq = self.power_spectrum.harmonics[i, 0]
             if freq == 0:
                 continue
             self.power_spectrum.harmonic_sounds[i] = np.array(self.calculate_sound(x, freq, 1, 1))
@@ -94,7 +93,7 @@ class SoundModel:
         kern.period.assign(1 / freq) if freq != 0 else kern.period.assign(1)
         kern = kern * sqexp
         sqexp.lengthscales.assign(length_scale)
-        #kern.variance.assign(sd**2)
+        # kern.variance.assign(sd**2)
         m = gpflow.models.GPR((self.X[:, None], self.Y[:, None]), kern)
         m.likelihood.variance.assign(1e-5)
         predict_stats = m.predict_f(x[:, None])

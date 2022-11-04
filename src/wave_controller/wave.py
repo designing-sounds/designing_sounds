@@ -74,7 +74,6 @@ class RootWave(BoxLayout):
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
         if not self.do_not_change_waveform:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, int(mean), sd, int(num_samples))
-            self.sound_model.current_harmonic_index = self.current_harmonic_index
             self.update_waveform(True)
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
@@ -83,7 +82,8 @@ class RootWave(BoxLayout):
     def update_waveform(self, only_add_harmonic: bool = False) -> None:
         inputted_points = self.waveform_graph.get_selected_points()
         self.sound_model.interpolate_points(inputted_points)
-        points = self.sound_model.model_sound(self.graph_sample_rate, self.waveform_duration, 0, only_add_harmonic)
+        points = self.sound_model.model_sound(self.graph_sample_rate, self.waveform_duration, 0,
+                                              self.current_harmonic_index, only_add_harmonic)
         self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
 
     def press_button_play(self, instance: typing.Any) -> None:

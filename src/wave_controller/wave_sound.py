@@ -21,7 +21,8 @@ class WaveSound:
 
     def callback(self, in_data, frame_count, time_info, flag):
         sound: np.ndarray = self.sound_model.model_sound(self.sample_rate, self.chunk_duration,
-                                                         start_time=self.chunk_index * self.chunk_duration)
+                                                         start_time=self.chunk_index * self.chunk_duration,
+                                                         current_harmonic_index=0)
         self.chunk_index = (self.chunk_index + 1) % (self.waveform_duration / self.chunk_duration)
         return sound, pyaudio.paContinue
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-KIVY_WINDOW=pygame pyinstaller -y --clean Sounds.spec
+pyinstaller -y --clean Sounds.spec
 sudo codesign -s - --force --all-architectures --timestamp --deep dist/sounds.app
 pushd dist
 hdiutil create ./sounds.dmg -srcfolder sounds.app -ov

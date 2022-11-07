@@ -128,6 +128,6 @@ class WaveformGraph(Graph):
                 pos = (new_x - self.d / 2, new_y - self.d / 2)
                 with self.graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source='20221028_144310.jpg', pos=pos,
+                    Ellipse(source='media/20221028_144310.jpg', pos=pos,
                             size=(self.d, self.d))
         self.update()

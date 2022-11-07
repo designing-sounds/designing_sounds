@@ -203,10 +203,19 @@ class RootWave(MDBoxLayout):
 
     def update_zoom(self, zoom: int, pan: float):
         self.waveform_graph.x_ticks_major = round(0.05 / zoom, 3)
-        self.waveform_graph.xmax = min((pan + 1) * (self.waveform_duration / zoom), self.waveform_duration)
-        self.waveform_graph.xmin = round(self.waveform_graph.xmax - self.waveform_duration / zoom, 3)
+        midpoint = (self.waveform_graph.xmax + self.waveform_graph.xmin) / 2
+        window_length = self.waveform_duration / zoom
+        if midpoint + window_length / 2 > self.waveform_duration:
+            self.waveform_graph.xmax = self.waveform_duration
+            self.waveform_graph.xmin = self.waveform_graph.xmax - window_length
+        elif midpoint - window_length / 2 < 0:
+            self.waveform_graph.xmin = 0
+            self.waveform_graph.xmax = window_length
+        else:
+            self.waveform_graph.xmax = midpoint + (self.waveform_duration / zoom) / 2
+            self.waveform_graph.xmin = midpoint - (self.waveform_duration / zoom) / 2
+        self.waveform_graph.xmin = round(self.waveform_graph.xmin, 3)
         self.waveform_graph.update_graph_points()
-        self.update_waveform()
 
     def update_panning(self, zoom: int, pan: float):
         self.waveform_graph.xmin = round((pan / 10) * self.waveform_duration, 3)

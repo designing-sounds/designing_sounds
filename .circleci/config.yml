@@ -3,25 +3,9 @@ orbs:
   python: circleci/python@2.1.1
   win: circleci/windows@5.0
   macos: circleci/macos@2
-  linter: rdgozum/python@0.3.2
-  reviewdog: yasuhiroki/reviewdog@0.0.3
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
-commands:
-  lint:
-    parameters:
-      lint_result_file_path:
-        description: Lint result file path
-        type: string
-    steps:
-      - checkout
-      - run: |
-          pip install pylint
-          pylint ./src --output <<parameters.lint_result_file_path>> || true
-          cat <<parameters.lint_result_file_path>>
-      - store_artifacts:
-          path: <<parameters.lint_result_file_path>>
 
 jobs:
   test: # this can be any name you choose
@@ -41,6 +25,15 @@ jobs:
       - run:
           name: Run tests
           command: python -m pytest
+  lintpr:
+    executor: python/default
+    steps:
+      - checkout
+      - run:
+          name: PyLint
+          command: |
+            pip install pylint
+            pylint ./src
   
   create-cli-windows:
     executor: python/default
@@ -103,18 +96,12 @@ jobs:
 workflows:
   create-cli:
     jobs:
-      - reviewdog/reviewdog:
-          linter_image: python
-          reviewdog_format_option: '-efm="%f:%l: %m"'
-          run_linter_steps:
-            - lint:
-                lint_result_file_path: res.txt
-          lint_result_file_path: res.txt
-
+      - lint
       - test
       - create-cli-mac:
           requires:
             - test
+            - lintpr
           filters:
             branches:
               only:
@@ -122,6 +109,7 @@ workflows:
       - create-cli-windows:
           requires:
             - test
+            - lintpr
           filters:
             branches:
               only:
@@ -129,6 +117,7 @@ workflows:
       - create-cli-linux:
           requires:
             - test
+            - lintpr
           filters:
             branches:
               only:

@@ -1,13 +1,13 @@
 import typing
 from typing import Tuple, Any
 
+import math
 from kivy.graphics import Color, Ellipse
 from kivy.uix.boxlayout import BoxLayout
-from kivy_garden.graph import Graph
 from kivy.input.motionevent import MotionEvent
+from kivy_garden.graph import Graph
 
 import numpy as np
-import math
 
 
 class WaveformGraph(Graph):
@@ -20,7 +20,7 @@ class WaveformGraph(Graph):
         self.update = update
         self.current_point = None
         self.old_pos = None
-        self.d = 10
+        self.point_size = 15
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
@@ -33,8 +33,9 @@ class WaveformGraph(Graph):
                     self.graph_canvas.canvas.children.pop(to_remove)
                     self.graph_canvas.canvas.children.pop(to_remove - 1)
                     self.graph_canvas.canvas.children.pop(to_remove - 2)
+                    x, y = self.convert_point(ellipse.pos)
                     for point in self.__selected_points:
-                        if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:
+                        if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
                             self.__selected_points.remove(point)
                             break
                     self.update()
@@ -46,37 +47,38 @@ class WaveformGraph(Graph):
 
             color = (0, 0, 1)
 
-            pos = (touch.x - self.d / 2, touch.y - self.d / 2)
+            pos = (touch.x - self.point_size / 2, touch.y - self.point_size / 2)
 
             with self.graph_canvas.canvas:
                 Color(*color, mode='hsv')
-                Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.d, self.d))
+                Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.point_size, self.point_size))
 
             self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
             self.update()
 
-        return super(WaveformGraph, self).on_touch_down(touch)
+        return super().on_touch_down(touch)
 
     def on_touch_move(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):
-                r = self.d / 2
+                radius = self.point_size / 2
                 for point in self.__selected_points:
                     if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:
                         self.__selected_points.remove(point)
                         break
-                self.current_point.pos = (touch.x - r, touch.y - r)
+                self.current_point.pos = (touch.x - radius, touch.y - radius)
                 self.old_pos = self.convert_point(self.current_point.pos)
                 self.__selected_points.append(self.convert_point(self.current_point.pos))
                 self.update()
             return True
+        return False
 
     def on_touch_up(self, touch: MotionEvent) -> bool:
         if touch.grab_current is self:
             touch.ungrab(self)
 
-        return super(WaveformGraph, self).on_touch_up(touch)
+        return super().on_touch_up(touch)
 
     def touching_point(self, pos: typing.Tuple[float, float]) -> typing.Optional[Ellipse]:
         points = self.graph_canvas.canvas.children[2::3]
@@ -88,14 +90,14 @@ class WaveformGraph(Graph):
 
     @staticmethod
     def is_inside_ellipse(ellipse: Ellipse, pos: typing.Tuple[float, float]) -> bool:
-        r = ellipse.size[0] / 2
-        x, y = (pos[0] - r, pos[1] - r)
+        radius = ellipse.size[0] / 2
+        x, y = (pos[0] - radius, pos[1] - radius)
         exp_x, exp_y = ellipse.pos
         return np.sqrt(np.power(exp_x - x, 2) + np.power(exp_y - y, 2)) < (ellipse.size[0] / 2)
 
     def convert_point(self, point: typing.Tuple[float, float]) -> Tuple[Any, ...]:
-        r = self.d / 2
-        e_x, e_y = (point[0] + r, point[1] + r)
+        radius = self.point_size / 2
+        e_x, e_y = (point[0] + radius, point[1] + radius)
         a_x, a_y = self.to_widget(e_x, e_y, relative=True)
         return tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y)))
 
@@ -124,9 +126,9 @@ class WaveformGraph(Graph):
             if self.xmin <= x <= self.xmax:
                 new_x, new_y = self.to_pixels((x, y))
                 color = (0, 0, 1)
-                pos = (new_x - self.d / 2, new_y - self.d / 2)
+                pos = (new_x - self.point_size / 2, new_y - self.point_size / 2)
                 with self.graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source='src/20221028_144310.jpg', pos=pos,
-                            size=(self.d, self.d))
+                    Ellipse(source='media/20221028_144310.jpg', pos=pos,
+                            size=(self.point_size, self.point_size))
         self.update()

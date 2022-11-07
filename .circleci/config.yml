@@ -38,7 +38,9 @@ jobs:
           name: Upload lint
           command: |
             curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s
-            cat out.txt | ./bin/reviewdog -efm="%f:%l: %m" -reporter=github-pr-review
+            cat out.txt
+            cat $CI_PULL_REQUEST
+            cat out.txt | ./bin/reviewdog -efm="%f:%l: %m" -filter-mode=nofilter -reporter=github-pr-review
   
   create-cli-windows:
     executor: python/default

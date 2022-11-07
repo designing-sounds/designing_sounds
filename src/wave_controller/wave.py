@@ -40,6 +40,7 @@ class RootWave(MDBoxLayout):
         self.clear.bind(on_press=self.press_button_clear)
         self.add.bind(on_press=self.press_button_add)
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
+        self.power_spectrum_sliders = [self.sd, self.mean, self.harmonic_samples]
 
         border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update=self.update_waveform,
@@ -77,8 +78,8 @@ class RootWave(MDBoxLayout):
         self.double_tap = False
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
-        self.power_buttons[self.current_harmonic_index].md_bg_color = self.selected_button_color
-        self.all_power_spectrums.md_bg_color = self.unselected_button_color
+        for slider in self.power_spectrum_sliders:
+            slider.disabled = False
         if not self.do_not_change_waveform:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, int(mean), sd, int(num_samples))
             self.update_waveform()
@@ -105,6 +106,8 @@ class RootWave(MDBoxLayout):
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
 
     def press_button_all_power_spectrum(self, _: typing.Any) -> None:
+        for slider in self.power_spectrum_sliders:
+            slider.disabled = True
         self.power_buttons[self.current_harmonic_index].md_bg_color = self.unselected_button_color
         self.all_power_spectrums.md_bg_color = self.selected_button_color
         self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()

@@ -76,6 +76,8 @@ class RootWave(MDBoxLayout):
         self.double_tap = False
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
+        self.power_buttons[self.current_harmonic_index].md_bg_color = self.selected_button_color
+        self.all_power_spectrums.md_bg_color = self.unselected_button_color
         if not self.do_not_change_waveform:
             self.sound_model.update_power_spectrum(self.current_harmonic_index, int(mean), sd, int(num_samples))
             self.update_waveform()

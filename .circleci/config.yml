@@ -18,7 +18,7 @@ commands:
       - checkout
       - run: |
           pip install pylint
-          pylint ./src --out <<parameters.lint_result_file_path>> || true
+          pylint ./src --output <<parameters.lint_result_file_path>> || true
       - store_artifacts:
           path: <<parameters.lint_result_file_path>>
 

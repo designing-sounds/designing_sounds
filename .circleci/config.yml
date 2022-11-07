@@ -39,7 +39,6 @@ jobs:
           command: |
             curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s
             cat out.txt
-            cat $CI_PULL_REQUEST
             cat out.txt | ./bin/reviewdog -efm="%f:%l: %m" -filter-mode=nofilter -reporter=github-pr-review
   
   create-cli-windows:

@@ -2,11 +2,14 @@ import typing
 
 import kivy.utils as utils
 import numpy as np
+import src.wave_view.style as style
+
 from kivy.lang import Builder
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
+
 
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
@@ -60,7 +63,7 @@ class RootWave(MDBoxLayout):
         self.ids.modulation.add_widget(self.waveform_graph)
         self.ids.power_spectrum.add_widget(self.power_spectrum_graph)
 
-        plot_color = utils.get_color_from_hex("#2596BE")
+        plot_color = style.cyber_grape
 
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
         self.power_plot = BarPlot(color=plot_color)
@@ -69,8 +72,8 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_graph.add_plot(self.power_plot)
 
         self.power_buttons = []
-        self.selected_button_color = utils.get_color_from_hex("#233D4D")
-        self.unselected_button_color = utils.get_color_from_hex("#3FA7D6")
+        self.selected_button_color = style.dark_sky_blue
+        self.unselected_button_color = style.blue_violet
         self.harmonic_list = np.zeros((self.max_harmonics, 3))
         self.press_button_add(None)
         self.double_tap = False

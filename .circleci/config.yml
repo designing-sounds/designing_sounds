@@ -33,7 +33,12 @@ jobs:
           name: PyLint
           command: |
             pip install pylint
-            pylint ./src
+            pylint ./src --output out.txt || true
+      - run:
+          name: Upload lint
+          command: |
+            curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s
+            pylint ./src | ./bin/reviewdog -f=checkstyle -name="%f:%l: %m" -reporter=github-pr-review
   
   create-cli-windows:
     executor: python/default

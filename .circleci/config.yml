@@ -39,7 +39,7 @@ jobs:
           command: |
             curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s
             cat out.txt
-            cat out.txt | ./bin/reviewdog -efm="%f:%l: %m" -filter-mode=nofilter -reporter=github-pr-review
+            cat out.txt | ./bin/reviewdog -efm="%f:%l: %m" -filter-mode=nofilter -reporter=github-pr-review -fail-on-error
   
   create-cli-windows:
     executor: python/default

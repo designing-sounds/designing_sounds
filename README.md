@@ -30,9 +30,12 @@ This is an issue that is currently being worked on to do with signing of the app
 
 Click the button "Open Anyway" and the application should start  :)
 
-### Running the application
+### Other Platforms
 
-The application is run by calling the main.py file with
+Native applications for other platforms are currently in progress. 
+If you would like to run it then you can download the source code.
+Install all dependencies required as stated in the requirements.txt file.
+And then run the main application as below:
 
 ```shell
 python3 ./main.py

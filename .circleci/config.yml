@@ -31,6 +31,7 @@ jobs:
       - run:
           name: Python
           command: |
+            echo $CI_PULL_REQUEST
             python3 --version
             sudo apt-get update
             sudo apt-get install libasound-dev libportaudio2 libportaudiocpp0 portaudio19-dev -y

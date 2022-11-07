@@ -57,7 +57,7 @@ jobs:
           command: |
             sudo pip3 install pyobjc
             cd build/mac
-            pip freeze
+            pip3 freeze
             ./build_mac.sh
             zip -r sounds.zip sounds.dmg
             ls

@@ -8,6 +8,20 @@ orbs:
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+commands:
+  lint:
+    parameters:
+      lint_result_file_path:
+        description: Lint result file path
+        type: string
+    steps:
+      - checkout
+      - run: |
+          pip install pylint
+          pylint ./src --out <<parameters.lint_result_file_path>> || true
+      - store_artifacts:
+          path: <<parameters.lint_result_file_path>>
+
 jobs:
   test: # this can be any name you choose
     executor: python/default # use the default executor defined within the orb
@@ -87,14 +101,17 @@ jobs:
 workflows:
   create-cli:
     jobs:
-      - linter/pylint:
-          src:
-            ./src
+      - reviewdog/reviewdog:
+          reviewdog_format_option: '-f=rubocop'
+          run_linter_steps:
+            - lint:
+                lint_result_file_path: res.txt
+          lint_result_file_path: res.txt
+
       - test
       - create-cli-mac:
           requires:
             - test
-            - linter/pylint
           filters:
             branches:
               only:
@@ -102,7 +119,6 @@ workflows:
       - create-cli-windows:
           requires:
             - test
-            - linter/pylint
           filters:
             branches:
               only:
@@ -110,7 +126,6 @@ workflows:
       - create-cli-linux:
           requires:
             - test
-            - linter/pylint
           filters:
             branches:
               only:

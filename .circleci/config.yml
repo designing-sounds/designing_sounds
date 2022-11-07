@@ -102,6 +102,7 @@ workflows:
   create-cli:
     jobs:
       - reviewdog/reviewdog:
+          linter_image: python
           reviewdog_format_option: '-f=rubocop'
           run_linter_steps:
             - lint:

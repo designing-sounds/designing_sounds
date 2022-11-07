@@ -65,16 +65,18 @@ class WaveformGraph(Graph):
         return super(WaveformGraph, self).on_touch_down(touch)
 
     def on_touch_move(self, touch: MotionEvent) -> bool:
+        from src.wave_controller.wave import RootWave
         if touch.grab_current is self:
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):
                 if self.panning_mode:
+                    total_duration = RootWave.waveform_duration
                     new_x, _ = self.convert_point((a_x, a_y))
                     window_length = self.xmax - self.xmin
-                    self.xmin += new_x - self.old_x
-                    self.xmax += new_x - self.old_x
-                    if self.xmax > 1:
-                        self.xmax = 1
+                    self.xmin += self.old_x - new_x
+                    self.xmax += self.old_x - new_x
+                    if self.xmax > total_duration:
+                        self.xmax = total_duration
                         self.xmin = self.xmax - window_length
                     elif self.xmin < 0:
                         self.xmin = 0

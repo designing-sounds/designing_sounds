@@ -3,6 +3,8 @@ orbs:
   python: circleci/python@2.1.1
   win: circleci/windows@5.0
   macos: circleci/macos@2
+  linter: rdgozum/python@0.3.2
+  reviewdog: yasuhiroki/reviewdog@0.0.3
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
@@ -97,6 +99,9 @@ jobs:
 workflows:
   create-cli:
     jobs:
+      - linter/pylint:
+          src:
+            ./src
       - lint
       - test
       - create-cli-mac:

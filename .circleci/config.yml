@@ -58,6 +58,7 @@ jobs:
             HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
             sudo pip3 install pyobjc
             cd build/mac
+            pip freeze
             ./build_mac.sh
             zip -r sounds.zip sounds.dmg
             ls
@@ -90,10 +91,10 @@ workflows:
       - create-cli-mac:
           requires:
             - test
-          filters:
-            branches:
-              only:
-                - main
+     #     filters:
+    #        branches:
+    #          only:
+     #           - main
       - create-cli-windows:
           requires:
             - test

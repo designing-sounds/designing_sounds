@@ -20,7 +20,7 @@ class WaveformGraph(Graph):
         self.update = update
         self.current_point = None
         self.old_pos = None
-        self.d = 10
+        self.d = 15
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
@@ -51,7 +51,7 @@ class WaveformGraph(Graph):
 
             with self.graph_canvas.canvas:
                 Color(*color, mode='hsv')
-                Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.d, self.d))
+                Ellipse(source='20221028_144310.jpg', pos=pos, size=(self.d, self.d))
 
             self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
             self.update()
@@ -128,6 +128,6 @@ class WaveformGraph(Graph):
                 pos = (new_x - self.d / 2, new_y - self.d / 2)
                 with self.graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source='media/20221028_144310.jpg', pos=pos,
+                    Ellipse(source='20221028_144310.jpg', pos=pos,
                             size=(self.d, self.d))
         self.update()

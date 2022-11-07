@@ -6,3 +6,4 @@ kivy_garden.graph
 PyAudio~=0.2.12
 pyinstaller
 kivymd~=1.1.1
+Cython

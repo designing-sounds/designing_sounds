@@ -19,6 +19,7 @@ commands:
       - run: |
           pip install pylint
           pylint ./src --output <<parameters.lint_result_file_path>> || true
+          cat <<parameters.lint_result_file_path>>
       - store_artifacts:
           path: <<parameters.lint_result_file_path>>
 

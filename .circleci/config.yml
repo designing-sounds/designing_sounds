@@ -91,10 +91,10 @@ workflows:
       - create-cli-mac:
           requires:
             - test
-     #     filters:
-    #        branches:
-    #          only:
-     #           - main
+          filters:
+            branches:
+              only:
+                - main
       - create-cli-windows:
           requires:
             - test

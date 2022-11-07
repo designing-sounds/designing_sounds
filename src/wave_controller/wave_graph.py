@@ -20,7 +20,7 @@ class WaveformGraph(Graph):
         self.update = update
         self.current_point = None
         self.old_pos = None
-        self.d = 10
+        self.d = 15
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)

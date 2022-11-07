@@ -4,5 +4,7 @@ pytest
 pytest-cov
 kivy_garden.graph
 PyAudio~=0.2.12
-pyinstaller
+pyinstaller~=4.10
 kivymd~=1.1.1
+Cython
+PyQt3D

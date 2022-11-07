@@ -31,7 +31,6 @@ class RootWave(MDBoxLayout):
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
         self.max_samples_per_harmonic = int(self.harmonic_samples.max)
-        z = 2
 
         self.do_not_change_waveform = False
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))

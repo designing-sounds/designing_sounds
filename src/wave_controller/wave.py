@@ -1,8 +1,6 @@
 import typing
 
-import kivy.utils as utils
 import numpy as np
-import src.wave_view.style as style
 
 from kivy.lang import Builder
 from kivy_garden.graph import LinePlot, Graph, BarPlot
@@ -10,7 +8,7 @@ from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
 
-
+from src.wave_view import style
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
 from src.wave_model.wave_model import PowerSpectrum
@@ -31,7 +29,7 @@ class RootWave(MDBoxLayout):
     current_harmonic_index = 0
 
     def __init__(self, **kwargs: typing.Any):
-        super(RootWave, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.max_samples_per_harmonic = int(self.harmonic_samples.max)
 
         self.do_not_change_waveform = False
@@ -94,19 +92,19 @@ class RootWave(MDBoxLayout):
         points = self.sound_model.model_sound(self.graph_sample_rate, self.waveform_duration, 0)
         self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
 
-    def press_button_play(self, instance: typing.Any) -> None:
+    def press_button_play(self, _: typing.Any) -> None:
         self.wave_sound.press_button_play()
 
-    def press_button_clear(self, instance: typing.Any) -> None:
+    def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
         self.update_waveform()
 
-    def press_button_add(self, instance: typing.Any) -> None:
+    def press_button_add(self, _: typing.Any) -> None:
         if self.num_harmonics < self.max_harmonics:
             self.add_power_spectrum_button()
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value)
 
-    def press_button_all_power_spectrum(self, instance: typing.Any) -> None:
+    def press_button_all_power_spectrum(self, _: typing.Any) -> None:
         self.power_buttons[self.current_harmonic_index].md_bg_color = self.unselected_button_color
         self.all_power_spectrums.md_bg_color = self.selected_button_color
         self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()
@@ -138,7 +136,7 @@ class RootWave(MDBoxLayout):
         self.harmonic_list[self.num_harmonics - 1] = np.array([self.mean.max // 2, 1, self.harmonic_samples.max // 2])
         self.update_display_power_spectrum(self.num_harmonics - 1, False)
 
-    def set_double_tap(self, button, touch):
+    def set_double_tap(self, _button, touch):
         self.double_tap = False
         if touch.is_double_tap:
             self.double_tap = True

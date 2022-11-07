@@ -7,7 +7,7 @@
     mean: mean
     harmonic_samples: samples
     zoom: zoom
-    panning: panning
+    panning: panning_mode
 
 
     BoxLayout:
@@ -60,31 +60,22 @@
                         min: 1
                         max: 10
                         step: 1
-                        on_value: root.update_zoom(zoom.value, panning.value)
+                        on_value: root.update_zoom(zoom.value)
                         show_off: False
 
                 BoxLayout:
                     size_hint: 1, 1
-                    orientation: 'vertical'
-                    MDLabel:
-                        text: 'Panning'
-                        halign: 'center'
-                        theme_text_color: 'Primary'
-                    MDSlider:
-                        color: kivy.utils.get_color_from_hex("#59C9A5")
-                        hint: True
-                        hint_bg_color: kivy.utils.get_color_from_hex("#233D4D")
-                        hint_text_color: "white"
-                        hint_radius: [6, 0, 6, 0]
-                        thumb_color_active: kivy.utils.get_color_from_hex("#EE7B30")
-                        thumb_color_inactive: kivy.utils.get_color_from_hex("#59C9A5")
-                        id: panning
-                        value: 0
-                        min: 0
-                        max: (10 / max(zoom.value, 1)) * (zoom.value - 1)
-                        step: 1
-                        on_value: root.update_panning(zoom.value, panning.value)
-                        show_off: False
+                    orientation: 'horizontal'
+                    pos_hint: {'center_x': 0.72}
+                    MDRectangleFlatIconButton:
+                        md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
+                        id: panning_mode
+                        icon: 'selection-ellipse-remove'
+                        text: 'Enable panning mode '
+                        icon_color: 'white'
+                        text_color: 'white'
+                        line_color: (0, 0, 0, 0)
+                        on_press: root.update_panning_mode()
 
                 BoxLayout:
                     orientation: 'horizontal'

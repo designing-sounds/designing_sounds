@@ -201,7 +201,7 @@ class RootWave(MDBoxLayout):
 
         self.update_power_spectrum(mean, sd, num_samples)
 
-    def update_zoom(self, zoom: int, pan: float):
+    def update_zoom(self, zoom: int):
         self.waveform_graph.x_ticks_major = round(0.05 / zoom, 3)
         midpoint = (self.waveform_graph.xmax + self.waveform_graph.xmin) / 2
         window_length = self.waveform_duration / zoom
@@ -222,6 +222,14 @@ class RootWave(MDBoxLayout):
         self.waveform_graph.xmax = self.waveform_graph.xmin + self.waveform_duration / zoom
         self.waveform_graph.update_graph_points()
         self.update_waveform()
+
+    def update_panning_mode(self):
+        if self.waveform_graph.panning_mode:
+            self.waveform_graph.panning_mode = False
+            self.panning.text = "Enable panning mode "
+        else:
+            self.waveform_graph.panning_mode = True
+            self.panning.text = "Disable panning mode"
 
 
 class WaveApp(MDApp):

@@ -96,7 +96,7 @@ jobs:
 workflows:
   create-cli:
     jobs:
-      - lint
+      - lintpr
       - test
       - create-cli-mac:
           requires:

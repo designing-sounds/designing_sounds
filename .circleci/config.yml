@@ -43,14 +43,13 @@ jobs:
   create-cli-windows:
     executor:
       name: win/default
+      shell: bash.exe
     steps:
       - python/install-packages:
           pkg-manager: pip
-          shell: bash.exe
       - run:
           name: Windows Test
           command: echo hello && echo world
-          shell: bash.exe
   
   create-cli-linux:
     executor: python/default

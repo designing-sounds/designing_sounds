@@ -50,7 +50,9 @@ jobs:
           pkg-manager: pip
       - run:
           name: Windows Test
-          command: echo hello && echo world
+          command: |
+            cd build/windows
+            python -m PyInstaller Sounds.spec
   
   create-cli-linux:
     executor: python/default

@@ -6,6 +6,7 @@ orbs:
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+
 jobs:
   test: # this can be any name you choose
     executor: python/default # use the default executor defined within the orb
@@ -14,6 +15,7 @@ jobs:
       - run:
           name: Python
           command: |
+            echo $CI_PULL_REQUEST
             python3 --version
             sudo apt-get update
             sudo apt-get install libasound-dev libportaudio2 libportaudiocpp0 portaudio19-dev -y
@@ -23,6 +25,15 @@ jobs:
       - run:
           name: Run tests
           command: python -m pytest
+  lint:
+    executor: python/default
+    steps:
+      - checkout
+      - run:
+          name: PyLint
+          command: |
+            pip install pylint
+            pylint ./src
   
   create-cli-windows:
     executor: python/default
@@ -58,7 +69,6 @@ jobs:
             HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
             sudo pip3 install pyobjc
             cd build/mac
-            pip3 freeze
             ./build_mac.sh
             ls
       - persist_to_workspace:
@@ -86,10 +96,12 @@ jobs:
 workflows:
   create-cli:
     jobs:
+      - lint
       - test
       - create-cli-mac:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -97,6 +109,7 @@ workflows:
       - create-cli-windows:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -104,6 +117,7 @@ workflows:
       - create-cli-linux:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -112,6 +126,8 @@ workflows:
       - publish-github-release:
           requires:
             - create-cli-mac
+            - create-cli-windows
+            - create-cli-linux
           filters:
             branches:
               only:

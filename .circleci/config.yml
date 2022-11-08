@@ -46,6 +46,7 @@ jobs:
     steps:
       - python/install-packages:
           pkg-manager: pip
+          shell: bash.exe
       - run:
           name: Windows Test
           command: echo hello && echo world

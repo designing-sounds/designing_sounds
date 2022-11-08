@@ -118,7 +118,6 @@ workflows:
           requires:
             - test
             - lint
-            - lintpr
           filters:
             branches:
               only:

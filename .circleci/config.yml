@@ -42,7 +42,7 @@ jobs:
   
   create-cli-windows:
     executor:
-      name: win/default
+      name: win/server-2019-cuda
       shell: bash.exe
     steps:
       - checkout

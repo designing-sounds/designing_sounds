@@ -44,6 +44,8 @@ jobs:
     executor:
       name: win/default
     steps:
+      - python/install-packages:
+          pkg-manager: pip
       - run:
           name: Windows Test
           command: echo hello && echo world

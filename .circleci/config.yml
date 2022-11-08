@@ -34,23 +34,6 @@ jobs:
           command: |
             pip install pylint
             pylint ./src
-
-  lintpr:
-    executor: python/default
-    steps:
-      - checkout
-      - run:
-          name: PyLint
-          command: |
-            pip install pylint
-            pylint ./src --output out.txt || true
-      - run:
-          name: Upload lint
-          command: |
-            if [ "${CIRCLE_PULL_REQUEST##*/}" != "" ];then
-              curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s
-              cat out.txt | ./bin/reviewdog -efm="%f:%l:%c: %m" -filter-mode=nofilter -reporter=github-pr-review -tee
-            fi
   
   create-cli-windows:
     executor: python/default
@@ -113,14 +96,12 @@ jobs:
 workflows:
   create-cli:
     jobs:
-      - lintpr
       - lint
       - test
       - create-cli-mac:
           requires:
             - test
             - lint
-            - lintpr
           filters:
             branches:
               only:
@@ -129,7 +110,6 @@ workflows:
           requires:
             - test
             - lint
-            - lintpr
           filters:
             branches:
               only:

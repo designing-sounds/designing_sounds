@@ -54,7 +54,6 @@ jobs:
             python -m pip install kivy_deps.angle==0.3.*
             python -m pip install kivy==2.1.0
             python -m pip install opencv-python
-            python -m pip install pyobjc
       - python/install-packages:
           pkg-manager: pip
       - run:

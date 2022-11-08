@@ -2,6 +2,7 @@ import sys
 
 import kivy
 from kivy.config import Config
+Config.set('graphics', 'multisamples', '0')
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.write()
 

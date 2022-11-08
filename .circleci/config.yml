@@ -45,6 +45,7 @@ jobs:
       name: win/default
       shell: bash.exe
     steps:
+      - checkout
       - python/install-packages:
           pkg-manager: pip
       - run:

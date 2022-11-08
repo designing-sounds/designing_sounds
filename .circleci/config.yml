@@ -49,10 +49,10 @@ jobs:
       - run:
           name: Installs
           command: |
-            python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2==0.1.* kivy_deps.glew==0.1.*
-            python -m pip install kivy_deps.gstreamer==0.1.*
-            python -m pip install kivy_deps.angle==0.1.*
-            python -m pip install kivy==1.11.1
+            python -m pip install docutils pygments pypiwin32 kivy_deps.sdl2==0.5.* kivy_deps.glew==0.3.*
+            python -m pip install kivy_deps.gstreamer==0.3.*
+            python -m pip install kivy_deps.angle==0.3.*
+            python -m pip install kivy==2.1.0
       - python/install-packages:
           pkg-manager: pip
       - run:

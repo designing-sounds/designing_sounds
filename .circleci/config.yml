@@ -24,7 +24,12 @@ jobs:
           pkg-manager: pip
       - run:
           name: Run tests
-          command: python -m pytest
+          command: |
+            mkdir test-results
+            python -m pytest --junitxml=test-results/junit.xml
+      - store_test_results:
+          path: test-results
+
   lint:
     executor: python/default
     steps:
@@ -36,12 +41,13 @@ jobs:
             pylint ./src
   
   create-cli-windows:
-    executor: python/default
+    executor:
+      name: win/default
     steps:
       - run:
-          name: Build Windows CLI
-          command: |
-            echo "Nothing here but us chickens"
+          name: Windows Test
+          command: echo "Nothing here but us chickens"
+          shell: bash.exe
   
   create-cli-linux:
     executor: python/default

@@ -1,3 +1,30 @@
+<RightContentCls>
+    disabled: True
+    adaptive_size: True
+    pos_hint: {"center_y": .5}
+
+    MDIconButton:
+        icon: root.icon
+        user_font_size: "16sp"
+        md_bg_color_disabled: 0, 0, 0, 0
+
+    MDLabel:
+        text: root.text
+        font_style: "Caption"
+        adaptive_size: True
+        pos_hint: {"center_y": .5}
+
+
+<Item>
+
+    IconLeftWidget:
+        icon: root.left_icon
+
+    RightContentCls:
+        id: container
+        icon: root.right_icon
+        text: root.right_text
+
 <RootWave>:
     clear: clear_button
     play: play_button
@@ -67,15 +94,11 @@
                     size_hint: 1, 1
                     orientation: 'horizontal'
                     pos_hint: {'center_x': 0.72}
-                    MDRectangleFlatIconButton:
-                        md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
+                    MDRaisedButton:
                         id: panning_mode
-                        icon: 'selection-ellipse-remove'
-                        text: 'Enable panning mode '
-                        icon_color: 'white'
-                        text_color: 'white'
-                        line_color: (0, 0, 0, 0)
-                        on_press: root.update_panning_mode()
+                        text: "Choose mode"
+                        on_release: root.menu.open()
+
 
                 BoxLayout:
                     orientation: 'horizontal'

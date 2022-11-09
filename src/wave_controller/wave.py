@@ -97,13 +97,11 @@ class RootWave(MDBoxLayout):
         if not self.wave_sound.is_playing:
             self.wave_sound.is_playing = True
             self.wave_sound.stream.start_stream()
-            self.play.text = "Pause"
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
         else:
             self.wave_sound.is_playing = False
             self.wave_sound.stream.stop_stream()
-            self.play.text = "Play"
             self.play.icon = "play"
             self.play.md_bg_color = style.blue_violet
 

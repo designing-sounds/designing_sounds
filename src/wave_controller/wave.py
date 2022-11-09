@@ -1,6 +1,5 @@
 import typing
 
-
 import numpy as np
 
 from kivy.lang import Builder
@@ -91,7 +90,8 @@ class RootWave(MDBoxLayout):
     def update_waveform(self) -> None:
         inputted_points = self.waveform_graph.get_selected_points()
         self.sound_model.interpolate_points(inputted_points)
-        points = self.sound_model.model_sound(self.graph_sample_rate, self.waveform_duration, 0)
+        zoom_factor = self.waveform_duration / (self.waveform_graph.xmax - self.waveform_graph.xmin)
+        points = self.sound_model.model_sound(zoom_factor * self.graph_sample_rate, self.waveform_duration, 0)
         self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
 
     def press_button_play(self, _: typing.Any) -> None:

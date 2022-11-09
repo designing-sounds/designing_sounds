@@ -1,17 +1,13 @@
 <RightContentCls>
     disabled: True
-    adaptive_size: True
     pos_hint: {"center_y": .5}
 
     MDIconButton:
         icon: root.icon
-        user_font_size: "16sp"
         md_bg_color_disabled: 0, 0, 0, 0
 
     MDLabel:
         text: root.text
-        font_style: "Caption"
-        adaptive_size: True
         pos_hint: {"center_y": .5}
 
 
@@ -93,11 +89,15 @@
                 BoxLayout:
                     size_hint: 1, 1
                     orientation: 'horizontal'
-                    pos_hint: {'center_x': 0.72}
-                    MDRaisedButton:
+                    MDRectangleFlatIconButton:
+                        md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
+                        icon_color: 'white'
+                        text_color: 'white'
+                        icon: 'menu-down'
+                        line_color: (0, 0, 0, 0)
                         id: panning_mode
                         text: "Choose mode"
-                        on_release: root.menu.open()
+                        on_release: root.open_centred()
 
 
                 BoxLayout:

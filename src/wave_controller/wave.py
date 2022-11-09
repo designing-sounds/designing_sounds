@@ -96,7 +96,6 @@ class RootWave(MDBoxLayout):
                 "right_icon": "",
                 "left_icon": "cursor-default-outline",
                 "viewclass": "Item",
-                "height": dp(54),
                 "on_release": lambda x=False: self.update_panning_mode(x),
             },
             {
@@ -105,7 +104,6 @@ class RootWave(MDBoxLayout):
                 "right_icon": "",
                 "left_icon": "arrow-all",
                 "viewclass": "Item",
-                "height": dp(54),
                 "on_release": lambda x=True: self.update_panning_mode(x),
             }
         ]
@@ -261,6 +259,9 @@ class RootWave(MDBoxLayout):
         self.menu.dismiss()
         self.panning.text = "Moving Mode" if state else "Plotting Mode"
         self.waveform_graph.panning_mode = state
+
+    def open_centred(self):
+        self.menu.open()
 
 
 class WaveApp(MDApp):

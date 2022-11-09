@@ -1,5 +1,6 @@
 import typing
 
+
 import numpy as np
 
 from kivy.lang import Builder
@@ -8,11 +9,11 @@ from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
 
-from src.wave_view import style
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
 from src.wave_model.wave_model import PowerSpectrum
 from src.wave_model.wave_model import SoundModel
+from src.wave_view import style
 
 Builder.load_file('src/wave_view/wave.kv')
 
@@ -94,7 +95,16 @@ class RootWave(MDBoxLayout):
         self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
 
     def press_button_play(self, _: typing.Any) -> None:
-        self.wave_sound.press_button_play()
+        if not self.wave_sound.is_playing:
+            self.wave_sound.is_playing = True
+            self.wave_sound.stream.start_stream()
+            self.play.icon = "pause"
+            self.play.md_bg_color = style.dark_sky_blue
+        else:
+            self.wave_sound.is_playing = False
+            self.wave_sound.stream.stop_stream()
+            self.play.icon = "play"
+            self.play.md_bg_color = style.blue_violet
 
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()

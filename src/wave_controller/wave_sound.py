@@ -25,14 +25,6 @@ class WaveSound:
         self.chunk_index = (self.chunk_index + 1) % (self.waveform_duration / self.chunk_duration)
         return sound, pyaudio.paContinue
 
-    def press_button_play(self) -> None:
-        if not self.is_playing:
-            self.is_playing = True
-            self.stream.start_stream()
-        else:
-            self.is_playing = False
-            self.stream.stop_stream()
-
     def shutdown_audio(self, _) -> bool:
         self.stream.close()
         self.py_audio.terminate()

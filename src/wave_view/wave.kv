@@ -95,14 +95,12 @@
                     BoxLayout:
                         size_hint: 1, 0.2
 
-                    MDRectangleFlatIconButton:
+                    MDIconButton:
                         md_bg_color: style.blue_violet
                         id: play_button
-                        icon: 'play-pause'
-                        text: 'Play/ Pause'
-                        icon_color: 'white'
-                        text_color: 'white'
-                        line_color: (0, 0, 0, 0)
+                        icon: 'play'
+                        theme_text_color: 'Custom'
+                        text_color: style.white
 
                     BoxLayout:
                         size_hint: 0.5, 0.2
@@ -112,6 +110,7 @@
                         id: clear_button
                         icon: 'selection-ellipse-remove'
                         text: 'Clear Points'
+                        pos_hint: {'center_y':.3}
                         icon_color: 'white'
                         text_color: 'white'
                         line_color: (0, 0, 0, 0)

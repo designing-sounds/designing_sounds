@@ -46,7 +46,7 @@ jobs:
     steps:
       - run:
           name: Windows Test
-          command: echo hello && echo world
+          command: echo "Nothing here but us chickens"
           shell: bash.exe
   
   create-cli-linux:
@@ -102,41 +102,41 @@ jobs:
 workflows:
   create-cli:
     jobs:
-#      - lint
-#      - test
-#      - create-cli-mac:
-#          requires:
-#            - test
-#            - lint
-#          filters:
-#            branches:
-#              only:
-#                - main
-      - create-cli-windows
-#          requires:
-#            - test
-#            - lint
-#          filters:
-#            branches:
-#              only:
-#                - main
-#      - create-cli-linux:
-#          requires:
-#            - test
-#            - lint
-#          filters:
-#            branches:
-#              only:
-#                - main
+      - lint
+      - test
+      - create-cli-mac:
+          requires:
+            - test
+            - lint
+          filters:
+            branches:
+              only:
+                - main
+      - create-cli-windows:
+          requires:
+            - test
+            - lint
+          filters:
+            branches:
+              only:
+                - main
+      - create-cli-linux:
+          requires:
+            - test
+            - lint
+          filters:
+            branches:
+              only:
+                - main
 
-#      - publish-github-release:
-#          requires:
-#            - create-cli-mac
-#            - create-cli-windows
-#            - create-cli-linux
-#          filters:
-#            branches:
-#              only:
-#                - main
+      - publish-github-release:
+          requires:
+            - create-cli-mac
+            - create-cli-windows
+            - create-cli-linux
+          filters:
+            branches:
+              only:
+                - main
 
        # filter on main

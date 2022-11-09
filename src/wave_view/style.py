@@ -1,4 +1,4 @@
-import kivy.utils as utils
+from kivy import utils
 
 dark_sky_blue = utils.get_color_from_hex("#98C1D9")
 blue_violet = utils.get_color_from_hex("#6969B3")

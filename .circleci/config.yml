@@ -68,7 +68,7 @@ jobs:
             tar -cvzf windows.tar dist
             ls
       - store_artifacts:
-          path: windows.tar
+          path: build/windows/windows.tar
   
   create-cli-linux:
     executor: python/default

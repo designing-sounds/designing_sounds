@@ -65,6 +65,8 @@ jobs:
             cd dist
             echo "Here"
             ls
+            echo "Here - 2"
+            ls
   
   create-cli-linux:
     executor: python/default

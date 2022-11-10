@@ -66,6 +66,7 @@ jobs:
             ls
             cd ..
             tar -cvzf windows.tar dist
+            ls
       - store_artifacts:
           path: windows.tar
   

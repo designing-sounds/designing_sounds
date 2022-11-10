@@ -62,12 +62,12 @@ jobs:
             cd build/windows
             python -m PyInstaller Sounds.spec
             ls
-            cd build
+            cd dist
             ls
             cd ..
-            zip -r windows.zip build/
+            tar -cvzf windows.tar dist
       - store_artifacts:
-          path: windows.zip
+          path: windows.tar
   
   create-cli-linux:
     executor: python/default

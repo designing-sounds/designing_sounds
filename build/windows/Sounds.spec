@@ -1,6 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-from kivy_deps import sdl2, glew
+import os
+os.environ['KIVY_GL_BACKEND'] = 'angle_sdl2'
+
+from kivy_deps import sdl2, angle
 
 block_cipher = None
 
@@ -46,7 +49,7 @@ coll = COLLECT(
     a.binaries,
     a.zipfiles,
     a.datas,
-    *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+    *[Tree(p) for p in (sdl2.dep_bins + angle.dep_bins)],
     strip=None,
     upx=True,
     upx_exclude=[],

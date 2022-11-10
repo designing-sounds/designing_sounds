@@ -65,6 +65,7 @@ jobs:
             cd dist
             echo "Here"
             ls
+            cd sounds
             echo "Here - 2"
             ls
   

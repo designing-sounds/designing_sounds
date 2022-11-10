@@ -60,15 +60,11 @@ jobs:
           name: Windows Test
           command: |
             cd build/windows
-            python -m PyInstaller Sounds.spec
+            python -m PyInstaller --onefile Sounds.spec
             ls
             cd dist
+            echo "Here"
             ls
-            cd ..
-            tar -cvzf windows.tar dist
-            ls
-      - store_artifacts:
-          path: build/windows/windows.tar
   
   create-cli-linux:
     executor: python/default

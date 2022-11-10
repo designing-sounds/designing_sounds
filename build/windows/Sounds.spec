@@ -25,7 +25,7 @@ a = Analysis(
 )
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-a.datas +=[('wave.kv', '/Users/tomwoodley/Desktop/designing_sounds/src/wave_view/wave.kv', 'DATA'),]
+a.datas +=[('src/wave_view/wave.kv', '../../src/wave_view/wave.kv', 'DATA'), ('media/20221028_144310.jpg', '../../media/20221028_144310.jpg', 'media')]
 
 exe = EXE(
     pyz,
@@ -45,7 +45,7 @@ exe = EXE(
     entitlements_file=None,
 )
 coll = COLLECT(
-    exe, Tree('/Users/tomwoodley/Desktop/designing_sounds/src'),
+    exe, Tree('../../src'),
     a.binaries,
     a.zipfiles,
     a.datas,

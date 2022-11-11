@@ -9,6 +9,8 @@ from kivy_garden.graph import Graph
 
 import numpy as np
 
+from src.wave_controller.wave import RootWave
+
 
 class WaveformGraph(Graph):
     __selected_points = []
@@ -65,7 +67,6 @@ class WaveformGraph(Graph):
         return super().on_touch_down(touch)
 
     def on_touch_move(self, touch: MotionEvent) -> bool:
-        from src.wave_controller.wave import RootWave
         if touch.grab_current is self:
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):

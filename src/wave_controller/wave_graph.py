@@ -10,7 +10,6 @@ from kivy_garden.graph import Graph
 import numpy as np
 
 
-
 class WaveformGraph(Graph):
     __selected_points = []
 

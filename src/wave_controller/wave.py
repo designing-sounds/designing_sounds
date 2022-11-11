@@ -3,7 +3,6 @@ import typing
 import numpy as np
 
 from kivy.lang import Builder
-from kivy.metrics import dp
 from kivy.properties import StringProperty
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 from kivymd.app import MDApp

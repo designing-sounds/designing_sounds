@@ -23,6 +23,8 @@ class WaveformGraph(Graph):
         self.point_size = 15
         self.old_x = None
         self.panning_mode = False
+        self.xmin = 0
+        self.xmax = 1
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)

@@ -1,3 +1,25 @@
+<RightContentCls>
+    disabled: True
+    pos_hint: {"center_y": .5}
+
+    MDIconButton:
+        icon: root.icon
+        md_bg_color_disabled: 0, 0, 0, 0
+
+    MDLabel:
+        text: root.text
+        pos_hint: {"center_y": .5}
+
+
+<Item>
+
+    IconLeftWidget:
+        icon: root.left_icon
+
+    RightContentCls:
+        id: container
+        icon: root.right_icon
+        text: root.right_text
 
 <RootWave>:
     #:import style src.wave_view.style
@@ -9,7 +31,7 @@
     mean: mean
     harmonic_samples: samples
     zoom: zoom
-    panning: panning
+    panning: panning_mode
 
 
     BoxLayout:
@@ -62,31 +84,22 @@
                         min: 1
                         max: 10
                         step: 1
-                        on_value: root.update_zoom(zoom.value, panning.value)
+                        on_value: root.update_zoom(zoom.value)
                         show_off: False
 
                 BoxLayout:
                     size_hint: 1, 1
-                    orientation: 'vertical'
-                    MDLabel:
-                        text: 'Panning'
-                        halign: 'center'
-                        theme_text_color: 'Primary'
-                    MDSlider:
-                        color: style.cyber_grape
-                        hint: True
-                        hint_bg_color: style.dark_sky_blue
-                        hint_text_color: "white"
-                        hint_radius: [6, 0, 6, 0]
-                        thumb_color_active: style.dark_sky_blue
-                        thumb_color_inactive: style.palatinate_purple
-                        id: panning
-                        value: 0
-                        min: 0
-                        max: (10 / max(zoom.value, 1)) * (zoom.value - 1)
-                        step: 1
-                        on_value: root.update_panning(zoom.value, panning.value)
-                        show_off: False
+                    orientation: 'horizontal'
+                    MDRectangleFlatIconButton:
+                        md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
+                        icon_color: 'white'
+                        text_color: 'white'
+                        icon: 'menu-down'
+                        line_color: (0, 0, 0, 0)
+                        id: panning_mode
+                        text: "Choose mode"
+                        on_release: root.open_centred()
+
 
                 BoxLayout:
                     orientation: 'horizontal'

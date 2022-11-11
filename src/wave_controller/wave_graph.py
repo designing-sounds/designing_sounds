@@ -21,11 +21,17 @@ class WaveformGraph(Graph):
         self.current_point = None
         self.old_pos = None
         self.point_size = 15
+        self.old_x = None
+        self.panning_mode = False
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
 
         if self.collide_plot(a_x, a_y):
+            if self.panning_mode:
+                self.old_x, _ = self.convert_point((a_x, a_y))
+                touch.grab(self)
+                return True
             ellipse = self.touching_point((touch.x, touch.y))
             if ellipse:
                 if touch.button == 'right':
@@ -59,9 +65,26 @@ class WaveformGraph(Graph):
         return super().on_touch_down(touch)
 
     def on_touch_move(self, touch: MotionEvent) -> bool:
+        from src.wave_controller.wave import RootWave
         if touch.grab_current is self:
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):
+                if self.panning_mode:
+                    total_duration = RootWave.waveform_duration
+                    new_x, _ = self.convert_point((a_x, a_y))
+                    window_length = self.xmax - self.xmin
+                    self.xmin += self.old_x - new_x
+                    self.xmax += self.old_x - new_x
+                    if self.xmax > total_duration:
+                        self.xmax = total_duration
+                        self.xmin = self.xmax - window_length
+                    elif self.xmin < 0:
+                        self.xmin = 0
+                        self.xmax = window_length
+                    self.xmin = round(self.xmin, 3)
+                    self.old_x = new_x
+                    self.update_graph_points()
+                    return True
                 radius = self.point_size / 2
                 for point in self.__selected_points:
                     if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:

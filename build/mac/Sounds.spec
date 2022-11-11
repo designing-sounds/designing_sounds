@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from kivymd import hooks_path as kivymd_hooks_path
 
 block_cipher = None
 
@@ -9,7 +10,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=[kivymd_hooks_path],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

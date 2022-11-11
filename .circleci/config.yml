@@ -6,6 +6,7 @@ orbs:
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+
 jobs:
   test: # this can be any name you choose
     executor: python/default # use the default executor defined within the orb
@@ -14,6 +15,7 @@ jobs:
       - run:
           name: Python
           command: |
+            echo $CI_PULL_REQUEST
             python3 --version
             sudo apt-get update
             sudo apt-get install libasound-dev libportaudio2 libportaudiocpp0 portaudio19-dev -y
@@ -22,15 +24,30 @@ jobs:
           pkg-manager: pip
       - run:
           name: Run tests
-          command: python -m pytest
-  
-  create-cli-windows:
+          command: |
+            mkdir test-results
+            python -m pytest --junitxml=test-results/junit.xml
+      - store_test_results:
+          path: test-results
+
+  lint:
     executor: python/default
     steps:
+      - checkout
       - run:
-          name: Build Windows CLI
+          name: PyLint
           command: |
-            echo "Nothing here but us chickens"
+            pip install pylint
+            pylint ./src
+  
+  create-cli-windows:
+    executor:
+      name: win/default
+    steps:
+      - run:
+          name: Windows Test
+          command: echo "Nothing here but us chickens"
+          shell: bash.exe
   
   create-cli-linux:
     executor: python/default
@@ -59,12 +76,11 @@ jobs:
             sudo pip3 install pyobjc
             cd build/mac
             ./build_mac.sh
-            zip -r sounds.zip sounds.dmg
             ls
       - persist_to_workspace:
           root: .
           paths:
-            - build/mac/sounds.zip
+            - build/mac/sounds.dmg
 
   
   publish-github-release:
@@ -80,16 +96,18 @@ jobs:
             cd build/mac
             let num=<< pipeline.number >>-88
             VER=v2.$num.0
-            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete $VER ./sounds.zip
+            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete $VER ./sounds.dmg
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   create-cli:
     jobs:
+      - lint
       - test
       - create-cli-mac:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -97,6 +115,7 @@ workflows:
       - create-cli-windows:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -104,6 +123,7 @@ workflows:
       - create-cli-linux:
           requires:
             - test
+            - lint
           filters:
             branches:
               only:
@@ -112,6 +132,8 @@ workflows:
       - publish-github-release:
           requires:
             - create-cli-mac
+            - create-cli-windows
+            - create-cli-linux
           filters:
             branches:
               only:

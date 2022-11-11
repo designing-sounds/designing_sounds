@@ -22,6 +22,7 @@
         text: root.right_text
 
 <RootWave>:
+    #:import style src.wave_view.style
     clear: clear_button
     play: play_button
     add: add_button
@@ -71,13 +72,13 @@
                         halign: 'center'
                         theme_text_color: 'Primary'
                     MDSlider:
-                        color: kivy.utils.get_color_from_hex("#59C9A5")
+                        color: style.cyber_grape
                         hint: True
-                        hint_bg_color: kivy.utils.get_color_from_hex("#233D4D")
+                        hint_bg_color: style.dark_sky_blue
                         hint_text_color: "white"
                         hint_radius: [6, 0, 6, 0]
-                        thumb_color_active: kivy.utils.get_color_from_hex("#EE7B30")
-                        thumb_color_inactive: kivy.utils.get_color_from_hex("#59C9A5")
+                        thumb_color_active: style.dark_sky_blue
+                        thumb_color_inactive: style.palatinate_purple
                         id: zoom
                         value: 1
                         min: 1
@@ -107,23 +108,22 @@
                     BoxLayout:
                         size_hint: 1, 0.2
 
-                    MDRectangleFlatIconButton:
-                        md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
+                    MDIconButton:
+                        md_bg_color: style.blue_violet
                         id: play_button
-                        icon: 'play-pause'
-                        text: 'Play/ Pause'
-                        icon_color: 'white'
-                        text_color: 'white'
-                        line_color: (0, 0, 0, 0)
+                        icon: 'play'
+                        theme_text_color: 'Custom'
+                        text_color: style.white
 
                     BoxLayout:
                         size_hint: 0.5, 0.2
 
                     MDRectangleFlatIconButton:
-                        md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
+                        md_bg_color: style.blue_violet
                         id: clear_button
                         icon: 'selection-ellipse-remove'
                         text: 'Clear Points'
+                        pos_hint: {'center_y':.3}
                         icon_color: 'white'
                         text_color: 'white'
                         line_color: (0, 0, 0, 0)
@@ -191,13 +191,13 @@
                             halign: 'center'
                             theme_text_color: 'Primary'
                         MDSlider:
-                            color: kivy.utils.get_color_from_hex("#59C9A5")
+                            color: style.cyber_grape
                             hint: True
-                            hint_bg_color: kivy.utils.get_color_from_hex("#233D4D")
+                            hint_bg_color: style.dark_sky_blue
                             hint_text_color: "white"
                             hint_radius: [6, 0, 6, 0]
-                            thumb_color_active: kivy.utils.get_color_from_hex("#EE7B30")
-                            thumb_color_inactive: kivy.utils.get_color_from_hex("#59C9A5")
+                            thumb_color_active: style.dark_sky_blue
+                            thumb_color_inactive: style.palatinate_purple
                             id: sd
                             value: 1
                             min: 0
@@ -213,13 +213,13 @@
                             halign: 'center'
                             theme_text_color: 'Primary'
                         MDSlider:
-                            color: kivy.utils.get_color_from_hex("#59C9A5")
+                            color: style.cyber_grape
                             hint: True
-                            hint_bg_color: kivy.utils.get_color_from_hex("#233D4D")
+                            hint_bg_color: style.dark_sky_blue
                             hint_text_color: "white"
                             hint_radius: [6, 0, 6, 0]
-                            thumb_color_active: kivy.utils.get_color_from_hex("#EE7B30")
-                            thumb_color_inactive: kivy.utils.get_color_from_hex("#59C9A5")
+                            thumb_color_active: style.dark_sky_blue
+                            thumb_color_inactive: style.palatinate_purple
                             id: mean
                             value: 500
                             min: 0
@@ -236,13 +236,13 @@
                             theme_text_color: 'Primary'
 
                         MDSlider:
-                            color: kivy.utils.get_color_from_hex("#59C9A5")
+                            color: style.cyber_grape
                             hint: True
-                            hint_bg_color: kivy.utils.get_color_from_hex("#233D4D")
+                            hint_bg_color: style.dark_sky_blue
                             hint_text_color: "white"
                             hint_radius: [6, 0, 6, 0]
-                            thumb_color_active: kivy.utils.get_color_from_hex("#EE7B30")
-                            thumb_color_inactive: kivy.utils.get_color_from_hex("#59C9A5")
+                            thumb_color_active: style.dark_sky_blue
+                            thumb_color_inactive: style.palatinate_purple
                             id: samples
                             value: 50
                             min: 0
@@ -258,7 +258,7 @@
                             size_hint: 0.5, 0.2
 
                         MDRectangleFlatIconButton:
-                            md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
+                            md_bg_color: style.blue_violet
                             id: add_button
                             icon: 'plus'
                             text: 'Add Harmonic'
@@ -270,7 +270,7 @@
                             size_hint: 0.5, 0.2
 
                         MDRectangleFlatIconButton:
-                            md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
+                            md_bg_color: style.blue_violet
                             id: all_power_spectrum_button
                             icon: 'chart-bar'
                             text: 'Display All'

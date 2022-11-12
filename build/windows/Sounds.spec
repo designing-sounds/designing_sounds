@@ -9,7 +9,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['../../main.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -28,36 +28,24 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 a.datas +=[('src/wave_view/wave.kv', '../../src/wave_view/wave.kv', 'DATA'), ('media/20221028_144310.jpg', '../../media/20221028_144310.jpg', 'media')]
 
 exe = EXE(
-    pyz,
+    pyz, Tree('.\\'),
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    *[Tree(p) for p in (sdl2.dep_bins + angle.dep_bins)],
     [],
-    exclude_binaries=True,
-    name='sounds',
-    debug=True,
+    name='Sounds',
+    debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-)
-coll = COLLECT(
-    exe, Tree('../../src'),
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    *[Tree(p) for p in (sdl2.dep_bins + angle.dep_bins)],
-    strip=None,
-    upx=True,
-    upx_exclude=[],
-    name='sounds',
-)
-app = BUNDLE(
-    coll,
-    name='sounds.app',
-    icon=None,
-    bundle_identifier=None,
 )

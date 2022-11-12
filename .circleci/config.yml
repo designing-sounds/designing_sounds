@@ -136,7 +136,7 @@ workflows:
 #            branches:
 #              only:
 #                - main
-      - create-cli-windows
+      - create-cli-windows:
           requires:
             - test
             - lint

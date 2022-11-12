@@ -8,4 +8,3 @@ pyinstaller~=4.10
 kivymd~=1.1.1
 Cython
 PyQt3D
-enchant

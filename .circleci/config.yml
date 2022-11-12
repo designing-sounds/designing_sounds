@@ -59,6 +59,10 @@ jobs:
       - run:
           name: Windows Test
           command: |
+            python -m PyInstaller --onefile --name sounds main.py
+            echo "From here/n/n"
+            cat sounds.spec
+            echo "/n/nTo here"
             cd build/windows
             python -m PyInstaller --onefile Sounds.spec
             ls

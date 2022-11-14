@@ -70,5 +70,6 @@ class SoundModel:
 
         with self.lock:
             sound = (self.calculate_sins(x) @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
-
+        sound[sound > 1] = 1
+        sound[sound < -1] = -1
         return sound

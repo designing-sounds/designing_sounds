@@ -26,14 +26,17 @@ class WaveformGraph(Graph, CommonGestures):
         self.panning_mode = False
         self.xmin = 0
         self.xmax = 1
-
-    def cgb_zoom(self, touch0, touch1, focus_x, focus_y, delta_scale):
-        print("OH NOOOOO!!!")
-        pass
+        self.a = 0
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
 
+        if touch.is_mouse_scrolling:
+            if touch.button == 'scrolldown':
+                self.a += 1
+            elif touch.button == 'scrollup':
+                self.a -= 1
+            print(self.a)
         if self.collide_plot(a_x, a_y) and not touch.is_mouse_scrolling:
             if self.panning_mode:
                 self.old_x, _ = self.convert_point((a_x, a_y))

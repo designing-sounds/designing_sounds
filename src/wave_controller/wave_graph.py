@@ -7,10 +7,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.input.motionevent import MotionEvent
 from kivy_garden.graph import Graph
 
+from gestures4kivy import CommonGestures
 import numpy as np
 
 
-class WaveformGraph(Graph):
+class WaveformGraph(Graph, CommonGestures):
     __selected_points = []
 
     def __init__(self, update, **kwargs):
@@ -26,10 +27,14 @@ class WaveformGraph(Graph):
         self.xmin = 0
         self.xmax = 1
 
+    def cgb_zoom(self, touch0, touch1, focus_x, focus_y, delta_scale):
+        print("OH NOOOOO!!!")
+        pass
+
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
 
-        if self.collide_plot(a_x, a_y):
+        if self.collide_plot(a_x, a_y) and not touch.is_mouse_scrolling:
             if self.panning_mode:
                 self.old_x, _ = self.convert_point((a_x, a_y))
                 touch.grab(self)

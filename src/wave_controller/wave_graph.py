@@ -26,7 +26,8 @@ class WaveformGraph(Graph):
         self.initial_duration = 1
         self.xmin = 0
         self.xmax = 1
-        self.scale = 1
+        self.max_zoom = 100
+        self.zoom_scale = 1
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
@@ -34,10 +35,10 @@ class WaveformGraph(Graph):
         if self.collide_plot(a_x, a_y):
             if touch.is_mouse_scrolling:
                 if touch.button == 'scrolldown':
-                    self.scale += 1
+                    self.zoom_scale = min(self.zoom_scale + 1, self.max_zoom)
                     self.update_zoom()
                 elif touch.button == 'scrollup':
-                    self.scale = max(self.scale - 1, 1)
+                    self.zoom_scale = max(self.zoom_scale - 1, 1)
                     self.update_zoom()
                 elif touch.button == 'scrollleft':
                     pass
@@ -88,7 +89,6 @@ class WaveformGraph(Graph):
                 if self.panning_mode:
                     total_duration = self.initial_duration
                     new_x, _ = self.convert_point((a_x, a_y))
-                    print(new_x)
                     window_length = self.xmax - self.xmin
                     self.xmin += self.old_x - new_x
                     self.xmax += self.old_x - new_x
@@ -174,9 +174,9 @@ class WaveformGraph(Graph):
         self.update()
 
     def update_zoom(self):
-        self.x_ticks_major = round(0.05 / self.scale, 3)
+        self.x_ticks_major = round(0.05 / self.zoom_scale, 3)
         midpoint = (self.xmax + self.xmin) / 2
-        window_length = self.initial_duration / self.scale
+        window_length = self.initial_duration / self.zoom_scale
         if midpoint + window_length / 2 > self.initial_duration:
             self.xmax = self.initial_duration
             self.xmin = self.xmax - window_length
@@ -184,7 +184,7 @@ class WaveformGraph(Graph):
             self.xmin = 0
             self.xmax = window_length
         else:
-            self.xmax = midpoint + (self.initial_duration / self.scale) / 2
-            self.xmin = midpoint - (self.initial_duration / self.scale) / 2
+            self.xmax = midpoint + (self.initial_duration / self.zoom_scale) / 2
+            self.xmin = midpoint - (self.initial_duration / self.zoom_scale) / 2
         self.xmin = round(self.xmin, 3)
         self.update_graph_points()

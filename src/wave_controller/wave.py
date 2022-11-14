@@ -127,9 +127,10 @@ class RootWave(MDBoxLayout):
     def update_waveform(self) -> None:
         inputted_points = self.waveform_graph.get_selected_points()
         self.sound_model.interpolate_points(inputted_points)
-        zoom_factor = self.waveform_duration / (self.waveform_graph.xmax - self.waveform_graph.xmin)
-        points = self.sound_model.model_sound(zoom_factor * self.graph_sample_rate, self.waveform_duration, 0)
-        self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
+        x_min = self.waveform_graph.xmin
+        x_max = self.waveform_graph.xmax
+        points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
+        self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
 
     def press_button_play(self, _: typing.Any) -> None:
         if not self.wave_sound.is_playing:

@@ -30,7 +30,6 @@
     sd: sd
     mean: mean
     harmonic_samples: samples
-    zoom: zoom
     panning: panning_mode
 
 
@@ -64,28 +63,6 @@
                     size_hint: 1, 0.5
                     orientation: 'vertical'
 
-                BoxLayout:
-                    size_hint: 1, 1
-                    orientation: 'vertical'
-                    MDLabel:
-                        text: 'Zoom: ' + str(zoom.value) + 'x'
-                        halign: 'center'
-                        theme_text_color: 'Primary'
-                    MDSlider:
-                        color: style.cyber_grape
-                        hint: True
-                        hint_bg_color: style.dark_sky_blue
-                        hint_text_color: "white"
-                        hint_radius: [6, 0, 6, 0]
-                        thumb_color_active: style.dark_sky_blue
-                        thumb_color_inactive: style.palatinate_purple
-                        id: zoom
-                        value: 1
-                        min: 1
-                        max: 10
-                        step: 1
-                        on_value: root.update_zoom(zoom.value)
-                        show_off: False
 
                 BoxLayout:
                     size_hint: 1, 1

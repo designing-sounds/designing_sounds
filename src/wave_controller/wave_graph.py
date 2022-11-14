@@ -7,11 +7,10 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.input.motionevent import MotionEvent
 from kivy_garden.graph import Graph
 
-from gestures4kivy import CommonGestures
 import numpy as np
 
 
-class WaveformGraph(Graph, CommonGestures):
+class WaveformGraph(Graph):
     __selected_points = []
 
     def __init__(self, update, **kwargs):
@@ -24,20 +23,28 @@ class WaveformGraph(Graph, CommonGestures):
         self.point_size = 15
         self.old_x = None
         self.panning_mode = False
+        self.initial_duration = 1
         self.xmin = 0
         self.xmax = 1
-        self.a = 0
+        self.scale = 1
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
 
-        if touch.is_mouse_scrolling:
-            if touch.button == 'scrolldown':
-                self.a += 1
-            elif touch.button == 'scrollup':
-                self.a -= 1
-            print(self.a)
-        if self.collide_plot(a_x, a_y) and not touch.is_mouse_scrolling:
+        if self.collide_plot(a_x, a_y):
+            if touch.is_mouse_scrolling:
+                if touch.button == 'scrolldown':
+                    self.scale += 1
+                    self.update_zoom()
+                elif touch.button == 'scrollup':
+                    self.scale = max(self.scale - 1, 1)
+                    self.update_zoom()
+                elif touch.button == 'scrollleft':
+                    pass
+                elif touch.button == 'scrollright':
+                    pass
+                return True
+
             if self.panning_mode:
                 self.old_x, _ = self.convert_point((a_x, a_y))
                 touch.grab(self)
@@ -75,13 +82,13 @@ class WaveformGraph(Graph, CommonGestures):
         return super().on_touch_down(touch)
 
     def on_touch_move(self, touch: MotionEvent) -> bool:
-        from src.wave_controller.wave import RootWave
         if touch.grab_current is self:
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):
                 if self.panning_mode:
-                    total_duration = RootWave.waveform_duration
+                    total_duration = self.initial_duration
                     new_x, _ = self.convert_point((a_x, a_y))
+                    print(new_x)
                     window_length = self.xmax - self.xmin
                     self.xmin += self.old_x - new_x
                     self.xmax += self.old_x - new_x
@@ -165,3 +172,19 @@ class WaveformGraph(Graph, CommonGestures):
                     Ellipse(source='media/20221028_144310.jpg', pos=pos,
                             size=(self.point_size, self.point_size))
         self.update()
+
+    def update_zoom(self):
+        self.x_ticks_major = round(0.05 / self.scale, 3)
+        midpoint = (self.xmax + self.xmin) / 2
+        window_length = self.initial_duration / self.scale
+        if midpoint + window_length / 2 > self.initial_duration:
+            self.xmax = self.initial_duration
+            self.xmin = self.xmax - window_length
+        elif midpoint - window_length / 2 < 0:
+            self.xmin = 0
+            self.xmax = window_length
+        else:
+            self.xmax = midpoint + (self.initial_duration / self.scale) / 2
+            self.xmin = midpoint - (self.initial_duration / self.scale) / 2
+        self.xmin = round(self.xmin, 3)
+        self.update_graph_points()

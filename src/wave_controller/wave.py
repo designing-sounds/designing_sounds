@@ -36,6 +36,7 @@ class RootWave(MDBoxLayout):
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
         self.play.bind(on_press=self.press_button_play)
+        self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
         self.add.bind(on_press=self.press_button_add)
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
@@ -108,6 +109,15 @@ class RootWave(MDBoxLayout):
             self.play.icon = "play"
             self.play.md_bg_color = style.blue_violet
 
+    def press_button_eraser(self, _: typing.Any) -> None:
+        if not self.waveform_graph.eraser_mode:
+            self.waveform_graph.eraser_mode = True
+            self.eraser_mode.icon = "pen"
+            self.eraser_mode.md_bg_color = style.dark_sky_blue
+        else:
+            self.waveform_graph.eraser_mode = False
+            self.eraser_mode.icon = "eraser"
+            self.eraser_mode.md_bg_color = style.blue_violet
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
         self.update_waveform()

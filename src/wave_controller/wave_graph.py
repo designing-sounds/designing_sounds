@@ -30,6 +30,7 @@ class WaveformGraph(Graph):
         self.zoom_scale = 1
         self.initial_x_ticks_major = 0.1
         self.x_ticks_major = self.initial_x_ticks_major
+        self.eraser_mode = False
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
@@ -50,7 +51,7 @@ class WaveformGraph(Graph):
 
             ellipse = self.touching_point((touch.x, touch.y))
             if ellipse:
-                if touch.button == 'right':
+                if self.eraser_mode:
                     to_remove = self.graph_canvas.canvas.children.index(ellipse)
                     self.graph_canvas.canvas.children.pop(to_remove)
                     self.graph_canvas.canvas.children.pop(to_remove - 1)
@@ -67,16 +68,17 @@ class WaveformGraph(Graph):
                 touch.grab(self)
                 return True
 
-            color = (0, 0, 1)
+            if not self.eraser_mode:
+                color = (0, 0, 1)
 
-            pos = (touch.x - self.point_size / 2, touch.y - self.point_size / 2)
+                pos = (touch.x - self.point_size / 2, touch.y - self.point_size / 2)
 
-            with self.graph_canvas.canvas:
-                Color(*color, mode='hsv')
-                Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.point_size, self.point_size))
+                with self.graph_canvas.canvas:
+                    Color(*color, mode='hsv')
+                    Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.point_size, self.point_size))
 
-            self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
-            self.update()
+                self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
+                self.update()
 
         return super().on_touch_down(touch)
 

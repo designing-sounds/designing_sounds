@@ -51,7 +51,7 @@ class RootWave(MDBoxLayout):
                                             draw_border=True,
                                             x_grid_label=True, y_grid_label=True,
                                             xlabel='Time', ylabel='Amplitude',
-                                            precision="%.4g",
+                                            precision="%.5g",
                                             x_grid=True, y_grid=True, y_ticks_major=0.25,
                                             label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,

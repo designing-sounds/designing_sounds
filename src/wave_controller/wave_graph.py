@@ -161,10 +161,10 @@ class WaveformGraph(Graph):
         self.x_ticks_major = self.initial_x_ticks_major / self.zoom_scale
         left_dist = x_pos - self.xmin
         right_dist = self.xmax - x_pos
-        proportion = self.initial_duration / (left_dist + right_dist)
+        proportion = self.initial_duration / (left_dist + right_dist) / self.zoom_scale
 
-        self.xmax = x_pos +  proportion * right_dist / self.zoom_scale
-        self.xmin = x_pos - proportion * left_dist / self.zoom_scale
+        self.xmax = x_pos + proportion * right_dist
+        self.xmin = x_pos - proportion * left_dist
         if self.xmin < 0:
             self.xmax -= self.xmin
             self.xmin = 0

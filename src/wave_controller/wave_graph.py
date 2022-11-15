@@ -28,6 +28,8 @@ class WaveformGraph(Graph):
         self.xmax = 1
         self.max_zoom = 100
         self.zoom_scale = 1
+        self.initial_ticks_major = 0.1
+        self.x_ticks_major = self.initial_ticks_major
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
@@ -88,22 +90,6 @@ class WaveformGraph(Graph):
         if touch.grab_current is self:
             a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
             if self.collide_plot(a_x, a_y):
-                if self.panning_mode:
-                    total_duration = self.initial_duration
-                    new_x, _ = self.convert_point((a_x, a_y))
-                    window_length = self.xmax - self.xmin
-                    self.xmin += self.old_x - new_x
-                    self.xmax += self.old_x - new_x
-                    if self.xmax > total_duration:
-                        self.xmax = total_duration
-                        self.xmin = self.xmax - window_length
-                    elif self.xmin < 0:
-                        self.xmin = 0
-                        self.xmax = window_length
-                    self.xmin = round(self.xmin, 3)
-                    self.old_x = new_x
-                    self.update_graph_points()
-                    return True
                 radius = self.point_size / 2
                 for point in self.__selected_points:
                     if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:
@@ -176,33 +162,26 @@ class WaveformGraph(Graph):
         self.update()
 
     def update_zoom(self) -> None:
-        self.x_ticks_major = round(0.05 / self.zoom_scale, 3)
+        self.x_ticks_major = self.initial_ticks_major / self.zoom_scale
         midpoint = (self.xmax + self.xmin) / 2
         window_length = self.initial_duration / self.zoom_scale
-        if midpoint + window_length / 2 > self.initial_duration:
-            self.xmax = self.initial_duration
-            self.xmin = self.xmax - window_length
-        elif midpoint - window_length / 2 < 0:
+
+        if midpoint - window_length / 2 < 0:
             self.xmin = 0
             self.xmax = window_length
         else:
-            self.xmax = midpoint + (self.initial_duration / self.zoom_scale) / 2
+            #self.xmax = midpoint + (self.initial_duration / self.zoom_scale) / 2
             self.xmin = midpoint - (self.initial_duration / self.zoom_scale) / 2
-        self.xmin = round(self.xmin, 3)
+            self.xmax = self.xmin + self.x_ticks_major * (self.initial_duration / self.initial_ticks_major)
         self.update_graph_points()
 
     def update_panning(self, is_left: bool) -> None:
-        total_duration = self.initial_duration
         window_length = self.xmax - self.xmin
         factor = 1 / (self.zoom_scale * 2)
-        self.xmin += (-factor if is_left else factor)
-        self.xmax += (-factor if is_left else factor)
-        if self.xmax > total_duration:
-            self.xmax = total_duration
-            self.xmin = self.xmax - window_length
-        elif self.xmin < 0:
+        panning_step = -factor if is_left else factor
+        self.xmin += panning_step
+        self.xmax += panning_step
+        if self.xmin < 0:
             self.xmin = 0
             self.xmax = window_length
-        self.xmin = round(self.xmin, 3)
-        self.xmax = round(self.xmax, 3)
         self.update_graph_points()

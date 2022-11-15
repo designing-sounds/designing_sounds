@@ -1,26 +1,3 @@
-<RightContentCls>
-    disabled: True
-    pos_hint: {"center_y": .5}
-
-    MDIconButton:
-        icon: root.icon
-        md_bg_color_disabled: 0, 0, 0, 0
-
-    MDLabel:
-        text: root.text
-        pos_hint: {"center_y": .5}
-
-
-<Item>
-
-    IconLeftWidget:
-        icon: root.left_icon
-
-    RightContentCls:
-        id: container
-        icon: root.right_icon
-        text: root.right_text
-
 <RootWave>:
     #:import style src.wave_view.style
     clear: clear_button
@@ -30,7 +7,7 @@
     sd: sd
     mean: mean
     harmonic_samples: samples
-    panning: panning_mode
+
 
 
     BoxLayout:
@@ -64,18 +41,6 @@
                     orientation: 'vertical'
 
 
-                BoxLayout:
-                    size_hint: 1, 1
-                    orientation: 'horizontal'
-                    MDRectangleFlatIconButton:
-                        md_bg_color: kivy.utils.get_color_from_hex("#3FA7D6")
-                        icon_color: 'white'
-                        text_color: 'white'
-                        icon: 'menu-down'
-                        line_color: (0, 0, 0, 0)
-                        id: panning_mode
-                        text: "Choose mode"
-                        on_release: root.open_centred()
 
 
                 BoxLayout:
@@ -100,7 +65,7 @@
                         id: clear_button
                         icon: 'selection-ellipse-remove'
                         text: 'Clear Points'
-                        pos_hint: {'center_y':.3}
+                        pos_hint: {'center_y':.2}
                         icon_color: 'white'
                         text_color: 'white'
                         line_color: (0, 0, 0, 0)

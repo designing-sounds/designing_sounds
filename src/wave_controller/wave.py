@@ -20,17 +20,6 @@ from src.wave_view import style
 Builder.load_file('src/wave_view/wave.kv')
 
 
-class RightContentCls(IRightBodyTouch, MDBoxLayout):
-    icon = StringProperty()
-    text = StringProperty()
-
-
-class Item(OneLineAvatarIconListItem):
-    left_icon = StringProperty()
-    right_icon = StringProperty()
-    right_text = StringProperty()
-
-
 class RootWave(MDBoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
@@ -66,7 +55,8 @@ class RootWave(MDBoxLayout):
                                             draw_border=True,
                                             x_grid_label=True, y_grid_label=True,
                                             xlabel='Time', ylabel='Amplitude',
-                                            x_grid=True, y_grid=True, x_ticks_major=0.05, y_ticks_major=0.25,
+                                            precision="%.4g",
+                                            x_grid=True, y_grid=True, y_ticks_major=0.25,
                                             label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max,
@@ -90,29 +80,6 @@ class RootWave(MDBoxLayout):
         self.harmonic_list = np.zeros((self.max_harmonics, 3))
         self.press_button_add(None)
         self.double_tap = False
-        menu_items = [
-            {
-                "text": "Plot",
-                "right_text": "P",
-                "right_icon": "",
-                "left_icon": "cursor-default-outline",
-                "viewclass": "Item",
-                "on_release": lambda x=False: self.update_panning_mode(x),
-            },
-            {
-                "text": "Move / Pan",
-                "right_text": "M",
-                "right_icon": "",
-                "left_icon": "arrow-all",
-                "viewclass": "Item",
-                "on_release": lambda x=True: self.update_panning_mode(x),
-            }
-        ]
-        self.menu = MDDropdownMenu(
-            caller=self.panning,
-            items=menu_items,
-            width_mult=4,
-        )
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
         for slider in self.power_spectrum_sliders:

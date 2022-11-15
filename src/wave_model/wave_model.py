@@ -77,5 +77,15 @@ class SoundModel:
 
         with self.lock:
             sound = (self.calculate_sins(x) @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
+        sound[sound > 1] = 1
+        sound[sound < -1] = -1
+        return sound
+
+    def model_sound_graph(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
+        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
+                        dtype=np.float32)
+
+        with self.lock:
+            sound = (self.calculate_sins(x) @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
 
         return sound

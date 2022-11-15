@@ -3,21 +3,30 @@ import typing
 
 import numpy as np
 
+from math import *
+
 
 class PowerSpectrum:
     def __init__(self, max_harmonics: int, max_samples_per_harmonic: int):
         self.max_samples_per_harmonic = max_samples_per_harmonic
         self.harmonics = np.zeros((max_harmonics, self.max_samples_per_harmonic), dtype=np.float32)
+        self.functions = {'sqrt': sqrt, 'pow': pow, 'log': log, 'log2': log2, 'log10': log10, 'cos': cos, 'sin': sin,
+                          'tan': tan, 'ceil': ceil, 'abs': fabs, 'factorial': factorial}
 
     def update_harmonic(self, harmonic_index, mean: int, std: float, num_harmonic_samples: int,
-                        num_harmonics: int) -> None:
+                        num_harmonics: int, decay_function: str) -> None:
+        num_samples = 0
         freqs = np.array([])
-        for i in range(num_harmonics):
-            sample_size = int(
-                num_harmonic_samples / num_harmonics) if i != num_harmonics - 1 else num_harmonic_samples - freqs.size
-            freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * pow(2, i))
-        self.harmonics[harmonic_index] = np.zeros(self.max_samples_per_harmonic)
-        self.harmonics[harmonic_index, :num_harmonic_samples] = freqs
+
+        for x in range(num_harmonics):
+            self.functions['x'] = x + 1
+            decay_factor = eval(decay_function, {'__builtins__': None}, self.functions) if type(decay_function) == str else 1
+            sample_size = int(num_harmonic_samples * decay_factor)
+            num_samples += sample_size
+            freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * pow(2, x))
+
+        self.harmonics[harmonic_index] = np.zeros(max(self.max_samples_per_harmonic, num_samples))
+        self.harmonics[harmonic_index, :num_samples] = freqs
 
 
 class SoundModel:
@@ -58,9 +67,10 @@ class SoundModel:
                                    dtype=np.float32)
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int,
-                              num_harmonics: int) -> None:
+                              num_harmonics: int, decay_function: str) -> None:
         with self.lock:
-            self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples, num_harmonics)
+            self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples, num_harmonics,
+                                                decay_function)
             self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
             self.phases = np.asarray(np.random.uniform(0, self.max_freq,
                                                        self.max_harmonics * self.max_samples_per_harmonic),

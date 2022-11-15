@@ -1,15 +1,11 @@
 import typing
 
 import numpy as np
-
 from kivy.lang import Builder
-from kivy.properties import StringProperty
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
-from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
-from kivymd.uix.menu import MDDropdownMenu
 
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
@@ -221,14 +217,6 @@ class RootWave(MDBoxLayout):
         (self.mean.value, self.sd.value, self.harmonic_samples.value) = (int(mean), float(sd), int(num_samples))
 
         self.update_power_spectrum(mean, sd, num_samples)
-
-    def update_panning_mode(self, state):
-        self.menu.dismiss()
-        self.panning.text = "Moving Mode" if state else "Plotting Mode"
-        self.waveform_graph.panning_mode = state
-
-    def open_centred(self):
-        self.menu.open()
 
 
 class WaveApp(MDApp):

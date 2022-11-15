@@ -22,14 +22,14 @@ class WaveformGraph(Graph):
         self.old_pos = None
         self.point_size = 15
         self.old_x = None
-        self.panning_mode = False
         self.initial_duration = 1
         self.xmin = 0
         self.xmax = 1
         self.max_zoom = 100
+        self.min_zoom = 1
         self.zoom_scale = 1
-        self.initial_ticks_major = 0.1
-        self.x_ticks_major = self.initial_ticks_major
+        self.initial_x_ticks_major = 0.1
+        self.x_ticks_major = self.initial_x_ticks_major
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
@@ -40,20 +40,14 @@ class WaveformGraph(Graph):
                     self.zoom_scale = min(self.zoom_scale + 1, self.max_zoom)
                     self.update_zoom()
                 elif touch.button == 'scrollup':
-                    self.zoom_scale = max(self.zoom_scale - 1, 1)
+                    self.zoom_scale = max(self.zoom_scale - 1, self.min_zoom)
                     self.update_zoom()
                 elif touch.button == 'scrollleft':
                     self.update_panning(False)
-                    return True
                 elif touch.button == 'scrollright':
                     self.update_panning(True)
-                    return True
                 return True
 
-            if self.panning_mode:
-                self.old_x, _ = self.convert_point((a_x, a_y))
-                touch.grab(self)
-                return True
             ellipse = self.touching_point((touch.x, touch.y))
             if ellipse:
                 if touch.button == 'right':
@@ -114,6 +108,7 @@ class WaveformGraph(Graph):
         for point in points:
             if self.is_inside_ellipse(point, pos):
                 result = point
+                break
         return result
 
     @staticmethod
@@ -162,7 +157,7 @@ class WaveformGraph(Graph):
         self.update()
 
     def update_zoom(self) -> None:
-        self.x_ticks_major = self.initial_ticks_major / self.zoom_scale
+        self.x_ticks_major = self.initial_x_ticks_major / self.zoom_scale
         midpoint = (self.xmax + self.xmin) / 2
         window_length = self.initial_duration / self.zoom_scale
 
@@ -170,9 +165,8 @@ class WaveformGraph(Graph):
             self.xmin = 0
             self.xmax = window_length
         else:
-            #self.xmax = midpoint + (self.initial_duration / self.zoom_scale) / 2
+            self.xmax = midpoint + (self.initial_duration / self.zoom_scale) / 2
             self.xmin = midpoint - (self.initial_duration / self.zoom_scale) / 2
-            self.xmax = self.xmin + self.x_ticks_major * (self.initial_duration / self.initial_ticks_major)
         self.update_graph_points()
 
     def update_panning(self, is_left: bool) -> None:

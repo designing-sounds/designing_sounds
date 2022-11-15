@@ -63,7 +63,7 @@ class RootWave(MDBoxLayout):
                                             xmin=0, xmax=self.waveform_duration,
                                             ymin=-1.0, ymax=1.0,
                                             padding=10,
-                                            draw_border=False,
+                                            draw_border=True,
                                             x_grid_label=True, y_grid_label=True,
                                             xlabel='Time', ylabel='Amplitude',
                                             x_grid=True, y_grid=True, x_ticks_major=0.05, y_ticks_major=0.25,
@@ -254,22 +254,6 @@ class RootWave(MDBoxLayout):
         (self.mean.value, self.sd.value, self.harmonic_samples.value) = (int(mean), float(sd), int(num_samples))
 
         self.update_power_spectrum(mean, sd, num_samples)
-
-    def update_zoom(self, zoom: int):
-        self.waveform_graph.x_ticks_major = round(0.05 / zoom, 3)
-        midpoint = (self.waveform_graph.xmax + self.waveform_graph.xmin) / 2
-        window_length = self.waveform_duration / zoom
-        if midpoint + window_length / 2 > self.waveform_duration:
-            self.waveform_graph.xmax = self.waveform_duration
-            self.waveform_graph.xmin = self.waveform_graph.xmax - window_length
-        elif midpoint - window_length / 2 < 0:
-            self.waveform_graph.xmin = 0
-            self.waveform_graph.xmax = window_length
-        else:
-            self.waveform_graph.xmax = midpoint + (self.waveform_duration / zoom) / 2
-            self.waveform_graph.xmin = midpoint - (self.waveform_duration / zoom) / 2
-        self.waveform_graph.xmin = round(self.waveform_graph.xmin, 3)
-        self.waveform_graph.update_graph_points()
 
     def update_panning_mode(self, state):
         self.menu.dismiss()

@@ -57,7 +57,8 @@ class SoundModel:
             self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples)
             self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
             self.phases = np.asarray(np.random.uniform(0, self.max_freq,
-                                                self.max_harmonics * self.max_samples_per_harmonic), dtype=np.float32)
+                                                       self.max_harmonics * self.max_samples_per_harmonic),
+                                     dtype=np.float32)
 
     def calculate_sins(self, x):
         freqs = self.power_spectrum.harmonics.flatten()

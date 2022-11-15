@@ -41,9 +41,11 @@ class WaveformGraph(Graph):
                     self.zoom_scale = max(self.zoom_scale - 1, 1)
                     self.update_zoom()
                 elif touch.button == 'scrollleft':
-                    pass
+                    self.update_panning(False)
+                    return True
                 elif touch.button == 'scrollright':
-                    pass
+                    self.update_panning(True)
+                    return True
                 return True
 
             if self.panning_mode:
@@ -173,7 +175,7 @@ class WaveformGraph(Graph):
                             size=(self.point_size, self.point_size))
         self.update()
 
-    def update_zoom(self):
+    def update_zoom(self) -> None:
         self.x_ticks_major = round(0.05 / self.zoom_scale, 3)
         midpoint = (self.xmax + self.xmin) / 2
         window_length = self.initial_duration / self.zoom_scale
@@ -187,4 +189,20 @@ class WaveformGraph(Graph):
             self.xmax = midpoint + (self.initial_duration / self.zoom_scale) / 2
             self.xmin = midpoint - (self.initial_duration / self.zoom_scale) / 2
         self.xmin = round(self.xmin, 3)
+        self.update_graph_points()
+
+    def update_panning(self, is_left: bool) -> None:
+        total_duration = self.initial_duration
+        window_length = self.xmax - self.xmin
+        factor = 1 / (self.zoom_scale * 2)
+        self.xmin += (-factor if is_left else factor)
+        self.xmax += (-factor if is_left else factor)
+        if self.xmax > total_duration:
+            self.xmax = total_duration
+            self.xmin = self.xmax - window_length
+        elif self.xmin < 0:
+            self.xmin = 0
+            self.xmax = window_length
+        self.xmin = round(self.xmin, 3)
+        self.xmax = round(self.xmax, 3)
         self.update_graph_points()

@@ -57,7 +57,8 @@ class SoundModel:
             self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples)
             self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
             self.phases = np.asarray(np.random.uniform(0, self.max_freq,
-                                                self.max_harmonics * self.max_samples_per_harmonic), dtype=np.float32)
+                                                       self.max_harmonics * self.max_samples_per_harmonic),
+                                     dtype=np.float32)
 
     def calculate_sins(self, x):
         freqs = self.power_spectrum.harmonics.flatten()
@@ -72,4 +73,13 @@ class SoundModel:
             sound = (self.calculate_sins(x) @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
         sound[sound > 1] = 1
         sound[sound < -1] = -1
+        return sound
+
+    def model_sound_graph(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
+        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
+                        dtype=np.float32)
+
+        with self.lock:
+            sound = (self.calculate_sins(x) @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
+
         return sound

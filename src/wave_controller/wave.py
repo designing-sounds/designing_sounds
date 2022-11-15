@@ -1,15 +1,11 @@
 import typing
 
 import numpy as np
-
 from kivy.lang import Builder
-from kivy.properties import StringProperty
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
-from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
-from kivymd.uix.menu import MDDropdownMenu
 
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
@@ -18,17 +14,6 @@ from src.wave_model.wave_model import SoundModel
 from src.wave_view import style
 
 Builder.load_file('src/wave_view/wave.kv')
-
-
-class RightContentCls(IRightBodyTouch, MDBoxLayout):
-    icon = StringProperty()
-    text = StringProperty()
-
-
-class Item(OneLineAvatarIconListItem):
-    left_icon = StringProperty()
-    right_icon = StringProperty()
-    right_text = StringProperty()
 
 
 class RootWave(MDBoxLayout):
@@ -63,10 +48,11 @@ class RootWave(MDBoxLayout):
                                             xmin=0, xmax=self.waveform_duration,
                                             ymin=-1.0, ymax=1.0,
                                             padding=10,
-                                            draw_border=False,
+                                            draw_border=True,
                                             x_grid_label=True, y_grid_label=True,
                                             xlabel='Time', ylabel='Amplitude',
-                                            x_grid=True, y_grid=True, x_ticks_major=0.05, y_ticks_major=0.25,
+                                            precision="%.4g",
+                                            x_grid=True, y_grid=True, y_ticks_major=0.25,
                                             label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max,
@@ -90,29 +76,6 @@ class RootWave(MDBoxLayout):
         self.harmonic_list = np.zeros((self.max_harmonics, 3))
         self.press_button_add(None)
         self.double_tap = False
-        menu_items = [
-            {
-                "text": "Plot",
-                "right_text": "P",
-                "right_icon": "",
-                "left_icon": "cursor-default-outline",
-                "viewclass": "Item",
-                "on_release": lambda x=False: self.update_panning_mode(x),
-            },
-            {
-                "text": "Move / Pan",
-                "right_text": "M",
-                "right_icon": "",
-                "left_icon": "arrow-all",
-                "viewclass": "Item",
-                "on_release": lambda x=True: self.update_panning_mode(x),
-            }
-        ]
-        self.menu = MDDropdownMenu(
-            caller=self.panning,
-            items=menu_items,
-            width_mult=4,
-        )
 
     def update_power_spectrum(self, mean: float, sd: float, num_samples: float) -> None:
         for slider in self.power_spectrum_sliders:
@@ -127,9 +90,10 @@ class RootWave(MDBoxLayout):
     def update_waveform(self) -> None:
         inputted_points = self.waveform_graph.get_selected_points()
         self.sound_model.interpolate_points(inputted_points)
-        zoom_factor = self.waveform_duration / (self.waveform_graph.xmax - self.waveform_graph.xmin)
-        points = self.sound_model.model_sound(zoom_factor * self.graph_sample_rate, self.waveform_duration, 0)
-        self.wave_plot.points = list(zip(np.linspace(0, self.waveform_duration, points.size), points))
+        x_min = self.waveform_graph.xmin
+        x_max = self.waveform_graph.xmax
+        points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
+        self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
 
     def press_button_play(self, _: typing.Any) -> None:
         if not self.wave_sound.is_playing:
@@ -253,30 +217,6 @@ class RootWave(MDBoxLayout):
         (self.mean.value, self.sd.value, self.harmonic_samples.value) = (int(mean), float(sd), int(num_samples))
 
         self.update_power_spectrum(mean, sd, num_samples)
-
-    def update_zoom(self, zoom: int):
-        self.waveform_graph.x_ticks_major = round(0.05 / zoom, 3)
-        midpoint = (self.waveform_graph.xmax + self.waveform_graph.xmin) / 2
-        window_length = self.waveform_duration / zoom
-        if midpoint + window_length / 2 > self.waveform_duration:
-            self.waveform_graph.xmax = self.waveform_duration
-            self.waveform_graph.xmin = self.waveform_graph.xmax - window_length
-        elif midpoint - window_length / 2 < 0:
-            self.waveform_graph.xmin = 0
-            self.waveform_graph.xmax = window_length
-        else:
-            self.waveform_graph.xmax = midpoint + (self.waveform_duration / zoom) / 2
-            self.waveform_graph.xmin = midpoint - (self.waveform_duration / zoom) / 2
-        self.waveform_graph.xmin = round(self.waveform_graph.xmin, 3)
-        self.waveform_graph.update_graph_points()
-
-    def update_panning_mode(self, state):
-        self.menu.dismiss()
-        self.panning.text = "Moving Mode" if state else "Plotting Mode"
-        self.waveform_graph.panning_mode = state
-
-    def open_centred(self):
-        self.menu.open()
 
 
 class WaveApp(MDApp):

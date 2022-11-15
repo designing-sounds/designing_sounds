@@ -9,8 +9,13 @@ class PowerSpectrum:
         self.max_samples_per_harmonic = max_samples_per_harmonic
         self.harmonics = np.zeros((max_harmonics, self.max_samples_per_harmonic), dtype=np.float32)
 
-    def update_harmonic(self, harmonic_index, mean: int, std: float, num_harmonic_samples: int) -> None:
-        freqs = np.random.randn(num_harmonic_samples) * std + mean
+    def update_harmonic(self, harmonic_index, mean: int, std: float, num_harmonic_samples: int,
+                        num_harmonics: int) -> None:
+        freqs = np.array([])
+        for i in range(num_harmonics):
+            sample_size = int(
+                num_harmonic_samples / num_harmonics) if i != num_harmonics - 1 else num_harmonic_samples - freqs.size
+            freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * pow(2, i))
         self.harmonics[harmonic_index] = np.zeros(self.max_samples_per_harmonic)
         self.harmonics[harmonic_index, :num_harmonic_samples] = freqs
 
@@ -52,9 +57,10 @@ class SoundModel:
             self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics),
                                    dtype=np.float32)
 
-    def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int) -> None:
+    def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int,
+                              num_harmonics: int) -> None:
         with self.lock:
-            self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples)
+            self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples, num_harmonics)
             self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
             self.phases = np.asarray(np.random.uniform(0, self.max_freq,
                                                        self.max_harmonics * self.max_samples_per_harmonic),

@@ -22,7 +22,7 @@ class WaveSound:
     def callback(self, _in_data, _frame_count, _time_info, _flag):
         sound: np.ndarray = self.sound_model.model_sound(self.sample_rate, self.chunk_duration,
                                                          start_time=self._chunk_index * self.chunk_duration)
-        self._chunk_index = (self._chunk_index + 1)
+        self._chunk_index = self._chunk_index + 1
         return sound, pyaudio.paContinue
 
     def is_playing(self) -> bool:

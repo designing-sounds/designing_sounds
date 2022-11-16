@@ -89,7 +89,6 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
 
     def update_waveform(self) -> None:
-
         inputted_points = self.waveform_graph.get_selected_points()
         self.sound_model.interpolate_points(inputted_points)
         self.wave_sound.sound_changed()

@@ -11,21 +11,32 @@ class PowerSpectrum:
         self.max_samples_per_harmonic = max_samples_per_harmonic
         self.harmonics = np.zeros((max_harmonics, self.max_samples_per_harmonic), dtype=np.float32)
         self.functions = {'sqrt': sqrt, 'pow': pow, 'log': log, 'log2': log2, 'log10': log10, 'cos': cos, 'sin': sin,
-                          'tan': tan, 'ceil': ceil, 'abs': fabs, 'factorial': factorial}
+                          'tan': tan, 'ceil': ceil, 'abs': fabs, 'factorial': factorial, 'exp': exp}
 
     def update_harmonic(self, harmonic_index, mean: int, std: float, num_harmonic_samples: int,
                         num_harmonics: int, decay_function: str) -> None:
-        num_samples = 0
-        freqs = np.array([])
 
+        decay_ratios = []
         for x in range(num_harmonics):
             self.functions['x'] = x + 1
-            decay_factor = eval(decay_function, {'__builtins__': None}, self.functions) if type(decay_function) == str else 1
-            sample_size = int(num_harmonic_samples * decay_factor)
-            num_samples += sample_size
-            freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * pow(2, x))
+            decay_factor = 0
+            try:
+                decay_factor = eval(decay_function, {'__builtins__': self.functions})
+            except:
+                decay_factor = 0
+            finally:
+                decay_ratios.append(decay_factor)
+        decay_ratios_sum = sum(decay_ratios)
 
-        self.harmonics[harmonic_index] = np.zeros(max(self.max_samples_per_harmonic, num_samples))
+        num_samples = 0
+        freqs = np.array([])
+        for i in range(num_harmonics):
+            sample_ratio = decay_ratios[i] / decay_ratios_sum if decay_ratios[i] != 0 else 0
+            sample_size = int(num_harmonic_samples * sample_ratio)
+            num_samples += sample_size
+            freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * pow(2, i))
+
+        self.harmonics[harmonic_index] = np.zeros(self.max_samples_per_harmonic)
         self.harmonics[harmonic_index, :num_samples] = freqs
 
 
@@ -45,7 +56,7 @@ class SoundModel:
         with self.lock:
             freqs = self.power_spectrum.harmonics[harmonic_index]
             freqs = freqs[np.nonzero(freqs)]
-            max_range = max(1000, freqs.max() + 100)
+            max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
 
@@ -53,7 +64,7 @@ class SoundModel:
         with self.lock:
             freqs = self.power_spectrum.harmonics.flatten()
             freqs = freqs[np.nonzero(freqs)]
-            max_range = max(1000, freqs.max() + 100)
+            max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
 

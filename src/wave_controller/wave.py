@@ -29,7 +29,7 @@ class RootWave(MDBoxLayout):
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
-        self.max_samples_per_harmonic = 1000
+        self.max_samples_per_harmonic = int(self.harmonic_samples.max)
 
         self.do_not_change_waveform = False
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
@@ -74,7 +74,9 @@ class RootWave(MDBoxLayout):
         self.power_buttons = []
         self.selected_button_color = style.dark_sky_blue
         self.unselected_button_color = style.blue_violet
-        self.harmonic_list = np.zeros((self.max_harmonics, 5), dtype=object)
+        self.harmonic_list = []
+        for i in range(self.max_harmonics):
+            self.harmonic_list.append([0, 0, 0, 0, "1 / x"])
         self.press_button_add(None)
         self.double_tap = False
 
@@ -119,7 +121,7 @@ class RootWave(MDBoxLayout):
         if self.num_power_spectrums < self.max_harmonics:
             self.add_power_spectrum_button()
             self.update_power_spectrum(self.mean.value, self.sd.value, self.harmonic_samples.value,
-                                       self.num_harmonics.value, self.decay_function)
+                                       self.num_harmonics.value, self.decay_function.text)
 
     def press_button_all_power_spectrum(self, _: typing.Any) -> None:
         for slider in self.power_spectrum_sliders:
@@ -131,17 +133,17 @@ class RootWave(MDBoxLayout):
 
     def update_display_power_spectrum(self, harmonic_index: int, change_harmonic: bool):
         self.change_selected_power_spectrum_button(harmonic_index)
-        self.harmonic_list[self.current_harmonic_index] = np.array(
-            [self.mean.value, self.sd.value, self.harmonic_samples.value, self.num_harmonics.value,
-             self.decay_function])
+        self.harmonic_list[self.current_harmonic_index] = [self.mean.value, self.sd.value, self.harmonic_samples.value,
+                                                           self.num_harmonics.value,
+                                                           self.decay_function.text]
         self.current_harmonic_index = harmonic_index
         mean, sd, harmonic_samples, num_harmonics, decay_function = self.harmonic_list[harmonic_index]
         self.do_not_change_waveform = change_harmonic
-        self.mean.value = int(mean)
+        self.mean.value = float(mean)
         self.sd.value = float(sd)
         self.harmonic_samples.value = int(harmonic_samples)
         self.num_harmonics.value = int(num_harmonics)
-        self.decay_function.value = str(decay_function)
+        self.decay_function.text = str(decay_function)
         self.update_power_spectrum(mean, sd, harmonic_samples, num_harmonics, decay_function)
         self.do_not_change_waveform = False
         # Changing mean, sd and harmonic_samples will automatically call self.update_power_spectrum
@@ -155,8 +157,8 @@ class RootWave(MDBoxLayout):
         button.root_wave = self
         self.power_buttons.append(button)
         self.ids.power_spectrum_buttons.add_widget(button)
-        self.harmonic_list[self.num_power_spectrums - 1] = np.array(
-            [self.mean.max // 2, 1, self.harmonic_samples.max // 2, 1, "1"])
+        self.harmonic_list[self.num_power_spectrums - 1] = \
+            [self.mean.max // 2, 1, self.harmonic_samples.max // 2, 1, "1 / x"]
         self.update_display_power_spectrum(self.num_power_spectrums - 1, False)
 
     def set_double_tap(self, _button, touch):
@@ -206,7 +208,7 @@ class RootWave(MDBoxLayout):
             self.harmonic_list[i - 1] = self.harmonic_list[i]
 
         # zero fill end of harmonic list to account for removal
-        self.harmonic_list[end_removal - 1] = np.array((0, 0, 0, 0, 0))
+        self.harmonic_list[end_removal - 1] = [0, 0, 0, 0, "1 / x"]
         self.num_power_spectrums -= 1
 
         # update power spectrum values

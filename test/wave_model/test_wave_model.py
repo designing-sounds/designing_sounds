@@ -12,8 +12,8 @@ class TestPowerSpectrum(unittest.TestCase):
         self.tolerance = 1e-6
 
     def test_update_harmonics(self):
-        self.spectrum.update_harmonic(0, 1000, 1, 10, 1)
-        self.spectrum.update_harmonic(1, 2000, 3, 20, 1)
+        self.spectrum.update_harmonic(0, 1000, 1, 10, 1, "1")
+        self.spectrum.update_harmonic(1, 2000, 3, 20, 1, "1")
 
         assert self.spectrum.harmonics[0].nonzero()[0].size == 10 and self.spectrum.harmonics[1].nonzero()[0].size == 20
 
@@ -31,7 +31,7 @@ class TestSoundModel(unittest.TestCase):
         num_harmonics = self.max_harmonics
         sample_rate = samples * num_harmonics
         test = np.zeros((num_harmonics, samples))
-        self.sound_model.update_power_spectrum(0, 1000, 1, samples, 1)
+        self.sound_model.update_power_spectrum(0, 1000, 1, samples, 1, "1")
         for i in range(num_harmonics):
             test[i] = self.sound_model.model_sound(sample_rate, samples / sample_rate, i * samples / sample_rate)
 

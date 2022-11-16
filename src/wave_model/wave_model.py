@@ -45,14 +45,16 @@ class SoundModel:
         with self.lock:
             freqs = self.power_spectrum.harmonics[harmonic_index]
             freqs = freqs[np.nonzero(freqs)]
-            histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, 1000))
+            max_range = max(1000, freqs.max() + 100)
+            histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
         with self.lock:
             freqs = self.power_spectrum.harmonics.flatten()
             freqs = freqs[np.nonzero(freqs)]
-            histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, 1000))
+            max_range = max(1000, freqs.max() + 100)
+            histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):

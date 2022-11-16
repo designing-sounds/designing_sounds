@@ -57,6 +57,14 @@ class SoundModel:
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
+    
+    def remove_power_spectrum(self, index, num_power_spectrums):
+        for i in range(index, num_power_spectrums - 1):
+            self.__power_spectrum.harmonics[i] = self.__power_spectrum.harmonics[i + 1]
+            self.samples_per_harmonic[i] = self.samples_per_harmonic[i + 1]
+
+        self.__power_spectrum.harmonics[num_power_spectrums - 1] = np.zeros(self.max_samples_per_harmonic)
+        self.samples_per_harmonic[num_power_spectrums - 1] = 0
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
         with self.lock:

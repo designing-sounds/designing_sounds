@@ -199,14 +199,10 @@ class RootWave(MDBoxLayout):
 
         # zero fill end of harmonic list to account for removal
         self.harmonic_list[self.num_power_spectrums - 1] = [0, 0, 0, 1, "1 / x"]
+
+        self.sound_model.remove_power_spectrum(self.current_harmonic_index, self.num_power_spectrums)
+
         self.num_power_spectrums -= 1
-
-        # update power spectrum values
-        for i in range(self.current_harmonic_index, self.max_harmonics):
-            mean, sd, num_samples, num_harmonics, decay_function = self.harmonic_list[i]
-            harmonic_samples = int(self.max_samples_per_harmonic * num_harmonics / 100)
-            self.sound_model.update_power_spectrum(i, mean, sd, num_samples, harmonic_samples, decay_function)
-
         # update current index selection
         self.current_harmonic_index -= 1 if self.current_harmonic_index == len(self.power_buttons) else 0
 

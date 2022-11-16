@@ -1,7 +1,7 @@
 import threading
 import typing
 
-from math import *
+from math import sqrt, log, log2, log10, cos, sin, tan, ceil, floor, fabs, factorial, exp
 import numpy as np
 
 
@@ -10,11 +10,10 @@ class PowerSpectrum:
         self.max_samples_per_harmonic = max_samples_per_harmonic
         self.harmonics = np.zeros((max_harmonics, self.max_samples_per_harmonic), dtype=np.float32)
         self.functions = {'sqrt': sqrt, 'pow': pow, 'log': log, 'log2': log2, 'log10': log10, 'cos': cos, 'sin': sin,
-                          'tan': tan, 'ceil': ceil, 'abs': fabs, 'factorial': factorial, 'exp': exp}
+                          'tan': tan, 'ceil': ceil, 'floor': floor, 'abs': fabs, 'factorial': factorial, 'exp': exp}
 
     def update_harmonic(self, harmonic_index, mean: int, std: float, num_harmonic_samples: int,
                         num_harmonics: int, decay_function: str) -> None:
-
         decay_ratios = []
         for x in range(num_harmonics):
             self.functions['x'] = x + 1

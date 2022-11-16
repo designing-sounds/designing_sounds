@@ -224,7 +224,8 @@ class RootWave(MDBoxLayout):
         self.do_not_change_waveform = False
 
         (mean, sd, num_samples, num_harmonics, decay_function) = self.harmonic_list[self.current_harmonic_index]
-        (self.mean.value, self.sd.value, self.harmonic_samples.value, self.num_harmonics.value, self.decay_function.text) = (
+        (self.mean.value, self.sd.value, self.harmonic_samples.value, self.num_harmonics.value,
+         self.decay_function.text) = (
             int(mean), float(sd), int(num_samples), int(num_harmonics), decay_function)
 
         self.update_power_spectrum(mean, sd, num_samples, num_harmonics, decay_function)

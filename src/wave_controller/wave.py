@@ -43,7 +43,8 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_sliders = [self.sd, self.mean, self.harmonic_samples, self.num_harmonics]
 
         border_color = [0, 0, 0, 1]
-        self.waveform_graph = WaveformGraph(update=self.update_waveform,
+        self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
+                                            update_waveform_graph=self.update_waveform_graph,
                                             size_hint=(1, 1),
                                             border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration,
@@ -93,6 +94,9 @@ class RootWave(MDBoxLayout):
         inputted_points = self.waveform_graph.get_selected_points()
         self.sound_model.interpolate_points(inputted_points)
         self.wave_sound.sound_changed()
+        self.update_waveform_graph()
+
+    def update_waveform_graph(self) -> None:
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)

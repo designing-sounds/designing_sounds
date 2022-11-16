@@ -36,10 +36,10 @@ class WaveSound:
         self._is_playing = False
         self._stream.stop_stream()
 
+    def sound_changed(self):
+        self._chunk_index = 0
+
     def shutdown_audio(self, _) -> bool:
         self._stream.close()
         self._py_audio.terminate()
         return False
-
-    def sound_changed(self):
-        self._chunk_index = 0

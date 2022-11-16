@@ -2,6 +2,7 @@
     #:import style src.wave_view.style
     clear: clear_button
     play: play_button
+    eraser_mode: eraser_mode
     add: add_button
     all_power_spectrums: all_power_spectrum_button
     sd: sd
@@ -48,12 +49,22 @@
                     size_hint: 1, 1
 
                     BoxLayout:
-                        size_hint: 1, 0.2
+                        size_hint: 1, 0.15
 
                     MDIconButton:
                         md_bg_color: style.blue_violet
                         id: play_button
                         icon: 'play'
+                        theme_text_color: 'Custom'
+                        text_color: style.white
+
+                    BoxLayout:
+                        size_hint: 1, 0.15
+
+                    MDIconButton:
+                        md_bg_color: style.blue_violet
+                        id: eraser_mode
+                        icon: 'eraser'
                         theme_text_color: 'Custom'
                         text_color: style.white
 
@@ -71,7 +82,7 @@
                         line_color: (0, 0, 0, 0)
 
                     BoxLayout:
-                        size_hint: 1, 0.2
+                        size_hint: 1, 0.1
 
                 BoxLayout:
                     size_hint: 1, 1

@@ -1,9 +1,8 @@
 import threading
 import typing
 
-import numpy as np
-
 from math import *
+import numpy as np
 
 
 class PowerSpectrum:

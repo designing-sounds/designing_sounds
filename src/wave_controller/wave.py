@@ -74,9 +74,7 @@ class RootWave(MDBoxLayout):
         self.power_buttons = []
         self.selected_button_color = style.dark_sky_blue
         self.unselected_button_color = style.blue_violet
-        self.harmonic_list = []
-        for i in range(self.max_harmonics):
-            self.harmonic_list.append([0, 0, 0, 0, "1 / x"])
+        self.harmonic_list = [[0, 0, 0, 0, "1 / x"]] * self.max_harmonics
         self.press_button_add(None)
         self.double_tap = False
 
@@ -226,7 +224,7 @@ class RootWave(MDBoxLayout):
         self.do_not_change_waveform = False
 
         (mean, sd, num_samples, num_harmonics, decay_function) = self.harmonic_list[self.current_harmonic_index]
-        (self.mean.value, self.sd.value, self.harmonic_samples.value, self.num_harmonics.value, decay_function) = (
+        (self.mean.value, self.sd.value, self.harmonic_samples.value, self.num_harmonics.value, self.decay_function.text) = (
             int(mean), float(sd), int(num_samples), int(num_harmonics), decay_function)
 
         self.update_power_spectrum(mean, sd, num_samples, num_harmonics, decay_function)

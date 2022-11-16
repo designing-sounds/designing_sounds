@@ -147,7 +147,9 @@ class RootWave(MDBoxLayout):
 
     def update_sliders(self):
         self.change_power_spectrum = False
-        self.mean.value, self.sd.value, self.harmonic_samples.value, self.num_harmonics.value, self.decay_function.text = self.harmonic_list[self.current_harmonic_index]
+        mean, sd, harmonic_samples, num_harmonics, decay_function = self.harmonic_list[self.current_harmonic_index]
+        self.mean.value, self.sd.value, self.harmonic_samples.value = mean, sd, harmonic_samples
+        self.num_harmonics.value, self.decay_function.text = num_harmonics, decay_function
         self.change_power_spectrum = True
 
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
@@ -171,7 +173,7 @@ class RootWave(MDBoxLayout):
             line_color=(0, 0, 0, 0),
         )
 
-    def remove_power_spectrum(self, button: MDRectangleFlatButton):
+    def remove_power_spectrum(self, _):
         if not self.double_tap or len(self.power_buttons) == 1:
             return
 
@@ -200,6 +202,7 @@ class RootWave(MDBoxLayout):
         self.update_sliders()
         self.update_power_spectrum_plot()
         self.update_waveform()
+
 
 class WaveApp(MDApp):
     def build(self) -> RootWave:

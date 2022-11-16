@@ -13,11 +13,12 @@ import numpy as np
 class WaveformGraph(Graph):
     __selected_points = []
 
-    def __init__(self, update, **kwargs):
+    def __init__(self, update_waveform, update_waveform_graph, **kwargs):
         super().__init__(**kwargs)
         self.graph_canvas = BoxLayout(size_hint=(1, 1))
         self.add_widget(self.graph_canvas)
-        self.update = update
+        self.update_waveform = update_waveform
+        self.update_waveform_graph = update_waveform_graph
         self.current_point = None
         self.old_pos = None
         self.point_size = 15
@@ -30,6 +31,7 @@ class WaveformGraph(Graph):
         self.zoom_scale = 1
         self.initial_x_ticks_major = 0.1
         self.x_ticks_major = self.initial_x_ticks_major
+        self.eraser_mode = False
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
@@ -38,10 +40,10 @@ class WaveformGraph(Graph):
             if touch.is_mouse_scrolling:
                 if touch.button == 'scrolldown':
                     self.zoom_scale = min(self.zoom_scale + 1, self.max_zoom)
-                    self.update_zoom()
+                    self.update_zoom((a_x, a_y))
                 elif touch.button == 'scrollup':
                     self.zoom_scale = max(self.zoom_scale - 1, self.min_zoom)
-                    self.update_zoom()
+                    self.update_zoom((a_x, a_y))
                 elif touch.button == 'scrollleft':
                     self.update_panning(False)
                 elif touch.button == 'scrollright':
@@ -50,40 +52,40 @@ class WaveformGraph(Graph):
 
             ellipse = self.touching_point((touch.x, touch.y))
             if ellipse:
-                if touch.button == 'right':
-                    to_remove = self.graph_canvas.canvas.children.index(ellipse)
-                    self.graph_canvas.canvas.children.pop(to_remove)
-                    self.graph_canvas.canvas.children.pop(to_remove - 1)
-                    self.graph_canvas.canvas.children.pop(to_remove - 2)
-                    x, y = self.convert_point(ellipse.pos)
-                    for point in self.__selected_points:
-                        if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
-                            self.__selected_points.remove(point)
-                            break
-                    self.update()
+                if self.eraser_mode:
+                    self.remove_point(ellipse)
+                    touch.grab(self)
                     return True
                 self.current_point = ellipse
                 self.old_pos = self.convert_point(self.current_point.pos)
                 touch.grab(self)
                 return True
 
-            color = (0, 0, 1)
+            if not self.eraser_mode:
+                color = (0, 0, 1)
 
-            pos = (touch.x - self.point_size / 2, touch.y - self.point_size / 2)
+                pos = (touch.x - self.point_size / 2, touch.y - self.point_size / 2)
 
-            with self.graph_canvas.canvas:
-                Color(*color, mode='hsv')
-                Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.point_size, self.point_size))
+                with self.graph_canvas.canvas:
+                    Color(*color, mode='hsv')
+                    Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.point_size, self.point_size))
 
-            self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
-            self.update()
+                self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
+                self.update_waveform()
 
         return super().on_touch_down(touch)
 
     def on_touch_move(self, touch: MotionEvent) -> bool:
-        if touch.grab_current is self:
-            a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
-            if self.collide_plot(a_x, a_y):
+        a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
+        if self.collide_plot(a_x, a_y):
+
+            if self.eraser_mode:
+                ellipse = self.touching_point((touch.x, touch.y))
+                if ellipse:
+                    self.remove_point(ellipse)
+                    return True
+
+            if touch.grab_current is self:
                 radius = self.point_size / 2
                 for point in self.__selected_points:
                     if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:
@@ -92,8 +94,8 @@ class WaveformGraph(Graph):
                 self.current_point.pos = (touch.x - radius, touch.y - radius)
                 self.old_pos = self.convert_point(self.current_point.pos)
                 self.__selected_points.append(self.convert_point(self.current_point.pos))
-                self.update()
-            return True
+                self.update_waveform()
+                return True
         return False
 
     def on_touch_up(self, touch: MotionEvent) -> bool:
@@ -110,6 +112,18 @@ class WaveformGraph(Graph):
                 result = point
                 break
         return result
+
+    def remove_point(self, ellipse):
+        to_remove = self.graph_canvas.canvas.children.index(ellipse)
+        self.graph_canvas.canvas.children.pop(to_remove)
+        self.graph_canvas.canvas.children.pop(to_remove - 1)
+        self.graph_canvas.canvas.children.pop(to_remove - 2)
+        x, y = self.convert_point(ellipse.pos)
+        for point in self.__selected_points:
+            if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
+                self.__selected_points.remove(point)
+                break
+        self.update_waveform()
 
     @staticmethod
     def is_inside_ellipse(ellipse: Ellipse, pos: typing.Tuple[float, float]) -> bool:
@@ -154,19 +168,20 @@ class WaveformGraph(Graph):
                     Color(*color, mode='hsv')
                     Ellipse(source='media/20221028_144310.jpg', pos=pos,
                             size=(self.point_size, self.point_size))
-        self.update()
+        self.update_waveform_graph()
 
-    def update_zoom(self) -> None:
+    def update_zoom(self, pos: typing.Tuple[float, float]) -> None:
+        x_pos, _ = self.convert_point(pos)
         self.x_ticks_major = self.initial_x_ticks_major / self.zoom_scale
-        midpoint = (self.xmax + self.xmin) / 2
-        window_length = self.initial_duration / self.zoom_scale
+        left_dist = x_pos - self.xmin
+        right_dist = self.xmax - x_pos
+        proportion = self.initial_duration / (left_dist + right_dist) / self.zoom_scale
 
-        if midpoint - window_length / 2 < 0:
+        self.xmax = x_pos + proportion * right_dist
+        self.xmin = x_pos - proportion * left_dist
+        if self.xmin < 0:
+            self.xmax -= self.xmin
             self.xmin = 0
-            self.xmax = window_length
-        else:
-            self.xmax = midpoint + (self.initial_duration / self.zoom_scale) / 2
-            self.xmin = midpoint - (self.initial_duration / self.zoom_scale) / 2
         self.update_graph_points()
 
     def update_panning(self, is_left: bool) -> None:

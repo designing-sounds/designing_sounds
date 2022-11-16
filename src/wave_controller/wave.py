@@ -30,11 +30,11 @@ class RootWave(MDBoxLayout):
         super().__init__(**kwargs)
         self.max_samples_per_harmonic = int(self.harmonic_samples.max)
 
-        self.change_waveform = True
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
         self.play.bind(on_press=self.press_button_play)
+        self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
         self.add.bind(on_press=self.press_button_add)
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
@@ -42,10 +42,11 @@ class RootWave(MDBoxLayout):
                                        self.decay_function]
 
         border_color = [0, 0, 0, 1]
-        self.waveform_graph = WaveformGraph(update=self.update_waveform, size_hint=(1, 1), border_color=border_color,
+        self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
+                                            update_waveform_graph=self.update_waveform_graph, size_hint=(1, 1), border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration, ymin=-1.0, ymax=1.0, padding=10,
                                             draw_border=True, x_grid_label=True, y_grid_label=True, xlabel='Time',
-                                            ylabel='Amplitude', precision="%.4g", x_grid=True, y_grid=True,
+                                            ylabel='Amplitude', precision="%.5g", x_grid=True, y_grid=True,
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max,
@@ -76,34 +77,45 @@ class RootWave(MDBoxLayout):
             self.sound_model.update_power_spectrum(self.current_harmonic_index, self.mean.value, self.sd.value,
                                                    int(self.harmonic_samples.value), int(self.num_harmonics.value),
                                                    self.decay_function.text)
-            self.update_power_spectrum_plot()
+            self.update_power_spectrum_graph()
             self.update_waveform()
 
-    def update_power_spectrum_plot(self):
+    def update_power_spectrum_graph(self):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
         self.power_spectrum_graph.xmax = int(max(self.power_plot.points, key=lambda x: x[0])[0])
 
     def update_waveform(self) -> None:
-        inputted_points = self.waveform_graph.get_selected_points()
-        self.sound_model.interpolate_points(inputted_points)
+        self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
+        self.wave_sound.sound_changed()
+        self.update_waveform_graph()
+
+    def update_waveform_graph(self) -> None:
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
         self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
 
     def press_button_play(self, _: typing.Any) -> None:
-        if not self.wave_sound.is_playing:
-            self.wave_sound.is_playing = True
-            self.wave_sound.stream.start_stream()
-            self.play.icon = "pause"
-            self.play.md_bg_color = style.dark_sky_blue
-        else:
-            self.wave_sound.is_playing = False
-            self.wave_sound.stream.stop_stream()
+        if self.wave_sound.is_playing():
+            self.wave_sound.pause_audio()
             self.play.icon = "play"
             self.play.md_bg_color = style.blue_violet
+        else:
+            self.wave_sound.play_audio()
+            self.play.icon = "pause"
+            self.play.md_bg_color = style.dark_sky_blue
+
+    def press_button_eraser(self, _: typing.Any) -> None:
+        if not self.waveform_graph.eraser_mode:
+            self.waveform_graph.eraser_mode = True
+            self.eraser_mode.icon = "pen"
+            self.eraser_mode.md_bg_color = style.dark_sky_blue
+        else:
+            self.waveform_graph.eraser_mode = False
+            self.eraser_mode.icon = "eraser"
+            self.eraser_mode.md_bg_color = style.blue_violet
 
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
@@ -154,7 +166,7 @@ class RootWave(MDBoxLayout):
 
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
         self.update_display_power_spectrum(int(button.text) - 1)
-        self.update_power_spectrum_plot()
+        self.update_power_spectrum_graph()
 
     def set_double_tap(self, _button, touch):
         self.double_tap = False
@@ -200,7 +212,7 @@ class RootWave(MDBoxLayout):
         self.power_buttons[self.current_harmonic_index].md_bg_color = self.selected_button_color
 
         self.update_sliders()
-        self.update_power_spectrum_plot()
+        self.update_power_spectrum_graph()
         self.update_waveform()
 
 

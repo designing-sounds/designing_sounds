@@ -13,11 +13,12 @@ import numpy as np
 class WaveformGraph(Graph):
     __selected_points = []
 
-    def __init__(self, update, **kwargs):
+    def __init__(self, update_waveform, update_waveform_graph, **kwargs):
         super().__init__(**kwargs)
         self.graph_canvas = BoxLayout(size_hint=(1, 1))
         self.add_widget(self.graph_canvas)
-        self.update = update
+        self.update_waveform = update_waveform
+        self.update_waveform_graph = update_waveform_graph
         self.current_point = None
         self.old_pos = None
         self.point_size = 15
@@ -70,7 +71,7 @@ class WaveformGraph(Graph):
                     Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self.point_size, self.point_size))
 
                 self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
-                self.update()
+                self.update_waveform()
 
         return super().on_touch_down(touch)
 
@@ -93,7 +94,7 @@ class WaveformGraph(Graph):
                 self.current_point.pos = (touch.x - radius, touch.y - radius)
                 self.old_pos = self.convert_point(self.current_point.pos)
                 self.__selected_points.append(self.convert_point(self.current_point.pos))
-                self.update()
+                self.update_waveform()
                 return True
         return False
 
@@ -122,7 +123,7 @@ class WaveformGraph(Graph):
             if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
                 self.__selected_points.remove(point)
                 break
-        self.update()
+        self.update_waveform()
 
     @staticmethod
     def is_inside_ellipse(ellipse: Ellipse, pos: typing.Tuple[float, float]) -> bool:
@@ -167,7 +168,7 @@ class WaveformGraph(Graph):
                     Color(*color, mode='hsv')
                     Ellipse(source='media/20221028_144310.jpg', pos=pos,
                             size=(self.point_size, self.point_size))
-        self.update()
+        self.update_waveform_graph()
 
     def update_zoom(self, pos: typing.Tuple[float, float]) -> None:
         x_pos, _ = self.convert_point(pos)

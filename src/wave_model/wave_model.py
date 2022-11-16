@@ -57,7 +57,7 @@ class SoundModel:
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
-    
+
     def remove_power_spectrum(self, index, num_power_spectrums):
         for i in range(index, num_power_spectrums - 1):
             self.__power_spectrum.harmonics[i] = self.__power_spectrum.harmonics[i + 1]

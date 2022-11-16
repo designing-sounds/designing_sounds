@@ -29,7 +29,7 @@ class PowerSpectrum:
         num_samples = 0
         freqs = np.array([])
         for i in range(num_harmonics):
-            sample_ratio = decay_ratios[i] / decay_ratios_sum if decay_ratios[i] != 0 else 0
+            sample_ratio = decay_ratios[i] / decay_ratios_sum if decay_ratios_sum != 0 else 0
             sample_size = int(num_harmonic_samples * sample_ratio)
             num_samples += sample_size
             freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * pow(2, i))
@@ -81,7 +81,7 @@ class SoundModel:
                               num_harmonics: int, decay_function: str) -> None:
         with self.lock:
             self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples, num_harmonics,
-                                                decay_function)
+                                                  decay_function)
             self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
             self.phases = np.asarray(np.random.uniform(0, self.max_freq,
                                                        self.max_harmonics * self.max_samples_per_harmonic),

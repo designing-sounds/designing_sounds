@@ -45,14 +45,14 @@ class SoundModel:
         self.max_samples_per_harmonic = max_samples_per_harmonic
         self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics), dtype=np.float32)
         self.phases = None
-        self.power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
+        self.__power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
         self.samples_per_harmonic = np.zeros(self.max_harmonics)
         self.lock = threading.Lock()
 
     def get_power_spectrum_histogram(self, harmonic_index: int,
                                      _num_bins: int) -> typing.List[typing.Tuple[float, float]]:
         with self.lock:
-            freqs = self.power_spectrum.harmonics[harmonic_index]
+            freqs = self.__power_spectrum.harmonics[harmonic_index]
             freqs = freqs[np.nonzero(freqs)]
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
@@ -60,7 +60,7 @@ class SoundModel:
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
         with self.lock:
-            freqs = self.power_spectrum.harmonics.flatten()
+            freqs = self.__power_spectrum.harmonics.flatten()
             freqs = freqs[np.nonzero(freqs)]
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
@@ -80,7 +80,7 @@ class SoundModel:
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int,
                               num_harmonics: int, decay_function: str) -> None:
         with self.lock:
-            self.power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples, num_harmonics,
+            self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples, num_harmonics,
                                                 decay_function)
             self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
             self.phases = np.asarray(np.random.uniform(0, self.max_freq,
@@ -88,7 +88,7 @@ class SoundModel:
                                      dtype=np.float32)
 
     def calculate_sins(self, x):
-        freqs = self.power_spectrum.harmonics.flatten()
+        freqs = self.__power_spectrum.harmonics.flatten()
         sins = np.sin((x[:, None]) * 2 * np.pi * freqs)
         return sins
 

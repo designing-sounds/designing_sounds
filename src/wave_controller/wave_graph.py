@@ -52,16 +52,8 @@ class WaveformGraph(Graph):
             ellipse = self.touching_point((touch.x, touch.y))
             if ellipse:
                 if self.eraser_mode:
-                    to_remove = self.graph_canvas.canvas.children.index(ellipse)
-                    self.graph_canvas.canvas.children.pop(to_remove)
-                    self.graph_canvas.canvas.children.pop(to_remove - 1)
-                    self.graph_canvas.canvas.children.pop(to_remove - 2)
-                    x, y = self.convert_point(ellipse.pos)
-                    for point in self.__selected_points:
-                        if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
-                            self.__selected_points.remove(point)
-                            break
-                    self.update()
+                    self.remove_point(ellipse)
+                    touch.grab(self)
                     return True
                 self.current_point = ellipse
                 self.old_pos = self.convert_point(self.current_point.pos)
@@ -83,9 +75,16 @@ class WaveformGraph(Graph):
         return super().on_touch_down(touch)
 
     def on_touch_move(self, touch: MotionEvent) -> bool:
-        if touch.grab_current is self:
-            a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
-            if self.collide_plot(a_x, a_y):
+        a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
+        if self.collide_plot(a_x, a_y):
+
+            if self.eraser_mode:
+                ellipse = self.touching_point((touch.x, touch.y))
+                if ellipse:
+                    self.remove_point(ellipse)
+                    return True
+
+            if touch.grab_current is self:
                 radius = self.point_size / 2
                 for point in self.__selected_points:
                     if math.isclose(point[0], self.old_pos[0], abs_tol=0.001) and point[1] == self.old_pos[1]:
@@ -95,7 +94,7 @@ class WaveformGraph(Graph):
                 self.old_pos = self.convert_point(self.current_point.pos)
                 self.__selected_points.append(self.convert_point(self.current_point.pos))
                 self.update()
-            return True
+                return True
         return False
 
     def on_touch_up(self, touch: MotionEvent) -> bool:
@@ -112,6 +111,18 @@ class WaveformGraph(Graph):
                 result = point
                 break
         return result
+
+    def remove_point(self, ellipse):
+        to_remove = self.graph_canvas.canvas.children.index(ellipse)
+        self.graph_canvas.canvas.children.pop(to_remove)
+        self.graph_canvas.canvas.children.pop(to_remove - 1)
+        self.graph_canvas.canvas.children.pop(to_remove - 2)
+        x, y = self.convert_point(ellipse.pos)
+        for point in self.__selected_points:
+            if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
+                self.__selected_points.remove(point)
+                break
+        self.update()
 
     @staticmethod
     def is_inside_ellipse(ellipse: Ellipse, pos: typing.Tuple[float, float]) -> bool:

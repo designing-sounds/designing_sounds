@@ -42,22 +42,41 @@
                     size_hint: 1, 0.5
                     orientation: 'vertical'
 
-
-
-
                 BoxLayout:
-                    orientation: 'horizontal'
+                    orientation: 'vertical'
                     size_hint: 1, 1
 
                     BoxLayout:
-                        size_hint: 1, 0.15
+                        size_hint: 1, 0.2
 
-                    MDIconButton:
-                        md_bg_color: style.blue_violet
-                        id: play_button
-                        icon: 'play'
-                        theme_text_color: 'Custom'
-                        text_color: style.white
+                    BoxLayout:
+                        size_hint: 1, 0.5
+                        orientation: 'horizontal'
+
+                        BoxLayout:
+                            size_hint: 0.2, 1
+
+                        MDIconButton:
+                            md_bg_color: style.blue_violet
+                            id: play_button
+                            icon: 'play'
+                            theme_text_color: 'Custom'
+                            text_color: style.white
+                            pos_hint: {"center_x": .5, "center_y": .5}
+
+                        BoxLayout:
+                            size_hint: 0.2, 1
+
+                        MDIconButton:
+                            md_bg_color: style.blue_violet
+                            id: back_button
+                            icon: 'skip-backward'
+                            theme_text_color: 'Custom'
+                            text_color: style.white
+                            pos_hint: {"center_x": .5, "center_y": .5}
+
+                        BoxLayout:
+                            size_hint: 0.2, 1
 
                     BoxLayout:
                         size_hint: 1, 0.15
@@ -68,6 +87,8 @@
                         icon: 'eraser'
                         theme_text_color: 'Custom'
                         text_color: style.white
+                        size_hint:0.3, 0.5
+                        pos_hint: {"center_x": .5, "center_y": .5}
 
                     BoxLayout:
                         size_hint: 0.5, 0.2
@@ -77,13 +98,10 @@
                         id: clear_button
                         icon: 'selection-ellipse-remove'
                         text: 'Clear Points'
-                        pos_hint: {'center_y':.2}
                         icon_color: 'white'
                         text_color: 'white'
                         line_color: (0, 0, 0, 0)
-
-                    BoxLayout:
-                        size_hint: 1, 0.1
+                        pos_hint: {"center_x": .5, "center_y": .5}
 
                 BoxLayout:
                     size_hint: 1, 1

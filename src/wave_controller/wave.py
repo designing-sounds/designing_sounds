@@ -16,7 +16,7 @@ Builder.load_file('src/wave_view/wave.kv')
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 44100
+    sample_rate = 48000
     graph_sample_rate = 2500
     power_spectrum_graph_samples = 1000
     waveform_duration = 1
@@ -33,7 +33,9 @@ class RootWave(MDBoxLayout):
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
+        # Button bindings
         self.play.bind(on_press=self.press_button_play)
+        self.back.bind(on_press=self.press_button_back)
         self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
         self.add.bind(on_press=self.press_button_add)
@@ -108,6 +110,9 @@ class RootWave(MDBoxLayout):
             self.wave_sound.play_audio()
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
+
+    def press_button_back(self, _: typing.Any) -> None:
+        self.wave_sound.sound_changed()
 
     def press_button_eraser(self, _: typing.Any) -> None:
         if not self.waveform_graph.eraser_mode:

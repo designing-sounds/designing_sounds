@@ -72,32 +72,28 @@ class SoundModel:
         self.total_freqs -= self.max_samples_per_harmonic * len(self.__power_spectrum.harmonics[index])
         self.__power_spectrum.harmonics.pop(index)
 
-    def get_freqs_from_power_spectrum(self):
+    def get_freqs_and_powers(self):
         freqs = np.zeros(self.total_freqs)
-        idx = 0
-        for peaks in self.__power_spectrum.harmonics:
-            for peak in peaks:
-                freqs[idx: idx + self.max_samples_per_harmonic] = peak.freqs
-                idx += self.max_samples_per_harmonic
-        return freqs
-
-    def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
-        with self.lock:
-            freqs = self.get_freqs_from_power_spectrum() * self.get_powers()
-            max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
-            histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
-        return list(zip(bin_edges, histogram))
-
-    def get_powers(self):
         powers = np.zeros(self.total_freqs)
         idx = 0
         for peaks in self.__power_spectrum.harmonics:
             for peak in peaks:
+                freqs[idx: idx + self.max_samples_per_harmonic] = peak.freqs
                 power = np.empty(self.max_samples_per_harmonic)
                 power.fill(peak.power / self.max_samples_per_harmonic)
                 powers[idx:idx + self.max_samples_per_harmonic] = power
                 idx += self.max_samples_per_harmonic
-        return powers
+        return freqs, powers
+
+    def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
+        with self.lock:
+            freqs, powers = self.get_freqs_and_powers()
+            freqs = freqs
+            max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
+            print(max_range)
+            histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
+        return list(zip(bin_edges, histogram))
+
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         with self.lock:
@@ -118,10 +114,8 @@ class SoundModel:
             self.total_freqs += self.max_samples_per_harmonic * num_harmonics
 
     def calculate_sins(self, x):
-        freqs = self.get_freqs_from_power_spectrum()
-        ps = self.get_powers()[None, :]
-        powers = np.tile(ps, (len(x), 1))
-        sins = powers * np.sin((x[:, None]) * 2 * np.pi * freqs)
+        freqs, powers = self.get_freqs_and_powers()
+        sins = powers[None, :] * np.sin((x[:, None]) * 2 * np.pi * freqs)
         return_sins = np.empty((len(x), self.max_samples_per_harmonic))
         for i in range(self.max_samples_per_harmonic):
             return_sins[:, i] = np.sum(sins[:, i::self.max_samples_per_harmonic], axis=1)

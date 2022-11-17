@@ -30,7 +30,7 @@ class RootWave(MDBoxLayout):
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
 
-        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
+        self.sound_model = SoundModel(self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
         self.play.bind(on_press=self.press_button_play)
@@ -200,7 +200,7 @@ class RootWave(MDBoxLayout):
         # zero fill end of harmonic list to account for removal
         self.harmonic_list[self.num_power_spectrums - 1] = [0, 0, 0, 1, "1 / x"]
 
-        self.sound_model.remove_power_spectrum(self.current_harmonic_index, self.num_power_spectrums)
+        self.sound_model.remove_power_spectrum(self.current_harmonic_index)
 
         self.num_power_spectrums -= 1
         # update current index selection

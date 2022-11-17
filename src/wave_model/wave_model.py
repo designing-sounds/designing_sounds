@@ -5,10 +5,21 @@ from math import sqrt, log, log2, log10, cos, sin, tan, ceil, floor, fabs, facto
 import numpy as np
 
 
+class Peak:
+    def __init__(self, mean: float, sd: float, power: float, max_samples_per_harmonic: int):
+        self.max_samples = max_samples_per_harmonic
+        self.freqs = None
+        self.power = power
+        self.update_peak(mean, sd)
+
+    def update_peak(self, mean: float, sd: float):
+        self.freqs = np.random.randn(self.max_samples) * sd + mean
+        self.freqs = np.asarray(self.freqs, dtype=np.float32)
+
 class PowerSpectrum:
-    def __init__(self, max_harmonics: int, max_samples_per_harmonic: int):
+    def __init__(self, max_samples_per_harmonic: int):
         self.max_samples_per_harmonic = max_samples_per_harmonic
-        self.harmonics = np.zeros((max_harmonics, self.max_samples_per_harmonic), dtype=np.float32)
+        self.harmonics = []
         self.functions = {'sqrt': sqrt, 'pow': pow, 'log': log, 'log2': log2, 'log10': log10, 'cos': cos, 'sin': sin,
                           'tan': tan, 'ceil': ceil, 'floor': floor, 'abs': fabs, 'factorial': factorial, 'exp': exp}
 
@@ -24,88 +35,108 @@ class PowerSpectrum:
                 decay_factor = 0
             finally:
                 decay_ratios.append(decay_factor)
-        decay_ratios_sum = sum(decay_ratios)
 
-        num_samples = 0
-        freqs = np.array([])
+        peaks = []
         for i in range(num_harmonics):
-            sample_ratio = decay_ratios[i] / decay_ratios_sum if decay_ratios_sum != 0 else 0
-            sample_size = int(num_harmonic_samples * sample_ratio)
-            num_samples += sample_size
-            freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * pow(2, i))
+            sample_size = int(num_harmonic_samples * decay_ratios[i])
+            peaks.append(Peak(mean * (i + 1), std, sample_size, self.max_samples_per_harmonic))
 
-        self.harmonics[harmonic_index] = np.zeros(self.max_samples_per_harmonic)
-        self.harmonics[harmonic_index, :num_samples] = freqs
-
+        if len(self.harmonics) > harmonic_index:
+            self.harmonics[harmonic_index] = peaks
+        else:
+            self.harmonics.append(peaks)
 
 class SoundModel:
-    def __init__(self, max_harmonics: int, max_samples_per_harmonic: int, max_freq: int):
+    def __init__(self, max_samples_per_harmonic: int, max_freq: int):
         self.max_freq = max_freq
-        self.max_harmonics = max_harmonics
         self.max_samples_per_harmonic = max_samples_per_harmonic
-        self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics), dtype=np.float32)
         self.phases = None
-        self.__power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
-        self.samples_per_harmonic = np.zeros(self.max_harmonics)
+        self.__power_spectrum = PowerSpectrum(self.max_samples_per_harmonic)
+        self.total_freqs = 0
         self.lock = threading.Lock()
 
     def get_power_spectrum_histogram(self, harmonic_index: int,
                                      _num_bins: int) -> typing.List[typing.Tuple[float, float]]:
         with self.lock:
-            freqs = self.__power_spectrum.harmonics[harmonic_index]
+            peaks = self.__power_spectrum.harmonics[harmonic_index]
+            freqs = np.zeros(len(peaks) * self.max_samples_per_harmonic)
+            for i, peak in enumerate(peaks):
+                idx = i * self.max_samples_per_harmonic
+                freqs[idx: idx + self.max_samples_per_harmonic] = peak.freqs
             freqs = freqs[np.nonzero(freqs)]
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
 
-    def remove_power_spectrum(self, index, num_power_spectrums):
-        for i in range(index, num_power_spectrums - 1):
-            self.__power_spectrum.harmonics[i] = self.__power_spectrum.harmonics[i + 1]
-            self.samples_per_harmonic[i] = self.samples_per_harmonic[i + 1]
+    def remove_power_spectrum(self, index):
+        self.total_freqs -= self.max_samples_per_harmonic * len(self.__power_spectrum.harmonics[index])
+        self.__power_spectrum.harmonics.pop(index)
 
-        self.__power_spectrum.harmonics[num_power_spectrums - 1] = np.zeros(self.max_samples_per_harmonic)
-        self.samples_per_harmonic[num_power_spectrums - 1] = 0
+    def get_freqs_from_power_spectrum(self):
+        freqs = np.zeros(self.total_freqs)
+        idx = 0
+        for peaks in self.__power_spectrum.harmonics:
+            for peak in peaks:
+                freqs[idx: idx + self.max_samples_per_harmonic] = peak.freqs
+                idx += self.max_samples_per_harmonic
+        return freqs
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
         with self.lock:
-            freqs = self.__power_spectrum.harmonics.flatten()
-            freqs = freqs[np.nonzero(freqs)]
+            freqs = self.get_freqs_from_power_spectrum() * self.get_powers()
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
 
+    def get_powers(self):
+        powers = np.zeros(self.total_freqs)
+        idx = 0
+        for peaks in self.__power_spectrum.harmonics:
+            for peak in peaks:
+                power = np.empty(self.max_samples_per_harmonic)
+                power.fill(peak.power / self.max_samples_per_harmonic)
+                powers[idx:idx + self.max_samples_per_harmonic] = power
+                idx += self.max_samples_per_harmonic
+        return powers
+
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
-        if points:
-            x, y = (np.array([i for i, _ in points]), np.array([j for _, j in points]))
-            with self.lock:
-                self.amps, _, _, _ = np.linalg.lstsq(self.calculate_sins(x),
-                                                     y * self.max_harmonics * self.max_samples_per_harmonic, rcond=None)
-                self.amps = np.asarray(self.amps, dtype=np.float32)
-        else:
-            self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics),
-                                   dtype=np.float32)
+        with self.lock:
+            if points:
+                x, y = (np.array([i for i, _ in points]), np.array([j for _, j in points]))
+                self.amps, _, _, _ = np.linalg.lstsq(self.calculate_sins(x), y, rcond=None)
+            else:
+                self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic))
+            self.amps = np.asarray(self.amps, dtype=np.float32)
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int,
                               num_harmonics: int, decay_function: str) -> None:
         with self.lock:
+            if len(self.__power_spectrum.harmonics) > harmonic_index:
+                self.total_freqs -= self.max_samples_per_harmonic * len(self.__power_spectrum.harmonics[harmonic_index])
             self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples, num_harmonics,
                                                   decay_function)
-            self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
-            self.phases = np.asarray(np.random.uniform(0, self.max_freq,
-                                                       self.max_harmonics * self.max_samples_per_harmonic),
-                                     dtype=np.float32)
+            self.total_freqs += self.max_samples_per_harmonic * num_harmonics
 
     def calculate_sins(self, x):
-        freqs = self.__power_spectrum.harmonics.flatten()
-        sins = np.sin((x[:, None]) * 2 * np.pi * freqs)
-        return sins
+        freqs = self.get_freqs_from_power_spectrum()
+        ps = self.get_powers()[None, :]
+        powers = np.tile(ps, (len(x), 1))
+        sins = powers * np.sin((x[:, None]) * 2 * np.pi * freqs)
+        return_sins = np.empty((len(x), self.max_samples_per_harmonic))
+        for i in range(self.max_samples_per_harmonic):
+            return_sins[:, i] = np.sum(sins[:, i::self.max_samples_per_harmonic], axis=1)
+
+        return np.asarray(return_sins, dtype=np.float32)
+
+    def get_sound(self, x):
+        return self.calculate_sins(x) @ self.amps
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
                         dtype=np.float32)
 
         with self.lock:
-            sound = (self.calculate_sins(x) @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
+            sound = self.get_sound(x)
         sound[sound > 1] = 1
         sound[sound < -1] = -1
         return sound
@@ -115,6 +146,5 @@ class SoundModel:
                         dtype=np.float32)
 
         with self.lock:
-            sound = (self.calculate_sins(x) @ self.amps) / (self.max_harmonics * self.max_samples_per_harmonic)
-
+            sound = self.get_sound(x)
         return sound

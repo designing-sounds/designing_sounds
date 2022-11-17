@@ -113,14 +113,17 @@ class RootWave(MDBoxLayout):
             self.play.md_bg_color = style.dark_sky_blue
 
     def press_button_eraser(self, _: typing.Any) -> None:
-        if not self.waveform_graph.eraser_mode:
-            self.waveform_graph.eraser_mode = True
-            self.eraser_mode.icon = "pen"
-            self.eraser_mode.md_bg_color = style.dark_sky_blue
-        else:
-            self.waveform_graph.eraser_mode = False
+        if self.waveform_graph.is_eraser_mode():
+            # Eraser Mode -> Draw Mode
+            self.waveform_graph.set_draw_mode()
             self.eraser_mode.icon = "eraser"
             self.eraser_mode.md_bg_color = style.blue_violet
+        else:
+            # Draw Mode -> Eraser Mode
+            self.waveform_graph.set_eraser_mode()
+            self.eraser_mode.icon = "pen"
+            self.eraser_mode.md_bg_color = style.dark_sky_blue
+
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
         self.update_waveform()

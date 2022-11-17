@@ -9,6 +9,16 @@ from kivy_garden.graph import Graph
 
 import numpy as np
 
+POINT_IMAGE = 'media/20221028_144310.jpg'
+
+SCROLL_RIGHT = 'scrollright'
+
+SCROLL_LEFT = 'scrollleft'
+
+SCROLL_UP = 'scrollup'
+
+SCROLL_DOWN = 'scrolldown'
+
 
 class WaveformGraph(Graph):
     __selected_points = []
@@ -24,37 +34,39 @@ class WaveformGraph(Graph):
         self._graph_canvas = BoxLayout(size_hint=(1, 1))
         self.add_widget(self._graph_canvas)
 
-        # Class initialization
+        # Private Class initialization
         self._update_waveform_func = update_waveform
         self._update_waveform_graph_func = update_waveform_graph
         self._current_point = None
         self._old_pos = None
-        self.xmin = 0
-        self.xmax = 1
         self._zoom_scale = 1
         self.x_ticks_major = self.__initial_x_ticks_major
-        self.eraser_mode = False
+        self._eraser_mode = False
+
+        # Public Class initialization
+        self.xmin = 0
+        self.xmax = 1
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
 
         if self.collide_plot(a_x, a_y):
             if touch.is_mouse_scrolling:
-                if touch.button == 'scrolldown':
+                if touch.button == SCROLL_DOWN:
                     self._zoom_scale = min(self._zoom_scale + 1, self.__max_zoom)
                     self.update_zoom((a_x, a_y))
-                elif touch.button == 'scrollup':
+                elif touch.button == SCROLL_UP:
                     self._zoom_scale = max(self._zoom_scale - 1, self.__min_zoom)
                     self.update_zoom((a_x, a_y))
-                elif touch.button == 'scrollleft':
+                elif touch.button == SCROLL_LEFT:
                     self.update_panning(False)
-                elif touch.button == 'scrollright':
+                elif touch.button == SCROLL_RIGHT:
                     self.update_panning(True)
                 return True
 
             ellipse = self.touching_point((touch.x, touch.y))
             if ellipse:
-                if self.eraser_mode:
+                if self._eraser_mode:
                     self.remove_point(ellipse)
                     touch.grab(self)
                     return True
@@ -63,14 +75,14 @@ class WaveformGraph(Graph):
                 touch.grab(self)
                 return True
 
-            if not self.eraser_mode:
+            if not self._eraser_mode:
                 color = (0, 0, 1)
 
                 pos = (touch.x - self._point_size / 2, touch.y - self._point_size / 2)
 
                 with self._graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source='media/20221028_144310.jpg', pos=pos, size=(self._point_size, self._point_size))
+                    Ellipse(source=POINT_IMAGE, pos=pos, size=(self._point_size, self._point_size))
 
                 self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
                 self._update_waveform_func()
@@ -81,7 +93,7 @@ class WaveformGraph(Graph):
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
         if self.collide_plot(a_x, a_y):
 
-            if self.eraser_mode:
+            if self._eraser_mode:
                 ellipse = self.touching_point((touch.x, touch.y))
                 if ellipse:
                     self.remove_point(ellipse)
@@ -168,7 +180,7 @@ class WaveformGraph(Graph):
                 pos = (new_x - self._point_size / 2, new_y - self._point_size / 2)
                 with self._graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source='media/20221028_144310.jpg', pos=pos,
+                    Ellipse(source=POINT_IMAGE, pos=pos,
                             size=(self._point_size, self._point_size))
         self._update_waveform_graph_func()
 
@@ -196,3 +208,13 @@ class WaveformGraph(Graph):
             self.xmin = 0
             self.xmax = window_length
         self.update_graph_points()
+
+    # Get/Set Methods for class
+    def set_eraser_mode(self) -> None:
+        self._eraser_mode = True
+
+    def set_draw_mode(self) -> None:
+        self._eraser_mode = False
+
+    def is_eraser_mode(self) -> bool:
+        return self._eraser_mode

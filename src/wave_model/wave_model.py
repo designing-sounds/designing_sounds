@@ -9,12 +9,12 @@ class Peak:
     def __init__(self, mean: float, sd: float, power: float, max_samples_per_harmonic: int):
         self.max_samples = max_samples_per_harmonic
         self.freqs = None
+        self.mean = mean
         self.power = power
         self.update_peak(mean, sd)
 
     def update_peak(self, mean: float, sd: float):
         self.freqs = np.random.randn(self.max_samples) * sd + mean
-        self.freqs = np.asarray(self.freqs, dtype=np.float32)
 
 
 class PowerSpectrum:
@@ -64,18 +64,21 @@ class SoundModel:
         with self.lock:
             peaks = self.__power_spectrum.harmonics[harmonic_index]
             freqs = np.zeros(len(peaks) * self.max_samples_per_harmonic)
+            max_freq = 0
             for i, peak in enumerate(peaks):
                 idx = i * self.max_samples_per_harmonic
                 freqs[idx: idx + self.max_samples_per_harmonic] = peak.freqs
-            freqs = freqs[np.nonzero(freqs)]
-            max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
-            histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
-        return list(zip(bin_edges, histogram))
+                if peak.mean > max_freq:
+                    max_freq = peak.mean
+            max_range = max(1000, max_freq + 100)
+            histogram, bin_edges = np.histogram(freqs, bins='sqrt')
+        return list(zip(bin_edges, histogram)), max_range
 
     def remove_power_spectrum(self, index):
-        self.total_freqs -= self.max_samples_per_harmonic * len(self.__power_spectrum.harmonics[index])
-        self.__power_spectrum.harmonics.pop(index)
-        self.update_freqs_and_powers()
+        with self.lock:
+            self.total_freqs -= self.max_samples_per_harmonic * len(self.__power_spectrum.harmonics[index])
+            self.__power_spectrum.harmonics.pop(index)
+            self.update_freqs_and_powers()
 
     def update_freqs_and_powers(self):
         freqs = np.zeros(self.total_freqs)
@@ -104,7 +107,6 @@ class SoundModel:
                 self.amps, _, _, _ = np.linalg.lstsq(self.calculate_sins(x), y, rcond=None)
             else:
                 self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic))
-            self.amps = np.asarray(self.amps, dtype=np.float32)
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int,
                               num_harmonics: int, decay_function: str) -> None:
@@ -122,27 +124,16 @@ class SoundModel:
 
         re_sins = sins.reshape(
             (len(x), self.total_freqs // self.max_samples_per_harmonic, self.max_samples_per_harmonic))
-        result = np.add.reduce(np.transpose(re_sins, (1, 0, 2)), 0)
+        result = np.sum(np.transpose(re_sins, (1, 0, 2)), axis=0)
 
         return result
-
-    def get_sound(self, x):
-        return np.asarray(self.calculate_sins(x) @ self.amps, dtype=np.float32)
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
                         dtype=np.float32)
 
         with self.lock:
-            sound = self.get_sound(x)
+            sound = np.asarray(self.calculate_sins(x) @ self.amps, dtype=np.float32)
         sound[sound > 1] = 1
         sound[sound < -1] = -1
-        return sound
-
-    def model_sound_graph(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
-        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
-                        dtype=np.float32)
-
-        with self.lock:
-            sound = self.get_sound(x)
         return sound

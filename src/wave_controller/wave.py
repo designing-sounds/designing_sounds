@@ -83,10 +83,10 @@ class RootWave(MDBoxLayout):
             self.update_waveform()
 
     def update_power_spectrum_graph(self):
-        self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
+        self.power_plot.points, max_range = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
-        self.power_spectrum_graph.xmax = int(max(self.power_plot.points, key=lambda x: x[0])[0])
+        self.power_spectrum_graph.xmax = max_range
 
     def update_waveform(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())

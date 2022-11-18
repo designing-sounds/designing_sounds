@@ -121,9 +121,9 @@ class SoundModel:
 
         sins = self.powers[None, :] * np.sin((x[:, None]) * 2 * np.pi * self.freqs)
 
-        re_sins = sins.T.reshape(
-            (self.total_freqs // self.max_samples_per_harmonic, self.max_samples_per_harmonic, len(x)))
-        result = np.add.reduce(np.transpose(re_sins, (0, 2, 1)), 0)
+        re_sins = sins.reshape(
+            (len(x), self.total_freqs // self.max_samples_per_harmonic, self.max_samples_per_harmonic))
+        result = np.add.reduce(np.transpose(re_sins, (1, 0, 2)), 0)
 
         return result
 

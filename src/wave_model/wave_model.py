@@ -94,7 +94,6 @@ class SoundModel:
         with self.lock:
             freqs = self.freqs
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
-            print(max_range)
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
 

@@ -16,6 +16,7 @@ class Peak:
         self.freqs = np.random.randn(self.max_samples) * sd + mean
         self.freqs = np.asarray(self.freqs, dtype=np.float32)
 
+
 class PowerSpectrum:
     def __init__(self, max_samples_per_harmonic: int):
         self.max_samples_per_harmonic = max_samples_per_harmonic
@@ -45,6 +46,7 @@ class PowerSpectrum:
             self.harmonics[harmonic_index] = peaks
         else:
             self.harmonics.append(peaks)
+
 
 class SoundModel:
     def __init__(self, max_samples_per_harmonic: int, max_freq: int):
@@ -82,21 +84,19 @@ class SoundModel:
         for peaks in self.__power_spectrum.harmonics:
             for peak in peaks:
                 freqs[idx: idx + self.max_samples_per_harmonic] = peak.freqs
-                power = np.empty(self.max_samples_per_harmonic)
-                power.fill(peak.power / self.max_samples_per_harmonic)
-                powers[idx:idx + self.max_samples_per_harmonic] = power
+                # 100 below refers to the max value of samples slider
+                powers[idx:idx + self.max_samples_per_harmonic] = np.repeat(peak.power / 100,
+                                                                            self.max_samples_per_harmonic)
                 idx += self.max_samples_per_harmonic
         self.freqs, self.powers = freqs, powers
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
         with self.lock:
-
             freqs = self.freqs
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             print(max_range)
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
         return list(zip(bin_edges, histogram))
-
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         with self.lock:
@@ -121,7 +121,8 @@ class SoundModel:
 
         sins = self.powers[None, :] * np.sin((x[:, None]) * 2 * np.pi * self.freqs)
 
-        re_sins = sins.T.reshape((self.total_freqs // self.max_samples_per_harmonic, self.max_samples_per_harmonic, len(x)))
+        re_sins = sins.T.reshape(
+            (self.total_freqs // self.max_samples_per_harmonic, self.max_samples_per_harmonic, len(x)))
         result = np.add.reduce(np.transpose(re_sins, (0, 2, 1)), 0)
 
         return result

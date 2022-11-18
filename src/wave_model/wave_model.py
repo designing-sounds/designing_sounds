@@ -48,6 +48,8 @@ class PowerSpectrum:
 
 class SoundModel:
     def __init__(self, max_samples_per_harmonic: int, max_freq: int):
+        self.powers = None
+        self.freqs = None
         self.max_freq = max_freq
         self.max_samples_per_harmonic = max_samples_per_harmonic
         self.phases = None
@@ -71,8 +73,9 @@ class SoundModel:
     def remove_power_spectrum(self, index):
         self.total_freqs -= self.max_samples_per_harmonic * len(self.__power_spectrum.harmonics[index])
         self.__power_spectrum.harmonics.pop(index)
+        self.update_freqs_and_powers()
 
-    def get_freqs_and_powers(self):
+    def update_freqs_and_powers(self):
         freqs = np.zeros(self.total_freqs)
         powers = np.zeros(self.total_freqs)
         idx = 0
@@ -83,12 +86,12 @@ class SoundModel:
                 power.fill(peak.power / self.max_samples_per_harmonic)
                 powers[idx:idx + self.max_samples_per_harmonic] = power
                 idx += self.max_samples_per_harmonic
-        return freqs, powers
+        self.freqs, self.powers = freqs, powers
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
         with self.lock:
-            freqs, powers = self.get_freqs_and_powers()
-            freqs = freqs
+
+            freqs = self.freqs
             max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
             print(max_range)
             histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
@@ -112,10 +115,11 @@ class SoundModel:
             self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonic_samples, num_harmonics,
                                                   decay_function)
             self.total_freqs += self.max_samples_per_harmonic * num_harmonics
+            self.update_freqs_and_powers()
 
     def calculate_sins(self, x):
-        freqs, powers = self.get_freqs_and_powers()
-        sins = powers[None, :] * np.sin((x[:, None]) * 2 * np.pi * freqs)
+
+        sins = self.powers[None, :] * np.sin((x[:, None]) * 2 * np.pi * self.freqs)
 
         re_sins = sins.T.reshape((self.total_freqs // self.max_samples_per_harmonic, self.max_samples_per_harmonic, len(x)))
         result = np.add.reduce(np.transpose(re_sins, (0, 2, 1)), 0)

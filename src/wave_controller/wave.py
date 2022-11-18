@@ -25,7 +25,7 @@ class RootWave(MDBoxLayout):
     max_harmonics = 10
     num_power_spectrums = 0
     current_harmonic_index = 0
-    max_samples_per_harmonic = 100
+    max_samples_per_harmonic = 50
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)

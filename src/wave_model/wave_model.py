@@ -116,14 +116,14 @@ class SoundModel:
     def calculate_sins(self, x):
         freqs, powers = self.get_freqs_and_powers()
         sins = powers[None, :] * np.sin((x[:, None]) * 2 * np.pi * freqs)
-        return_sins = np.empty((len(x), self.max_samples_per_harmonic))
-        for i in range(self.max_samples_per_harmonic):
-            return_sins[:, i] = np.sum(sins[:, i::self.max_samples_per_harmonic], axis=1)
 
-        return np.asarray(return_sins, dtype=np.float32)
+        re_sins = sins.T.reshape((self.total_freqs // self.max_samples_per_harmonic, self.max_samples_per_harmonic, len(x)))
+        result = np.add.reduce(np.transpose(re_sins, (0, 2, 1)), 0)
+
+        return result
 
     def get_sound(self, x):
-        return self.calculate_sins(x) @ self.amps
+        return np.asarray(self.calculate_sins(x) @ self.amps, dtype=np.float32)
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,

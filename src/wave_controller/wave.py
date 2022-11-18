@@ -20,7 +20,7 @@ class RootWave(MDBoxLayout):
     graph_sample_rate = 2500
     power_spectrum_graph_samples = 1000
     waveform_duration = 1
-    chunk_duration = 1
+    chunk_duration = 0.1
 
     max_harmonics = 10
     num_power_spectrums = 0

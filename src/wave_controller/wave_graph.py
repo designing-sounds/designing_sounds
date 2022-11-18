@@ -78,11 +78,11 @@ class WaveformGraph(Graph):
             if not self._eraser_mode:
                 color = (0, 0, 1)
 
-                pos = (touch.x - self._point_size / 2, touch.y - self._point_size / 2)
+                pos = (touch.x - self.__point_size / 2, touch.y - self.__point_size / 2)
 
                 with self._graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source=POINT_IMAGE, pos=pos, size=(self._point_size, self._point_size))
+                    Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
 
                 self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
                 self._update_waveform_func()
@@ -100,7 +100,7 @@ class WaveformGraph(Graph):
                     return True
 
             if touch.grab_current is self:
-                radius = self._point_size / 2
+                radius = self.__point_size / 2
                 for point in self.__selected_points:
                     if math.isclose(point[0], self._old_pos[0], abs_tol=0.001) and point[1] == self._old_pos[1]:
                         self.__selected_points.remove(point)
@@ -147,7 +147,7 @@ class WaveformGraph(Graph):
         return np.sqrt(np.power(exp_x - x, 2) + np.power(exp_y - y, 2)) < (ellipse.size[0] / 2)
 
     def convert_point(self, point: typing.Tuple[float, float]) -> Tuple[Any, ...]:
-        radius = self._point_size / 2
+        radius = self.__point_size / 2
         e_x, e_y = (point[0] + radius, point[1] + radius)
         a_x, a_y = self.to_widget(e_x, e_y, relative=True)
         return tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y)))
@@ -177,11 +177,11 @@ class WaveformGraph(Graph):
             if self.xmin <= x <= self.xmax:
                 new_x, new_y = self.to_pixels((x, y))
                 color = (0, 0, 1)
-                pos = (new_x - self._point_size / 2, new_y - self._point_size / 2)
+                pos = (new_x - self.__point_size / 2, new_y - self.__point_size / 2)
                 with self._graph_canvas.canvas:
                     Color(*color, mode='hsv')
                     Ellipse(source=POINT_IMAGE, pos=pos,
-                            size=(self._point_size, self._point_size))
+                            size=(self.__point_size, self.__point_size))
         self._update_waveform_graph_func()
 
     def update_zoom(self, pos: typing.Tuple[float, float]) -> None:

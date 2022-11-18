@@ -36,7 +36,7 @@
                 size_hint: 1, 1
 
             BoxLayout:
-                size_hint: 0.3, 1
+                size_hint: 0.2, 1
                 orientation: 'vertical'
 
                 BoxLayout:
@@ -49,6 +49,17 @@
 
                     BoxLayout:
                         size_hint: 1, 0.2
+
+                    MDIconButton:
+                        md_bg_color: style.blue_violet
+                        id: eraser_mode
+                        icon: 'eraser'
+                        theme_text_color: 'Custom'
+                        text_color: style.white
+                        pos_hint: {"center_x": .5, "center_y": .5}
+
+                    BoxLayout:
+                        size_hint: 0.5, 0.2
 
                     BoxLayout:
                         size_hint: 1, 0.5
@@ -84,23 +95,10 @@
 
                     MDIconButton:
                         md_bg_color: style.blue_violet
-                        id: eraser_mode
-                        icon: 'eraser'
+                        id: clear_button
+                        icon: 'vector-polyline-remove'
                         theme_text_color: 'Custom'
                         text_color: style.white
-                        pos_hint: {"center_x": .5, "center_y": .5}
-
-                    BoxLayout:
-                        size_hint: 0.5, 0.2
-
-                    MDRectangleFlatIconButton:
-                        md_bg_color: style.blue_violet
-                        id: clear_button
-                        icon: 'selection-ellipse-remove'
-                        text: 'Clear Points'
-                        icon_color: 'white'
-                        text_color: 'white'
-                        line_color: (0, 0, 0, 0)
                         pos_hint: {"center_x": .5, "center_y": .5}
 
                 BoxLayout:

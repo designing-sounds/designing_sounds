@@ -74,9 +74,9 @@ class SoundModel:
                     max_freq = peak.mean
             max_range = max(1000, max_freq + 100)
             if self.amps is None:
-                histogram, bin_edges = np.histogram(freqs, bins='sqrt', weights=self.amps)
-            else:
                 histogram, bin_edges = np.histogram(freqs, bins='sqrt')
+            else:
+                histogram, bin_edges = np.histogram(freqs, bins='sqrt', weights=self.amps)
         return list(zip(bin_edges, histogram)), max_range
 
     def remove_power_spectrum(self, index):

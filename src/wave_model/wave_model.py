@@ -5,17 +5,17 @@ from math import sqrt, log, log2, log10, cos, sin, tan, ceil, floor, fabs, facto
 import numpy as np
 
 
+
 class Peak:
     def __init__(self, mean: float, sd: float, power: float, max_samples_per_harmonic: int):
         self.max_samples = max_samples_per_harmonic
         self.freqs = None
         self.mean = mean
         self.power = power
-        self.update_peak(mean, sd)
-
-    def update_peak(self, mean: float, sd: float):
         self.freqs = np.random.randn(self.max_samples) * sd + mean
         self.freqs = np.asarray(self.freqs, dtype=np.float32)
+
+
 
 
 class PowerSpectrum:

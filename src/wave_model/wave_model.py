@@ -110,6 +110,7 @@ class SoundModel:
                 self.amps, _, _, _ = np.linalg.lstsq(self.calculate_sins(x), y, rcond=None)
             else:
                 self.amps = np.random.randn(self.max_samples_per_harmonic)
+                self.amps = self.amps / (self.amps.max()) / 2
             self.amps = np.asarray(self.amps, dtype=np.float32)
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int,

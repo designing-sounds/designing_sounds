@@ -13,12 +13,13 @@ import numpy as np
 class WaveformGraph(Graph):
     __selected_points = []
 
-    def __init__(self, update_waveform, update_waveform_graph, **kwargs):
+    def __init__(self, update_waveform, update_waveform_graph, update_power_spectrum_graph, **kwargs):
         super().__init__(**kwargs)
         self.graph_canvas = BoxLayout(size_hint=(1, 1))
         self.add_widget(self.graph_canvas)
         self.update_waveform = update_waveform
         self.update_waveform_graph = update_waveform_graph
+        self.update_power_spectrum_graph = update_power_spectrum_graph
         self.current_point = None
         self.old_pos = None
         self.point_size = 15
@@ -72,6 +73,7 @@ class WaveformGraph(Graph):
 
                 self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
                 self.update_waveform()
+                self.update_power_spectrum_graph()
 
         return super().on_touch_down(touch)
 

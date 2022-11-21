@@ -43,7 +43,9 @@ class RootWave(MDBoxLayout):
 
         border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
-                                            update_waveform_graph=self.update_waveform_graph, size_hint=(1, 1),
+                                            update_waveform_graph=self.update_waveform_graph,
+                                            update_power_spectrum_graph=self.update_power_spectrum_graph,
+                                            size_hint=(1, 1),
                                             border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration, ymin=-1.0, ymax=1.0, padding=10,
                                             draw_border=True, x_grid_label=True, y_grid_label=True, xlabel='Time',
@@ -83,8 +85,11 @@ class RootWave(MDBoxLayout):
             self.update_waveform()
 
     def update_power_spectrum_graph(self):
-        self.power_plot.points, max_range = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
+        res = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
+        if res is None:
+            return
+        self.power_plot.points, max_range = res
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
         self.power_spectrum_graph.xmax = max_range
 

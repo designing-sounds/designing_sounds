@@ -42,9 +42,7 @@ class RootWave(MDBoxLayout):
                                        self.decay_function]
 
         border_color = [0, 0, 0, 1]
-        self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
-                                            update_waveform_graph=self.update_waveform_graph,
-                                            update_power_spectrum_graph=self.update_power_spectrum_graph,
+        self.waveform_graph = WaveformGraph(update_wave=self.update_wave,
                                             size_hint=(1, 1),
                                             border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration, ymin=-1.0, ymax=1.0, padding=10,
@@ -82,7 +80,6 @@ class RootWave(MDBoxLayout):
                                                    harmonic_samples, int(self.num_harmonics.value),
                                                    self.decay_function.text)
             self.update_power_spectrum_graph()
-            self.update_waveform()
 
     def update_power_spectrum_graph(self):
         res = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
@@ -93,9 +90,10 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
         self.power_spectrum_graph.xmax = max_range
 
-    def update_waveform(self) -> None:
+    def update_wave(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
         self.wave_sound.sound_changed()
+        self.update_power_spectrum()
         self.update_waveform_graph()
 
     def update_waveform_graph(self) -> None:
@@ -126,7 +124,7 @@ class RootWave(MDBoxLayout):
 
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
-        self.update_waveform()
+        self.update_wave()
 
     def press_button_add(self, _: typing.Any) -> None:
         if self.num_power_spectrums < self.max_harmonics:
@@ -138,7 +136,7 @@ class RootWave(MDBoxLayout):
             self.update_display_power_spectrum(self.num_power_spectrums - 1)
             self.harmonic_list[self.current_harmonic_index] = [self.mean.max // 2, 1, 50, 1, self.decay_function.text]
             self.update_sliders()
-            self.update_power_spectrum()
+            self.update_wave()
 
     def press_button_all_power_spectrum(self, _: typing.Any) -> None:
         for slider in self.power_spectrum_sliders:
@@ -215,7 +213,7 @@ class RootWave(MDBoxLayout):
 
         self.update_sliders()
         self.update_power_spectrum_graph()
-        self.update_waveform()
+        self.update_wave()
 
 
 class WaveApp(MDApp):

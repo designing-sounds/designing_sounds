@@ -157,7 +157,7 @@
                             min: 0
                             max: 10
                             step: 0.1
-                            on_value: root.update_power_spectrum()
+                            on_value: root.update_wave()
                             show_off: False
                     BoxLayout:
                         size_hint: 1, 1
@@ -179,7 +179,7 @@
                             min: 0
                             max: 2000
                             step: 0.1
-                            on_value: root.update_power_spectrum()
+                            on_value: root.update_wave()
                             show_off: False
                     BoxLayout:
                         size_hint: 1, 1
@@ -202,7 +202,7 @@
                             min: 1
                             max: 100
                             step: 1
-                            on_value: root.update_power_spectrum()
+                            on_value: root.update_wave()
                             show_off: False
                     BoxLayout:
                         size_hint: 1, 1
@@ -225,7 +225,7 @@
                             min: 1
                             max: 5
                             step: 1
-                            on_value: root.update_power_spectrum()
+                            on_value: root.update_wave()
                             show_off: False
                     BoxLayout:
                         size_hint: 1, 0.3
@@ -251,7 +251,7 @@
                                 line_color_normal: style.palatinate_purple
                                 id: decay_function
                                 text: '1 / x'
-                                on_text_validate: root.update_power_spectrum()
+                                on_text_validate: root.update_wave()
 
                         BoxLayout:
                             size_hint: 0.03, 1

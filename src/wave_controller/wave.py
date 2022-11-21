@@ -71,36 +71,34 @@ class RootWave(MDBoxLayout):
         self.harmonic_list = [[0, 0, 0, 1, "1 / x"]] * self.max_harmonics
         self.press_button_add(None)
         self.double_tap = False
-        self.change_power_spectrum = True
+        self.change_wave = True
 
     def update_power_spectrum(self) -> None:
-        if self.change_power_spectrum:
-            harmonic_samples = int(self.max_samples_per_harmonic * self.harmonic_samples.value / 100)
-            self.sound_model.update_power_spectrum(self.current_harmonic_index, self.mean.value, self.sd.value,
-                                                   harmonic_samples, int(self.num_harmonics.value),
-                                                   self.decay_function.text)
-            self.update_power_spectrum_graph()
+        harmonic_samples = int(self.max_samples_per_harmonic * self.harmonic_samples.value / 100)
+        self.sound_model.update_power_spectrum(self.current_harmonic_index, self.mean.value, self.sd.value,
+                                               harmonic_samples, int(self.num_harmonics.value),
+                                               self.decay_function.text)
 
     def update_power_spectrum_graph(self):
-        res = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
-                                                                               self.power_spectrum_graph_samples)
-        if res is None:
-            return
-        self.power_plot.points, max_range = res
-        self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
+        histograms, max_range = self.sound_model.get_power_spectrum_histograms(self.current_harmonic_index,
+                                                                                           self.power_spectrum_graph_samples)
+        self.power_plot.points = [coord for histogram in histograms for coord in histogram]
+        self.power_spectrum_graph.ymax = max(float(max(self.power_plot.points, key=lambda x: x[1])[1] * 2), 0.001)
         self.power_spectrum_graph.xmax = max_range
-
-    def update_wave(self) -> None:
-        self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
-        self.wave_sound.sound_changed()
-        self.update_power_spectrum()
-        self.update_waveform_graph()
 
     def update_waveform_graph(self) -> None:
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
         self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
+
+    def update_wave(self) -> None:
+        if self.change_wave:
+            self.update_power_spectrum()
+            self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
+            self.wave_sound.sound_changed()
+            self.update_waveform_graph()
+            self.update_power_spectrum_graph()
 
     def press_button_play(self, _: typing.Any) -> None:
         if self.wave_sound.is_playing():
@@ -161,11 +159,11 @@ class RootWave(MDBoxLayout):
         self.update_sliders()
 
     def update_sliders(self):
-        self.change_power_spectrum = False
+        self.change_wave = False
         mean, sd, harmonic_samples, num_harmonics, decay_function = self.harmonic_list[self.current_harmonic_index]
         self.mean.value, self.sd.value, self.harmonic_samples.value = mean, sd, harmonic_samples
         self.num_harmonics.value, self.decay_function.text = num_harmonics, decay_function
-        self.change_power_spectrum = True
+        self.change_wave = True
 
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
         self.update_display_power_spectrum(int(button.text) - 1)

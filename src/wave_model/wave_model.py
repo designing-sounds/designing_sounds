@@ -2,6 +2,8 @@ import threading
 import typing
 
 from math import sqrt, log, log2, log10, cos, sin, tan, ceil, floor, fabs, factorial, exp
+from typing import Tuple, List, Any
+
 import numpy as np
 
 
@@ -61,25 +63,22 @@ class SoundModel:
         self.total_freqs = 0
         self.lock = threading.Lock()
 
-    def get_power_spectrum_histogram(self, harmonic_index: int,
-                                     _num_bins: int) -> typing.List[typing.Tuple[float, float]]:
-        if not self.__power_spectrum.harmonics:
-            return
+    def get_power_spectrum_histograms(self, harmonic_index: int,
+                                      _num_bins: int) -> tuple[list[list[tuple[Any, Any]]], int]:
         with self.lock:
             peaks = self.__power_spectrum.harmonics[harmonic_index]
-            freqs = np.zeros(len(peaks) * self.max_samples_per_harmonic)
             max_freq = 0
+            histograms = []
             for i, peak in enumerate(peaks):
                 idx = i * self.max_samples_per_harmonic
-                freqs[idx: idx + self.max_samples_per_harmonic] = peak.freqs
                 if peak.mean > max_freq:
                     max_freq = peak.mean
+                powers = self.amps * self.powers[i]
+                powers = powers * powers
+                histogram, bin_edges = np.histogram(peak.freqs, weights=powers)
+                histograms.append(list(zip(bin_edges, histogram)))
             max_range = max(1000, max_freq + 100)
-            if self.amps is None:
-                histogram, bin_edges = np.histogram(freqs)
-            else:
-                histogram, bin_edges = np.histogram(freqs, weights=self.amps)
-        return list(zip(bin_edges, histogram)), max_range
+        return histograms, max_range
 
     def remove_power_spectrum(self, index):
         with self.lock:

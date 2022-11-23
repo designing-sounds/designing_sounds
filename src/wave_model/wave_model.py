@@ -4,6 +4,7 @@ import numpy as np
 
 from math import sqrt, log, log2, log10, cos, sin, tan, ceil, floor, fabs, factorial, exp
 from numpy.linalg import inv
+from scipy.special import iv
 
 
 class PowerSpectrum:
@@ -24,7 +25,7 @@ class PowerSpectrum:
             self.lengthscales[idx + i] = std
 
 
-class Prior:
+class SquaredExpPrior:
     def __init__(self, d: int):
         self.w = np.asarray(np.random.randn(d), dtype=np.float32)
         self.b = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
@@ -35,6 +36,27 @@ class Prior:
 
     def prior(self, x):
         return self.z(x) @ self.weights
+
+
+class PeriodicPrior:
+    def __init__(self, d: int):
+        self.d = d
+        self.weights = np.asarray(np.random.randn(d), dtype=np.float32)
+
+    def z(self, x, lengthscale):
+        result = np.zeros(self.d)
+        for i in range(self.d):
+            if self.d == 0:
+                num = 0
+            else:
+                num = 1
+            l = np.power(lengthscale, -2)
+            result[i] = np.sqrt(2 ** num * iv(i, l) / np.exp(l))
+        return result
+
+    def prior(self, x, lenghtscale):
+        return self.z(x, lenghtscale) @ self.weights
+
 
 
 class SoundModel:
@@ -48,7 +70,7 @@ class SoundModel:
         self.__power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
         self.samples_per_harmonic = np.zeros(self.max_harmonics)
         self.lock = threading.Lock()
-        prior = Prior(100)
+        prior = PeriodicPrior(100)
         self.prior = prior.prior
         self.x_train = None
         self.y_train = None
@@ -104,17 +126,17 @@ class SoundModel:
 
         self.lock.acquire()
         if self.inv is None or self.x_train is None or self.y_train is None:
-            sound = self.prior(x)
+            sound = self.prior(x, self.__power_spectrum.lengthscales[0])
         else:
-            sound = self.prior(x) + self.update(x)
+            sound = self.prior(x, self.__power_spectrum.lengthscales[0]) + self.update(x)
         self.lock.release()
 
         return sound
 
     def update(self, x_test):
-        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior(self.x_train))
+        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior(self.x_train, self.__power_spectrum.lengthscales[0]))
 
-    def covariance(self, x1, x2):
+    def se_covariance(self, x1, x2):
         temp2 = (x1 - x2)
         freqs = self.__power_spectrum.freqs
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
@@ -122,6 +144,13 @@ class SoundModel:
             temp[i] = np.square(temp2) / self.__power_spectrum.lengthscales[i]
         return np.exp(-0.5 * temp)
 
+    def periodic_covariance(self, x1, x2):
+        temp2 = (x1 - x2)
+        freqs = self.__power_spectrum.freqs
+        temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
+        for i, freq in enumerate(freqs):
+            temp[i] = np.square(np.sin(np.pi * temp2 * self.__power_spectrum.freqs[i])) / self.__power_spectrum.lengthscales[i]
+        return np.exp(-0.5 * temp)
+
     def matrix_covariance(self, x1, x2):
-        cov = np.sum(self.covariance(x1[:, None], x2), axis=0)
-        return cov
+        return np.sum(self.periodic_covariance(x1[:, None], x2), axis=0)

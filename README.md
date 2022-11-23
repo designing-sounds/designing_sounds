@@ -40,3 +40,14 @@ And then run the main application as below:
 ```shell
 python3 ./main.py
 ```
+
+# Credit
+gpflow_sampling adapted from https://github.com/j-wilson/GPflowSampling
+
+Also credit to "Efficiently sampling functions from Gaussian process posteriors" from James T. Wilson
+            and Viacheslav Borovitskiy
+            and Alexander Terenin
+            and Peter Mostowsky
+            and Marc Peter Deisenroth
+
+

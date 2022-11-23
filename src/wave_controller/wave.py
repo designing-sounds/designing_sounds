@@ -29,7 +29,7 @@ class RootWave(MDBoxLayout):
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
         self.max_harmonics = self.num_harmonics.max
-        self.sound_model = SoundModel(self.max_power_spectrums, int(self.mean.max), self.max_harmonics)
+        self.sound_model = SoundModel(self.max_power_spectrums, self.mean.max, self.max_harmonics)
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
         # Button bindings
@@ -83,8 +83,8 @@ class RootWave(MDBoxLayout):
     def update_power_spectrum_graph(self):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
-        self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
-        self.power_spectrum_graph.xmax = int(max(self.power_plot.points, key=lambda x: x[0])[0])
+        #self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
+        #self.power_spectrum_graph.xmax = int(max(self.power_plot.points, key=lambda x: x[0])[0])
 
     def update_waveform(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
@@ -124,7 +124,6 @@ class RootWave(MDBoxLayout):
 
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
-        self.sound_model.update_prior()
         self.update_waveform()
 
     def press_button_add(self, _: typing.Any) -> None:
@@ -155,7 +154,7 @@ class RootWave(MDBoxLayout):
         self.power_buttons[harmonic_index].md_bg_color = self.selected_button_color
 
         self.harmonic_list[self.current_harmonic_index] = [self.mean.value, self.sd.value,
-                                                           int(self.lengthscale.value),
+                                                           self.lengthscale.value,
                                                            int(self.num_harmonics.value),
                                                            self.decay_function.text]
         self.current_harmonic_index = harmonic_index

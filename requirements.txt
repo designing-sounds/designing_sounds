@@ -8,3 +8,9 @@ pyinstaller~=4.10
 kivymd~=1.1.1
 Cython
 PyQt3D
+
+tensorflow~=2.10.0
+gpflow~=2.6.3
+scipy~=1.9.3
+matplotlib~=3.6.0
+setuptools~=41.2.0

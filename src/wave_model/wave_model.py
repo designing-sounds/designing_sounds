@@ -24,8 +24,22 @@ class PowerSpectrum:
             self.lengthscales[idx + i] = std
 
 
+class Prior:
+    def __init__(self, d: int):
+        self.w = np.asarray(np.random.randn(d), dtype=np.float32)
+        self.b = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
+        self.weights = np.asarray(np.random.randn(d), dtype=np.float32)
+
+    def z(self, x):
+        return np.sqrt(2 / len(self.w)) * np.cos(x[:, None] @ self.w[None, :] + self.b)
+
+    def prior(self, x):
+        return self.z(x) @ self.weights
+
+
 class SoundModel:
     def __init__(self, max_harmonics: int, max_samples_per_harmonic: int, max_freq: int):
+        self.inv = None
         self.max_freq = max_freq
         self.max_harmonics = max_harmonics
         self.max_samples_per_harmonic = max_samples_per_harmonic
@@ -34,6 +48,10 @@ class SoundModel:
         self.__power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
         self.samples_per_harmonic = np.zeros(self.max_harmonics)
         self.lock = threading.Lock()
+        prior = Prior(100)
+        self.prior = prior.prior
+        self.x_train = None
+        self.y_train = None
 
     def get_power_spectrum_histogram(self, harmonic_index: int,
                                      _num_bins: int) -> typing.List[typing.Tuple[float, float]]:
@@ -67,11 +85,11 @@ class SoundModel:
         X, Y = [x for (x, _) in points], [y for (_, y) in points]
         if not X:
             X, Y = [0], [0]
-        self.X = np.array(X, dtype=np.float32)
+        self.x_train, self.y_train = np.array(X, dtype=np.float32), np.array(Y, dtype=np.float32)
         try:
-            self.mat = inv(self.matrix_covariance(self.X, self.X)) @ np.array(Y, dtype=np.float32).T
+            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train))
         except:
-            self.mat = None
+            self.inv = None
         self.lock.release()
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int,
@@ -81,23 +99,27 @@ class SoundModel:
             self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
-        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False, dtype=np.float32)
+        x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
+                        dtype=np.float32)
 
         self.lock.acquire()
-        if self.mat is None:
-            sound = np.array([0])
+        if self.inv is None or self.x_train is None or self.y_train is None:
+            sound = self.prior(x)
         else:
-            sound = self.matrix_covariance(x, self.X) @ self.mat
+            sound = self.prior(x) + self.update(x)
         self.lock.release()
 
         return sound
+
+    def update(self, x_test):
+        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior(self.x_train))
 
     def covariance(self, x1, x2):
         temp2 = (x1 - x2)
         freqs = self.__power_spectrum.freqs
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = np.square(np.sin(np.pi * temp2 * freq)) / self.__power_spectrum.lengthscales[i]
+            temp[i] = np.square(temp2) / self.__power_spectrum.lengthscales[i]
         return np.exp(-0.5 * temp)
 
     def matrix_covariance(self, x1, x2):

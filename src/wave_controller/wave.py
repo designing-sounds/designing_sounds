@@ -53,8 +53,9 @@ class RootWave(MDBoxLayout):
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max,
-                                          ymin=0, ymax=20,
-                                          draw_border=True)
+                                          ymin=0, ymax=20, padding=10,
+                                          x_grid_label=True, y_grid_label=False, xlabel='Frequency (Hz)',
+                                          x_ticks_major=100, tick_color=(1, 0, 0, 0), label_options=dict(color=(0, 0, 0, 1)))
 
         self.ids.modulation.add_widget(self.waveform_graph)
         self.ids.power_spectrum.add_widget(self.power_spectrum_graph)
@@ -88,7 +89,6 @@ class RootWave(MDBoxLayout):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
-        self.power_spectrum_graph.xmax = int(max(self.power_plot.points, key=lambda x: x[0])[0])
 
     def update_waveform(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())

@@ -56,7 +56,7 @@ class PeriodicPrior:
                 num = 1
             else:
                 num = 2
-            self.calc[k] = sd * np.sqrt(num * iv(k, l) / np.exp(l))
+            self.calc[k] = np.square(sd) * np.sqrt(num * iv(k, l) / np.exp(l))
 
     def z(self, x, freq):
         result = np.zeros((len(x), 2 * self.d), dtype=np.float32)
@@ -84,15 +84,22 @@ class SoundModel:
         self.x_train = None
         self.y_train = None
 
-    def get_power_spectrum_histogram(self, harmonic_index: int,
-                                     _num_bins: int) -> typing.List[typing.Tuple[float, float]]:
+    def get_power_spectrum_histogram(self, idx: int,
+                                     samples: int) -> typing.List[typing.Tuple[float, float]]:
         self.lock.acquire()
-        freqs = self.__power_spectrum.freqs[harmonic_index * 5: harmonic_index * 5 + 5]
-        freqs = freqs[np.nonzero(freqs)]
-        max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
-        histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
+        x = np.linspace(0, 1, samples)
+        k = np.zeros(len(x))
+        idx *= self.max_harmonics
+        max_freq = np.max(self.__power_spectrum.freqs[idx:idx + self.max_harmonics])
+        for i in range(self.max_harmonics):
+            k += self.periodic(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i], self.__power_spectrum.lengthscales[idx + i])
+
+        freqs = np.fft.fftfreq(len(x), 1 / samples)
+        b = freqs < max_freq * 10
+        freqs = freqs[b]
+        yf = np.abs(np.fft.fft(k)[1:len(k)//2])
         self.lock.release()
-        return list(zip(bin_edges, histogram))
+        return list(zip(freqs, yf)), np.max(freqs), np.max(yf)
 
     def remove_power_spectrum(self, index, num_power_spectrums):
         for i in range(index, num_power_spectrums - 1):
@@ -146,23 +153,25 @@ class SoundModel:
     def update(self, x_test):
         return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior.prior(self.x_train, self.__power_spectrum.freqs))
 
-    def se_covariance(self, x1, x2):
-        x = (x1 - x2)
+    def se_covariance(self, x):
         freqs = self.__power_spectrum.freqs
-        temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
+        temp = np.zeros((len(freqs), len(x), len(x)), dtype=np.float32)
         for i, freq in enumerate(freqs):
             temp[i] = self.squared_exponential(x, self.__power_spectrum.sds[i], self.__power_spectrum.lengthscales[i])
         return np.exp(-0.5 * temp)
 
     def squared_exponential(self, x, sd, l):
-        return sd * np.exp(-0.5 * np.square(x / l))
+        return sd ** 2 * np.exp(-0.5 * np.square(x / l))
+
+    def periodic(self, x, freq, sd, l):
+        return self.squared_exponential(np.sin(2 * np.pi * x * freq), sd, l)
 
     def periodic_covariance(self, x1, x2):
-        x = (x1 - x2)
+        x = x1 - x2
         freqs = self.__power_spectrum.freqs
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = self.squared_exponential(np.sin(2 * np.pi * x * freqs[i]), self.__power_spectrum.sds[i], self.__power_spectrum.lengthscales[i])
+            temp[i] = self.periodic(x, freq, self.__power_spectrum.sds[i], self.__power_spectrum.lengthscales[i])
         return temp
 
     def matrix_covariance(self, x1, x2):

@@ -53,8 +53,8 @@ class RootWave(MDBoxLayout):
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max, ymin=0, ymax=20, padding=10,
-                                          x_grid_label=True, y_grid_label=False, xlabel='Frequency (Hz)',
-                                          x_ticks_major=100, tick_color=(1, 0, 0, 0),
+                                          x_grid_label=True, y_grid_label=True, xlabel='Frequency (Hz)',
+                                          x_ticks_major=100, y_ticks_major=10, y_ticks_minor=5, tick_color=(1, 0, 0, 0),
                                           label_options=dict(color=(0, 0, 0, 1)))
 
         self.ids.modulation.add_widget(self.waveform_graph)

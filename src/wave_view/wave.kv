@@ -8,7 +8,7 @@
     all_power_spectrums: all_power_spectrum_button
     sd: sd
     mean: mean
-    harmonic_samples: samples
+    lengthscale: lengthscale
     num_harmonics: num_harmonics
     decay_function: decay_function
 
@@ -159,7 +159,7 @@
                         orientation: 'vertical'
 
                         MDLabel:
-                            text: 'Length scale: ' + str(round(float(sd.value), 1))
+                            text: 'Standard Deviation: ' + str(round(float(sd.value), 1))
                             halign: 'center'
                             theme_text_color: 'Primary'
                         MDSlider:
@@ -172,9 +172,9 @@
                             thumb_color_inactive: style.palatinate_purple
                             id: sd
                             value: 1
-                            min: 0.1
-                            max: 10
-                            step: 0.1
+                            min: 0
+                            max: 1
+                            step: 0.01
                             on_value: root.update_power_spectrum()
                             show_off: False
                     BoxLayout:
@@ -203,7 +203,7 @@
                         size_hint: 1, 1
                         orientation: 'vertical'
                         MDLabel:
-                            text: 'Samples: ' + str(int(samples.value)) + '%'
+                            text: 'Lengthscale: ' + str(int(lengthscale.value))
                             halign: 'center'
                             theme_text_color: 'Primary'
 
@@ -215,11 +215,11 @@
                             hint_radius: [6, 0, 6, 0]
                             thumb_color_active: style.dark_sky_blue
                             thumb_color_inactive: style.palatinate_purple
-                            id: samples
-                            value: 50
-                            min: 0
-                            max: 100
-                            step: 1
+                            id: lengthscale
+                            value: 1
+                            min: 0.1
+                            max: 10
+                            step: 0.1
                             on_value: root.update_power_spectrum()
                             show_off: False
                     BoxLayout:

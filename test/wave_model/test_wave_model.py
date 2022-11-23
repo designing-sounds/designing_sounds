@@ -28,7 +28,7 @@ class TestSoundModel(unittest.TestCase):
 
     def test_model_chunk_sound(self):
         samples = self.max_samples_per_harmonic
-        num_harmonics = self.max_harmonics
+        num_harmonics = self.max_power_spectrum
         sample_rate = samples * num_harmonics
         test = np.zeros((num_harmonics, samples))
         self.sound_model.update_power_spectrum(0, 1000, 1, samples, 1, "1")

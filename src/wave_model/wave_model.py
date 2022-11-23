@@ -2,27 +2,26 @@ import threading
 import typing
 import numpy as np
 
-from math import sqrt, log, log2, log10, cos, sin, tan, ceil, floor, fabs, factorial, exp
 from numpy.linalg import inv
 from scipy.special import iv
 
 
 class PowerSpectrum:
-    def __init__(self, max_harmonics: int, max_samples_per_harmonic: int):
-        self.max_samples_per_harmonic = max_samples_per_harmonic
-        self.freqs = np.zeros(max_harmonics * 5, dtype=np.float32)
-        self.lengthscales = np.ones(max_harmonics * 5, dtype=np.float32)
-        self.functions = {'sqrt': sqrt, 'pow': pow, 'log': log, 'log2': log2, 'log10': log10, 'cos': cos, 'sin': sin,
-                          'tan': tan, 'ceil': ceil, 'floor': floor, 'abs': fabs, 'factorial': factorial, 'exp': exp}
+    def __init__(self, max_power_spectrum: int, max_harmonics: int):
+        self.max_harmonics = max_harmonics
+        self.freqs = np.zeros(max_power_spectrum * self.max_harmonics, dtype=np.float32)
+        self.lengthscales = np.ones(max_power_spectrum * self.max_harmonics, dtype=np.float32)
+        self.sds = np.ones(max_power_spectrum * self.max_harmonics, dtype=np.float32)
 
     def update_harmonic(self, harmonic_index, mean: int, std: float,
-                        num_harmonics: int, decay_function: str) -> None:
-        idx = harmonic_index * 5
-        self.freqs[idx:idx + 5] = np.zeros(5)
-        self.lengthscales[idx:idx + 5] = np.ones(5)
+                        num_harmonics: int, lengthscale: float) -> None:
+        idx = harmonic_index * self.max_harmonics
+        self.freqs[idx:idx + self.max_harmonics] = np.zeros(self.max_harmonics)
+        self.lengthscales[idx:idx + self.max_harmonics] = np.ones(self.max_harmonics)
         for i in range(num_harmonics):
             self.freqs[idx + i] = mean * (i + 1)
-            self.lengthscales[idx + i] = std
+            self.lengthscales[idx + i] = lengthscale
+            self.sds[idx + i] = std
 
 
 class SquaredExpPrior:
@@ -31,47 +30,57 @@ class SquaredExpPrior:
         self.b = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
         self.weights = np.asarray(np.random.randn(d), dtype=np.float32)
 
+    def update(self, a, b):
+        pass
+
     def z(self, x):
         return np.sqrt(2 / len(self.w)) * np.cos(x[:, None] @ self.w[None, :] + self.b)
 
-    def prior(self, x):
+    def prior(self, x, a):
         return self.z(x) @ self.weights
 
 
 class PeriodicPrior:
-    def __init__(self, d: int):
+    def __init__(self, d: int, parameter_size: int):
         self.d = d
-        self.weights = np.asarray(np.random.randn(d), dtype=np.float32)
+        self.weights = np.asarray(np.random.randn(2 * d), dtype=np.float32)
+        self.calc = np.zeros((self.d, parameter_size))
 
-    def z(self, x, lengthscale):
-        result = np.zeros(self.d)
-        for i in range(self.d):
+    def resample(self):
+        self.weights = np.asarray(np.random.randn(2 * self.d), dtype=np.float32)
+
+    def update(self, lengthscale, sd):
+        l = np.power(lengthscale, -2)
+        for k in range(self.d):
             if self.d == 0:
-                num = 0
-            else:
                 num = 1
-            l = np.power(lengthscale, -2)
-            result[i] = np.sqrt(2 ** num * iv(i, l) / np.exp(l))
+            else:
+                num = 2
+            self.calc[k] = sd * np.sqrt(num * iv(k, l) / np.exp(l))
+
+    def z(self, x, freq):
+        result = np.zeros((len(x), 2 * self.d), dtype=np.float32)
+
+        for k in range(self.d):
+            val = x[:, None] * freq[None, :] * np.pi * k
+            result[:, k] = np.cos(val) @ self.calc[k]
+            result[:, self.d + k] = np.sin(val) @ self.calc[k]
         return result
 
-    def prior(self, x, lenghtscale):
-        return self.z(x, lenghtscale) @ self.weights
-
+    def prior(self, x, freq):
+        return self.z(x, freq) @ self.weights
 
 
 class SoundModel:
-    def __init__(self, max_harmonics: int, max_samples_per_harmonic: int, max_freq: int):
+    def __init__(self, max_power_spectrums: int, max_freq: int, max_harmonics: int):
         self.inv = None
         self.max_freq = max_freq
+        self.max_power_spectrum = max_power_spectrums
         self.max_harmonics = max_harmonics
-        self.max_samples_per_harmonic = max_samples_per_harmonic
-        self.amps = np.asarray(np.random.randn(self.max_samples_per_harmonic * self.max_harmonics), dtype=np.float32)
         self.phases = None
-        self.__power_spectrum = PowerSpectrum(self.max_harmonics, self.max_samples_per_harmonic)
-        self.samples_per_harmonic = np.zeros(self.max_harmonics)
+        self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics)
         self.lock = threading.Lock()
-        prior = PeriodicPrior(100)
-        self.prior = prior.prior
+        self.prior = PeriodicPrior(100, self.__power_spectrum.freqs.size)
         self.x_train = None
         self.y_train = None
 
@@ -88,10 +97,9 @@ class SoundModel:
     def remove_power_spectrum(self, index, num_power_spectrums):
         for i in range(index, num_power_spectrums - 1):
             self.__power_spectrum.freqs[i] = self.__power_spectrum.freqs[i + 1]
-            self.samples_per_harmonic[i] = self.samples_per_harmonic[i + 1]
 
         self.__power_spectrum.freqs[num_power_spectrums - 1] = np.zeros(self.max_samples_per_harmonic)
-        self.samples_per_harmonic[num_power_spectrums - 1] = 0
+        self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
         self.lock.acquire()
@@ -114,27 +122,29 @@ class SoundModel:
             self.inv = None
         self.lock.release()
 
-    def update_power_spectrum(self, harmonic_index: int, mean: int, std: float, num_harmonic_samples: int,
-                              num_harmonics: int, decay_function: str) -> None:
+    def update_power_spectrum(self, harmonic_index: int, mean: int, std: float,
+                              num_harmonics: int, lengthscale: float) -> None:
         with self.lock:
-            self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonics, None)
-            self.samples_per_harmonic[harmonic_index] = num_harmonic_samples
+            self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonics, lengthscale)
+            self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
                         dtype=np.float32)
 
         self.lock.acquire()
-        if self.inv is None or self.x_train is None or self.y_train is None:
-            sound = self.prior(x, self.__power_spectrum.lengthscales[0])
-        else:
-            sound = self.prior(x, self.__power_spectrum.lengthscales[0]) + self.update(x)
+        sound = self.prior.prior(x, self.__power_spectrum.freqs)
+        if not (self.inv is None or self.x_train is None or self.y_train is None):
+            sound += self.update(x)
         self.lock.release()
 
         return sound
 
+    def update_prior(self):
+        self.prior.resample()
+
     def update(self, x_test):
-        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior(self.x_train, self.__power_spectrum.lengthscales[0]))
+        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior.prior(self.x_train, self.__power_spectrum.freqs))
 
     def se_covariance(self, x1, x2):
         temp2 = (x1 - x2)

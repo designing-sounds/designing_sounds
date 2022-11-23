@@ -22,12 +22,14 @@ class RootWave(MDBoxLayout):
     waveform_duration = 1
     chunk_duration = 0.1
 
-    max_power_spectrums = 1
+    max_harmonics = 5
+    max_power_spectrums = 2
     num_power_spectrums = 0
     current_harmonic_index = 0
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
+        self.num_harmonics.max = self.max_harmonics
         self.max_harmonics = self.num_harmonics.max
         self.sound_model = SoundModel(self.max_power_spectrums, int(self.mean.max), self.max_harmonics)
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
@@ -37,6 +39,7 @@ class RootWave(MDBoxLayout):
         self.back.bind(on_press=self.press_button_back)
         self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
+        self.resample.bind(on_press=self.press_button_resample)
         self.add.bind(on_press=self.press_button_add)
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
         self.power_spectrum_sliders = [self.sd, self.mean, self.lengthscale, self.num_harmonics,
@@ -124,6 +127,10 @@ class RootWave(MDBoxLayout):
 
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
+        self.sound_model.update_prior()
+        self.update_waveform()
+
+    def press_button_resample(self, _: typing.Any) -> None:
         self.sound_model.update_prior()
         self.update_waveform()
 

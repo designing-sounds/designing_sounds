@@ -62,7 +62,7 @@ class PeriodicPrior:
         result = np.zeros((len(x), 2 * self.d), dtype=np.float32)
 
         for k in range(self.d):
-            val = x[:, None] * freq[None, :] * np.pi * k
+            val = 2 * x[:, None] * freq[None, :] * np.pi * k
             result[:, k] = np.cos(val) @ self.calc[k]
             result[:, self.d + k] = np.sin(val) @ self.calc[k]
         return result
@@ -147,20 +147,23 @@ class SoundModel:
         return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior.prior(self.x_train, self.__power_spectrum.freqs))
 
     def se_covariance(self, x1, x2):
-        temp2 = (x1 - x2)
+        x = (x1 - x2)
         freqs = self.__power_spectrum.freqs
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = np.square(temp2) / self.__power_spectrum.lengthscales[i]
+            temp[i] = self.squared_exponential(x, self.__power_spectrum.sds[i], self.__power_spectrum.lengthscales[i])
         return np.exp(-0.5 * temp)
 
+    def squared_exponential(self, x, sd, l):
+        return sd * np.exp(-0.5 * np.square(x / l))
+
     def periodic_covariance(self, x1, x2):
-        temp2 = (x1 - x2)
+        x = (x1 - x2)
         freqs = self.__power_spectrum.freqs
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = np.square(np.sin(np.pi * temp2 * self.__power_spectrum.freqs[i])) / self.__power_spectrum.lengthscales[i]
-        return np.exp(-0.5 * temp)
+            temp[i] = self.squared_exponential(np.sin(2 * np.pi * x * freqs[i]), self.__power_spectrum.sds[i], self.__power_spectrum.lengthscales[i])
+        return temp
 
     def matrix_covariance(self, x1, x2):
         return np.sum(self.periodic_covariance(x1[:, None], x2), axis=0)

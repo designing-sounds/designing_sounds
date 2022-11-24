@@ -103,9 +103,16 @@ class SoundModel:
 
     def remove_power_spectrum(self, index, num_power_spectrums):
         for i in range(index, num_power_spectrums - 1):
-            self.__power_spectrum.freqs[i] = self.__power_spectrum.freqs[i + 1]
+            idx = i * self.max_harmonics
+            next_idx = (i + 1) * self.max_harmonics
+            self.__power_spectrum.freqs[idx:idx + self.max_harmonics] = self.__power_spectrum.freqs[next_idx:next_idx + self.max_harmonics]
+            self.__power_spectrum.lengthscales[idx:idx + self.max_harmonics] = self.__power_spectrum.lengthscales[next_idx:next_idx + self.max_harmonics]
+            self.__power_spectrum.sds[idx:idx + self.max_harmonics] = self.__power_spectrum.sds[next_idx:next_idx + self.max_harmonics]
 
-        self.__power_spectrum.freqs[num_power_spectrums - 1] = np.zeros(self.max_samples_per_harmonic)
+        idx = (num_power_spectrums - 1) * self.max_harmonics
+        self.__power_spectrum.freqs[idx:idx + self.max_harmonics] = np.zeros(self.max_harmonics, dtype=np.float32)
+        self.__power_spectrum.lengthscales[idx:idx + self.max_harmonics] = np.ones(self.max_harmonics, dtype=np.float32)
+        self.__power_spectrum.sds[idx:idx + self.max_harmonics] = np.zeros(self.max_harmonics, dtype=np.float32)
         self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:

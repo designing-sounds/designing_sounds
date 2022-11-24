@@ -220,8 +220,7 @@ class RootWave(MDBoxLayout):
         self.power_buttons[self.current_harmonic_index].md_bg_color = self.selected_button_color
 
         self.update_sliders()
-        self.update_power_spectrum_graph()
-        self.update_waveform()
+        self.update_power_spectrum()
 
 
 class WaveApp(MDApp):

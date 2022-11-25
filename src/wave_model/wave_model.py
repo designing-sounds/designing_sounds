@@ -25,19 +25,33 @@ class PowerSpectrum:
 
 
 class SquaredExpPrior:
-    def __init__(self, d: int):
+    def __init__(self, d: int, nothing):
         self.w = np.asarray(np.random.randn(d), dtype=np.float32)
         self.b = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
         self.weights = np.asarray(np.random.randn(d), dtype=np.float32)
+        self.d = d
 
     def update(self, a, b):
         pass
+
+    def resample(self):
+        self.weights = np.asarray(np.random.randn(self.d), dtype=np.float32)
 
     def z(self, x):
         return np.sqrt(2 / len(self.w)) * np.cos(x[:, None] @ self.w[None, :] + self.b)
 
     def prior(self, x, a):
         return self.z(x) @ self.weights
+
+    def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
+        x = x1 - x2
+        temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
+        for i, freq in enumerate(freqs):
+            temp[i] = self.covariance(x, 0, 1, 1)
+        return np.exp(-0.5 * temp)
+
+    def covariance(self, x, freq, sd, l):
+        return sd ** 2 * np.exp(-0.5 * np.square(x / l))
 
 
 class PeriodicPrior:
@@ -62,13 +76,26 @@ class PeriodicPrior:
         result = np.zeros((len(x), 2 * self.d), dtype=np.float32)
 
         for k in range(self.d):
-            val = 2 * x[:, None] * freq[None, :] * np.pi * k
+            val = 2 * x[:, None] @ freq[None, :] * np.pi * k
             result[:, k] = np.cos(val) @ self.calc[k]
             result[:, self.d + k] = np.sin(val) @ self.calc[k]
         return result
 
     def prior(self, x, freq):
         return self.z(x, freq) @ self.weights
+
+    def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
+        x = x1 - x2
+        temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
+        for i, freq in enumerate(freqs):
+            temp[i] = self.covariance(x, freq, sds[i], lengthscales[i])
+        return temp
+
+    def covariance(self, x, freq, sd, l):
+        return self.squared_exponential(np.sin(2 * np.pi * x * freq), sd, l)
+
+    def squared_exponential(self, x, sd, l):
+        return sd ** 2 * np.exp(-0.5 * np.square(x / l))
 
 
 class SoundModel:
@@ -92,7 +119,7 @@ class SoundModel:
         idx *= self.max_harmonics
         max_freq = np.max(self.__power_spectrum.freqs[idx:idx + self.max_harmonics])
         for i in range(self.max_harmonics):
-            k += self.periodic(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i], self.__power_spectrum.lengthscales[idx + i])
+            k += self.prior.covariance(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i], self.__power_spectrum.lengthscales[idx + i])
 
         freqs = np.fft.fftfreq(len(x), 1 / samples)
         b = freqs < max_freq * 10
@@ -160,26 +187,5 @@ class SoundModel:
     def update(self, x_test):
         return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior.prior(self.x_train, self.__power_spectrum.freqs))
 
-    def se_covariance(self, x):
-        freqs = self.__power_spectrum.freqs
-        temp = np.zeros((len(freqs), len(x), len(x)), dtype=np.float32)
-        for i, freq in enumerate(freqs):
-            temp[i] = self.squared_exponential(x, self.__power_spectrum.sds[i], self.__power_spectrum.lengthscales[i])
-        return np.exp(-0.5 * temp)
-
-    def squared_exponential(self, x, sd, l):
-        return sd ** 2 * np.exp(-0.5 * np.square(x / l))
-
-    def periodic(self, x, freq, sd, l):
-        return self.squared_exponential(np.sin(2 * np.pi * x * freq), sd, l)
-
-    def periodic_covariance(self, x1, x2):
-        x = x1 - x2
-        freqs = self.__power_spectrum.freqs
-        temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
-        for i, freq in enumerate(freqs):
-            temp[i] = self.periodic(x, freq, self.__power_spectrum.sds[i], self.__power_spectrum.lengthscales[i])
-        return temp
-
     def matrix_covariance(self, x1, x2):
-        return np.sum(self.periodic_covariance(x1[:, None], x2), axis=0)
+        return np.sum(self.prior.covariance_matrix(x1[:, None], x2, self.__power_spectrum.freqs, self.__power_spectrum.sds, self.__power_spectrum.lengthscales), axis=0)

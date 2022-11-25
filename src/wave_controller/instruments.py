@@ -21,7 +21,7 @@ class PianoMIDI(Instrument):
 
     def __init__(self):
         super().__init__()
-        # -- INITIALIZION --
+        # -- INITIALIZATION --
         midi.init()
         default_id = midi.get_default_input_id()
         self.midi_input = midi.Input(device_id=default_id)

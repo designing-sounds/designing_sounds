@@ -23,7 +23,7 @@ class RootWave(MDBoxLayout):
     chunk_duration = 0.1
 
     max_harmonics = 5
-    max_power_spectrums = 2
+    max_power_spectrums = 5
     num_power_spectrums = 0
     current_harmonic_index = 0
 
@@ -76,6 +76,10 @@ class RootWave(MDBoxLayout):
         self.press_button_add(None)
         self.double_tap = False
         self.change_power_spectrum = True
+
+    def update_interpolation_sd(self):
+        self.sound_model.interpolation_sd = self.interpolation_sd.value
+        self.update_waveform()
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:

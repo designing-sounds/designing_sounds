@@ -11,7 +11,7 @@ class PowerSpectrum:
         self.max_harmonics = max_harmonics
         self.freqs = np.zeros(max_power_spectrum * self.max_harmonics, dtype=np.float32)
         self.lengthscales = np.ones(max_power_spectrum * self.max_harmonics, dtype=np.float32)
-        self.sds = np.ones(max_power_spectrum * self.max_harmonics, dtype=np.float32)
+        self.sds = np.zeros(max_power_spectrum * self.max_harmonics, dtype=np.float32)
 
     def update_harmonic(self, harmonic_index, mean: int, std: float,
                         num_harmonics: int, lengthscale: float) -> None:
@@ -37,31 +37,33 @@ class SquaredExpPrior:
     def resample(self):
         self.weights = np.asarray(np.random.randn(self.d), dtype=np.float32)
 
-    def z(self, x):
-        return np.sqrt(2 / len(self.w)) * np.cos(x[:, None] @ self.w[None, :] + self.b)
+    def z(self, x, sds, lengthscales):
+        return sds * np.sqrt(2 / len(self.w)) * np.cos((x[:, None] / lengthscales @ self.w[None, :]) + self.b)
 
-    def prior(self, x, a):
-        return self.z(x) @ self.weights
+    def prior(self, x, _, sds, lengthscales):
+        return self.z(x, sds, lengthscales) @ self.weights
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
         x = x1 - x2
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = self.covariance(x, 0, 1, 1)
+            temp[i] = self.covariance(x, 0, sds[i], lengthscales[i])
         return np.exp(-0.5 * temp)
 
-    def covariance(self, x, freq, sd, l):
+    def covariance(self, x, _, sd, l):
         return sd ** 2 * np.exp(-0.5 * np.square(x / l))
 
 
 class PeriodicPrior:
     def __init__(self, d: int, parameter_size: int):
         self.d = d
-        self.weights = np.asarray(np.random.randn(2 * d), dtype=np.float32)
-        self.calc = np.zeros((self.d, parameter_size))
+        self.cos_weights = np.asarray(np.random.randn(d), dtype=np.float32)
+        self.sin_weights = np.asarray(np.random.randn(d), dtype=np.float32)
+        self.calc = np.zeros((self.d, parameter_size, 1), dtype=np.float32)
 
     def resample(self):
-        self.weights = np.asarray(np.random.randn(2 * self.d), dtype=np.float32)
+        self.cos_weights = np.asarray(np.random.randn(self.d), dtype=np.float32)
+        self.sin_weights = np.asarray(np.random.randn(self.d), dtype=np.float32)
 
     def update(self, lengthscale, sd):
         l = np.power(lengthscale, -2)
@@ -70,19 +72,12 @@ class PeriodicPrior:
                 num = 1
             else:
                 num = 2
-            self.calc[k] = np.square(sd) * np.sqrt(num * iv(k, l) / np.exp(l))
+            self.calc[k, :, 0] = np.square(sd) * np.sqrt(num * iv(k, l) / np.exp(l))
 
-    def z(self, x, freq):
-        result = np.zeros((len(x), 2 * self.d), dtype=np.float32)
-
-        for k in range(self.d):
-            val = 2 * x[:, None] @ freq[None, :] * np.pi * k
-            result[:, k] = np.cos(val) @ self.calc[k]
-            result[:, self.d + k] = np.sin(val) @ self.calc[k]
-        return result
-
-    def prior(self, x, freq):
-        return self.z(x, freq) @ self.weights
+    def prior(self, x, freqs, sds, lengthscales):
+        ds = 2 * np.pi * np.asarray(np.arange(self.d), dtype=np.float32)
+        vals = ds[:, None, None] * (x[:, None] @ freqs[None, :])[None, :, :]
+        return (np.cos(vals) @ self.calc)[:, :, 0].T @ self.cos_weights + (np.sin(vals) @ self.calc)[:, :, 0].T @ self.sin_weights
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
         x = x1 - x2
@@ -110,6 +105,7 @@ class SoundModel:
         self.prior = PeriodicPrior(100, self.__power_spectrum.freqs.size)
         self.x_train = None
         self.y_train = None
+        self.interpolation_sd = 0
 
     def get_power_spectrum_histogram(self, idx: int,
                                      samples: int) -> typing.List[typing.Tuple[float, float]]:
@@ -158,7 +154,7 @@ class SoundModel:
             X, Y = [0], [0]
         self.x_train, self.y_train = np.array(X, dtype=np.float32), np.array(Y, dtype=np.float32)
         try:
-            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train))
+            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.interpolation_sd ** 2 * np.eye(len(self.x_train)))
         except:
             self.inv = None
         self.lock.release()
@@ -174,7 +170,7 @@ class SoundModel:
                         dtype=np.float32)
 
         self.lock.acquire()
-        sound = self.prior.prior(x, self.__power_spectrum.freqs)
+        sound = self.prior.prior(x, self.__power_spectrum.freqs, self.__power_spectrum.sds, self.__power_spectrum.lengthscales)
         if not (self.inv is None or self.x_train is None or self.y_train is None):
             sound += self.update(x)
         self.lock.release()
@@ -185,7 +181,7 @@ class SoundModel:
         self.prior.resample()
 
     def update(self, x_test):
-        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.prior.prior(self.x_train, self.__power_spectrum.freqs))
+        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - np.random.normal(0, self.interpolation_sd) - self.prior.prior(self.x_train, self.__power_spectrum.freqs, self.__power_spectrum.sds, self.__power_spectrum.lengthscales))
 
     def matrix_covariance(self, x1, x2):
         return np.sum(self.prior.covariance_matrix(x1[:, None], x2, self.__power_spectrum.freqs, self.__power_spectrum.sds, self.__power_spectrum.lengthscales), axis=0)

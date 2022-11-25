@@ -1,6 +1,5 @@
 import numpy as np
 import pyaudio
-from kivy.core.window import Window
 from src.wave_model.wave_model import SoundModel
 
 
@@ -17,7 +16,6 @@ class WaveSound:
                                            stream_callback=self.callback,
                                            frames_per_buffer=int(self.sample_rate * self._chunk_duration))
         self._stream.stop_stream()
-        Window.bind(on_request_close=self.shutdown_audio)
 
     def callback(self, _in_data, _frame_count, _time_info, _flag):
         sound: np.ndarray = self.sound_model.model_sound(self.sample_rate, self._chunk_duration,
@@ -39,7 +37,7 @@ class WaveSound:
     def sound_changed(self):
         self._chunk_index = 0
 
-    def shutdown_audio(self, _) -> bool:
+    def shutdown(self) -> bool:
         self._stream.close()
         self._py_audio.terminate()
         return False

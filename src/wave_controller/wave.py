@@ -1,12 +1,14 @@
 import typing
 
 import numpy as np
+from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
 
+from src.wave_controller.instruments import PianoMIDI
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
 from src.wave_model.wave_model import SoundModel
@@ -29,7 +31,6 @@ class RootWave(MDBoxLayout):
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
-
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
@@ -75,6 +76,9 @@ class RootWave(MDBoxLayout):
         self.press_button_add(None)
         self.double_tap = False
         self.change_power_spectrum = True
+        self.piano = PianoMIDI()
+        self.piano.begin()
+        Window.bind(on_request_close=self.shutdown_audio)
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
@@ -218,6 +222,11 @@ class RootWave(MDBoxLayout):
         self.update_sliders()
         self.update_power_spectrum_graph()
         self.update_waveform()
+
+    def shutdown_audio(self, _):
+        self.wave_sound.shutdown()
+        self.piano.shutdown()
+        return False
 
 
 class WaveApp(MDApp):

@@ -67,7 +67,7 @@ class PianoMIDI(Instrument):
                         notes_set.add(note)
                         play_notes.add(note)
                         changed = True
-                        freq = midi.midi_to_frequency(note)
+                        #freq = midi.midi_to_frequency(note)
             if changed:
                 print(play_notes)
                 changed = False

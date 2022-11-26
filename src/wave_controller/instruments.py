@@ -1,3 +1,4 @@
+import time
 from threading import Thread
 from pygame import midi
 
@@ -28,6 +29,7 @@ class PianoMIDI(Instrument):
         midi.init()
         default_id = midi.get_default_input_id()
         self.midi_input = midi.Input(device_id=default_id)
+        print(self.midi_input)
         self.running = False
         self.thread = None
 
@@ -49,17 +51,27 @@ class PianoMIDI(Instrument):
             self.midi_input.read(16)
 
         print("Starting synth...")
-        notes_dict = {}
+        notes_set = set()
+        play_notes = set()
+        changed = False
         while self.running:
             if self.midi_input.poll():
                 # Add or remove notes from notes_dict
                 for event in self.midi_input.read(num_events=16):
                     (status, note, _vel, _), _ = event
-                    if status == 0x80 and note in notes_dict:  # Stop Note
-                        pass
-                    elif status == 0x90 and note not in notes_dict:  # Start Note
+                    if status == 0x80 and note in notes_set:  # Stop Note
+                        notes_set.remove(note)
+                        if len(notes_set) == 0:
+                            play_notes = set()
+                    elif status == 0x90 and note not in notes_set:  # Start Note
+                        notes_set.add(note)
+                        play_notes.add(note)
+                        changed = True
                         freq = midi.midi_to_frequency(note)
-                        print(freq)
+            if changed:
+                print(play_notes)
+                changed = False
+            time.sleep(0.1)
 
     def shutdown(self) -> bool:
         if self.running:

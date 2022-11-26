@@ -37,14 +37,15 @@ class PianoMIDI(Instrument):
             self.thread = Thread(target=self._run_synth)
             self.thread.start()
             return True
-        else: # Already running so stop
-            self.running = False
-            self.thread.join()  # Thread should end soon so wait for it
-            return  False
+
+        # Otherwise Already running so stop
+        self.running = False
+        self.thread.join()  # Thread should end soon so wait for it
+        return  False
 
     def _run_synth(self):
         # -- RUN THE SYNTH --
-        while self.midi_input.poll():
+        while self.midi_input.poll():  # Clear anything from the buffer while turned off
             self.midi_input.read(16)
 
         print("Starting synth...")

@@ -43,7 +43,9 @@ class RootWave(MDBoxLayout):
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
         self.power_spectrum_sliders = [self.sd, self.mean, self.harmonic_samples, self.num_harmonics,
                                        self.decay_function]
+        self.connect_button.bind(on_press=self.press_button_connect)
 
+        # Wave Graphs
         border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
                                             update_waveform_graph=self.update_waveform_graph, size_hint=(1, 1),
@@ -77,7 +79,6 @@ class RootWave(MDBoxLayout):
         self.double_tap = False
         self.change_power_spectrum = True
         self.piano = PianoMIDI()
-        self.piano.begin()
         Window.bind(on_request_close=self.shutdown_audio)
 
     def update_power_spectrum(self) -> None:
@@ -114,6 +115,14 @@ class RootWave(MDBoxLayout):
             self.wave_sound.play_audio()
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
+
+    def press_button_connect(self, _:typing.Any) -> None:
+        if self.piano.begin():  # Has successfully started
+            self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
+            self.connect_button.md_bg_color = style.dark_sky_blue
+        else:  # Was already running so disconnected
+            self.connect_button.text = 'Connect MIDI Piano Power Spectrum'
+            self.connect_button.md_bg_color = style.blue_violet
 
     def press_button_back(self, _: typing.Any) -> None:
         self.wave_sound.sound_changed()

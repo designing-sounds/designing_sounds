@@ -13,6 +13,9 @@ class Instrument:
     def begin(self):
         NotImplementedError()
 
+    def shutdown(self):
+        NotImplementedError()
+
 
 class PianoMIDI(Instrument):
     """
@@ -25,17 +28,28 @@ class PianoMIDI(Instrument):
         midi.init()
         default_id = midi.get_default_input_id()
         self.midi_input = midi.Input(device_id=default_id)
+        self.running = False
+        self.thread = None
 
-        self.thread = Thread(target=self._run_synth)
-
-    def begin(self):
-        self.thread.start()
+    def begin(self) -> bool:  # Returns current running start after operation
+        if not self.running:  # Not running so should start
+            self.running = True
+            self.thread = Thread(target=self._run_synth)
+            self.thread.start()
+            return True
+        else: # Already running so stop
+            self.running = False
+            self.thread.join()  # Thread should end soon so wait for it
+            return  False
 
     def _run_synth(self):
         # -- RUN THE SYNTH --
+        while self.midi_input.poll():
+            self.midi_input.read(16)
+
         print("Starting synth...")
         notes_dict = {}
-        while True:
+        while self.running:
             if self.midi_input.poll():
                 # Add or remove notes from notes_dict
                 for event in self.midi_input.read(num_events=16):
@@ -47,6 +61,9 @@ class PianoMIDI(Instrument):
                         print(freq)
 
     def shutdown(self) -> bool:
+        if self.running:
+            self.running = False
+            self.thread.join()
         self.midi_input.close()
         print("Stopping synth...")
         return False

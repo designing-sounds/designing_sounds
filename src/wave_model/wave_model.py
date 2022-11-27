@@ -77,11 +77,12 @@ class PeriodicPrior:
     def prior(self, x, freqs, sds, lengthscales):
         ds = 2 * np.pi * np.asarray(np.arange(self.d), dtype=np.float32)
         vals = ds[:, None, None] * (x[:, None] @ freqs[None, :])[None, :, :]
-        return (np.cos(vals) @ self.calc)[:, :, 0].T @ self.cos_weights + (np.sin(vals) @ self.calc)[:, :, 0].T @ self.sin_weights
+        return (np.cos(vals) @ self.calc)[:, :, 0].T @ self.cos_weights + (np.sin(vals) @ self.calc)[:, :,
+                                                                          0].T @ self.sin_weights
 
-    def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
-        x = x1 - x2
-        temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
+    def covariance_matrix(self, x, freqs, sds, lengthscales):
+        len1, len2 = np.shape(x)
+        temp = np.zeros((len(freqs), len1, len2), dtype=np.float32)
         for i, freq in enumerate(freqs):
             temp[i] = self.covariance(x, freq, sds[i], lengthscales[i])
         return temp
@@ -91,6 +92,10 @@ class PeriodicPrior:
 
     def squared_exponential(self, x, sd, l):
         return sd ** 2 * np.exp(-0.5 * np.square(x / l))
+
+
+def difference_matrix(x1, x2):
+    return x1[:, None] - x2
 
 
 class SoundModel:
@@ -115,12 +120,13 @@ class SoundModel:
         idx *= self.max_harmonics
         max_freq = np.max(self.__power_spectrum.freqs[idx:idx + self.max_harmonics])
         for i in range(self.max_harmonics):
-            k += self.prior.covariance(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i], self.__power_spectrum.lengthscales[idx + i])
+            k += self.prior.covariance(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],
+                                       self.__power_spectrum.lengthscales[idx + i])
 
         freqs = np.fft.fftfreq(len(x), 1 / samples)
         b = freqs < max_freq * 10
         freqs = freqs[b]
-        yf = np.abs(np.fft.fft(k)[1:len(k)//2])
+        yf = np.abs(np.fft.fft(k)[1:len(k) // 2])
         self.lock.release()
         return list(zip(freqs, yf)), np.max(freqs), np.max(yf)
 
@@ -128,9 +134,12 @@ class SoundModel:
         for i in range(index, num_power_spectrums - 1):
             idx = i * self.max_harmonics
             next_idx = (i + 1) * self.max_harmonics
-            self.__power_spectrum.freqs[idx:idx + self.max_harmonics] = self.__power_spectrum.freqs[next_idx:next_idx + self.max_harmonics]
-            self.__power_spectrum.lengthscales[idx:idx + self.max_harmonics] = self.__power_spectrum.lengthscales[next_idx:next_idx + self.max_harmonics]
-            self.__power_spectrum.sds[idx:idx + self.max_harmonics] = self.__power_spectrum.sds[next_idx:next_idx + self.max_harmonics]
+            self.__power_spectrum.freqs[idx:idx + self.max_harmonics] = self.__power_spectrum.freqs[
+                                                                        next_idx:next_idx + self.max_harmonics]
+            self.__power_spectrum.lengthscales[idx:idx + self.max_harmonics] = self.__power_spectrum.lengthscales[
+                                                                               next_idx:next_idx + self.max_harmonics]
+            self.__power_spectrum.sds[idx:idx + self.max_harmonics] = self.__power_spectrum.sds[
+                                                                      next_idx:next_idx + self.max_harmonics]
 
         idx = (num_power_spectrums - 1) * self.max_harmonics
         self.__power_spectrum.freqs[idx:idx + self.max_harmonics] = np.zeros(self.max_harmonics, dtype=np.float32)
@@ -154,7 +163,8 @@ class SoundModel:
             X, Y = [0], [0]
         self.x_train, self.y_train = np.array(X, dtype=np.float32), np.array(Y, dtype=np.float32)
         try:
-            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.interpolation_sd ** 2 * np.eye(len(self.x_train)))
+            diff_x = difference_matrix(self.x_train, self.x_train)
+            self.inv = inv(self.matrix_covariance(diff_x) + self.interpolation_sd ** 2 * np.eye(len(self.x_train)))
         except:
             self.inv = None
         self.lock.release()
@@ -170,7 +180,8 @@ class SoundModel:
                         dtype=np.float32)
 
         self.lock.acquire()
-        sound = self.prior.prior(x, self.__power_spectrum.freqs, self.__power_spectrum.sds, self.__power_spectrum.lengthscales)
+        sound = self.prior.prior(x, self.__power_spectrum.freqs, self.__power_spectrum.sds,
+                                 self.__power_spectrum.lengthscales)
         if not (self.inv is None or self.x_train is None or self.y_train is None):
             sound += self.update(x)
         self.lock.release()
@@ -181,7 +192,13 @@ class SoundModel:
         self.prior.resample()
 
     def update(self, x_test):
-        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - np.random.normal(0, self.interpolation_sd) - self.prior.prior(self.x_train, self.__power_spectrum.freqs, self.__power_spectrum.sds, self.__power_spectrum.lengthscales))
+        diff_xtest_xtrain = difference_matrix(x_test, self.x_train)
+        return self.matrix_covariance(diff_xtest_xtrain) @ self.inv @ (
+                    self.y_train - np.random.normal(0, self.interpolation_sd) - self.prior.prior(self.x_train,
+                                                                                                 self.__power_spectrum.freqs,
+                                                                                                 self.__power_spectrum.sds,
+                                                                                                 self.__power_spectrum.lengthscales))
 
-    def matrix_covariance(self, x1, x2):
-        return np.sum(self.prior.covariance_matrix(x1[:, None], x2, self.__power_spectrum.freqs, self.__power_spectrum.sds, self.__power_spectrum.lengthscales), axis=0)
+    def matrix_covariance(self, matrix):
+        return np.sum(self.prior.covariance_matrix(matrix, self.__power_spectrum.freqs, self.__power_spectrum.sds,
+                                                   self.__power_spectrum.lengthscales), axis=0)

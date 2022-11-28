@@ -27,13 +27,12 @@ class RootWave(MDBoxLayout):
     max_harmonics = 10
     num_power_spectrums = 0
     current_harmonic_index = 0
-    max_samples_per_harmonic = 100
+    max_samples_per_harmonic = 500
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
-
         # Button bindings
         self.play.bind(on_press=self.press_button_play)
         self.back.bind(on_press=self.press_button_back)
@@ -81,9 +80,8 @@ class RootWave(MDBoxLayout):
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
-            harmonic_samples = int(self.max_samples_per_harmonic * self.harmonic_samples.value / 100)
             self.sound_model.update_power_spectrum(self.current_harmonic_index, self.mean.value, self.sd.value,
-                                                   harmonic_samples, int(self.num_harmonics.value),
+                                                   self.harmonic_samples.value, int(self.num_harmonics.value),
                                                    self.decay_function.text)
             self.update_power_spectrum_graph()
             self.update_waveform()
@@ -144,7 +142,9 @@ class RootWave(MDBoxLayout):
             self.power_buttons.append(button)
             self.ids.power_spectrum_buttons.add_widget(button)
             self.update_display_power_spectrum(self.num_power_spectrums - 1)
-            self.harmonic_list[self.current_harmonic_index] = [self.mean.max // 2, 1, 50, 1, self.decay_function.text]
+            self.harmonic_list[self.current_harmonic_index] = [self.mean.max // 2, 1,
+                                                               self.max_samples_per_harmonic // 2, 1,
+                                                               self.decay_function.text]
             self.update_sliders()
             self.update_power_spectrum()
 

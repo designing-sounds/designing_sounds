@@ -184,15 +184,17 @@ class WaveformGraph(Graph):
                     Ellipse(source=POINT_IMAGE, pos=pos,
                             size=(self.__point_size, self.__point_size))
         if self.xmax - self.xmin < self._period * 15:
-            color = (0, 1, 1)
+            self.x_grid = False
+            color_line = (202, 0.30, 0.85)
             current_x = self.xmin + self._period - self.xmin % self._period
             while current_x < self.xmax:
-                print(current_x)
                 line_x, _ = self.to_pixels((current_x, 0))
                 with self._graph_canvas.canvas:
-                    Color(*color, mode='hsv')
+                    Color(*color_line, mode='hsv')
                     Rectangle(pos=(line_x, self.y + self._plot_area.y), size=(2, self._plot_area.height))
                 current_x += self._period
+        else:
+            self.x_grid = True
         self._update_waveform_graph_func()
 
     def update_zoom(self, pos: typing.Tuple[float, float]) -> None:

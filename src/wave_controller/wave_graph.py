@@ -2,7 +2,7 @@ import typing
 from typing import Tuple, Any
 
 import math
-from kivy.graphics import Color, Ellipse
+from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.uix.boxlayout import BoxLayout
 from kivy.input.motionevent import MotionEvent
 from kivy_garden.graph import Graph
@@ -40,6 +40,7 @@ class WaveformGraph(Graph):
         self._current_point = None
         self._old_pos = None
         self._zoom_scale = 1
+        self._period = 500
         self.x_ticks_major = self.__initial_x_ticks_major
         self._eraser_mode = False
 
@@ -182,6 +183,16 @@ class WaveformGraph(Graph):
                     Color(*color, mode='hsv')
                     Ellipse(source=POINT_IMAGE, pos=pos,
                             size=(self.__point_size, self.__point_size))
+        if self.xmax - self.xmin < self._period * 15:
+            color = (0, 1, 1)
+            current_x = self.xmin + self._period - self.xmin % self._period
+            while current_x < self.xmax:
+                print(current_x)
+                line_x, _ = self.to_pixels((current_x, 0))
+                with self._graph_canvas.canvas:
+                    Color(*color, mode='hsv')
+                    Rectangle(pos=(line_x, self.y + self._plot_area.y), size=(2, self._plot_area.height))
+                current_x += self._period
         self._update_waveform_graph_func()
 
     def update_zoom(self, pos: typing.Tuple[float, float]) -> None:
@@ -218,3 +229,7 @@ class WaveformGraph(Graph):
 
     def is_eraser_mode(self) -> bool:
         return self._eraser_mode
+
+    def set_period(self, frequency) -> None:
+        self._period = 1 / frequency
+        self.update_graph_points()

@@ -154,6 +154,8 @@ class RootWave(MDBoxLayout):
         self.all_power_spectrums.md_bg_color = self.selected_button_color
         self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
+        self.power_spectrum_graph.xmax = max(int(max(self.power_plot.points, key=lambda x: x[0])[0]), 1000)
+        self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
 
     def update_display_power_spectrum(self, harmonic_index: int):
         for slider in self.power_spectrum_sliders:

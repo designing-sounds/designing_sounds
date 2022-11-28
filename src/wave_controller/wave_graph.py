@@ -47,6 +47,7 @@ class WaveformGraph(Graph):
         # Public Class initialization
         self.xmin = 0
         self.xmax = 1
+        self.x_grid = True
 
     def on_touch_down(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)

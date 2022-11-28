@@ -1,12 +1,14 @@
 import typing
 
 import numpy as np
+from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
 
+from src.wave_controller.instruments import PianoMIDI
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
 from src.wave_model.wave_model import SoundModel
@@ -16,7 +18,7 @@ Builder.load_file('src/wave_view/wave.kv')
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 44100
+    sample_rate = 16000
     graph_sample_rate = 2500
     power_spectrum_graph_samples = 5000
     waveform_duration = 1
@@ -29,7 +31,6 @@ class RootWave(MDBoxLayout):
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
-
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
@@ -52,9 +53,10 @@ class RootWave(MDBoxLayout):
                                             ylabel='Amplitude', precision="%.5g", x_grid=True, y_grid=True,
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
-                                          xmin=0, xmax=self.mean.max,
-                                          ymin=0, ymax=20,
-                                          draw_border=True)
+                                          xmin=0, xmax=self.mean.max, ymin=0, ymax=20, padding=10,
+                                          x_grid_label=True, y_grid_label=True, xlabel='Frequency (Hz)',
+                                          x_ticks_major=100, y_ticks_major=10, y_ticks_minor=5, tick_color=(1, 0, 0, 0),
+                                          label_options=dict(color=(0, 0, 0, 1)))
 
         self.ids.modulation.add_widget(self.waveform_graph)
         self.ids.power_spectrum.add_widget(self.power_spectrum_graph)
@@ -74,6 +76,9 @@ class RootWave(MDBoxLayout):
         self.press_button_add(None)
         self.double_tap = False
         self.change_power_spectrum = True
+        self.piano = PianoMIDI()
+        self.piano.begin()
+        Window.bind(on_request_close=self.shutdown_audio)
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
@@ -88,7 +93,6 @@ class RootWave(MDBoxLayout):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
-        self.power_spectrum_graph.xmax = int(max(self.power_plot.points, key=lambda x: x[0])[0])
 
     def update_waveform(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
@@ -218,6 +222,11 @@ class RootWave(MDBoxLayout):
         self.update_sliders()
         self.update_power_spectrum_graph()
         self.update_waveform()
+
+    def shutdown_audio(self, _):
+        self.wave_sound.shutdown()
+        self.piano.shutdown()
+        return False
 
 
 class WaveApp(MDApp):

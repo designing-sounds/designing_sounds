@@ -90,6 +90,14 @@ class RootWave(MDBoxLayout):
             self.update_power_spectrum_graph()
             self.update_waveform()
 
+    def power_spectrum_from_freqs(self, freqs: [float]):
+        print(len(freqs))
+        self.num_power_spectrums = len(freqs)
+        for i in range(0, len(freqs)):
+            self.harmonic_list[i] = [freqs[i], 1, 50, 1, self.decay_function.text]
+        self.update_sliders()
+        self.update_power_spectrum()
+
     def update_power_spectrum_graph(self):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
@@ -117,7 +125,7 @@ class RootWave(MDBoxLayout):
             self.play.md_bg_color = style.dark_sky_blue
 
     def press_button_connect(self, _:typing.Any) -> None:
-        if self.piano.begin():  # Has successfully started
+        if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
             self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
             self.connect_button.md_bg_color = style.dark_sky_blue
         else:  # Was already running so disconnected

@@ -17,20 +17,21 @@ class SquaredExpPrior:
         self.weights = np.asarray(np.random.randn(self.d), dtype=np.float32)
 
     def z(self, x, sds, lengthscales):
-        return sds[:, None, None] * np.sqrt(2 / len(self.w)) * np.cos(((1 / lengthscales)[:, None, None] * (x[:, None] @ self.w[None, :])[None, :, :]) + self.b)
+        return sds[:, None, None] * np.sqrt(2 / len(self.w)) * np.cos(
+            ((1 / lengthscales)[:, None, None] * (x[:, None] @ self.w[None, :])[None, :, :]) + self.b)
 
     def prior(self, x, _, sds, lengthscales):
-        return np.sum(self.z(x, sds, lengthscales),  axis=0) @ self.weights
+        return np.sum(self.z(x, sds, lengthscales), axis=0) @ self.weights
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
         x = x1[:, None] - x2
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = self.covariance(x, 0, sds[i], lengthscales[i])
+            temp[i] = self.kernel(x, 0, sds[i], lengthscales[i])
         return np.exp(-0.5 * temp)
 
-    def covariance(self, x, _, sd, l):
-        return sd ** 2 * np.exp(-0.5 * np.square(x / l))
+    def kernel(self, x, _, sd, l):
+        return squared_exponential(x, sd, l)
 
 
 class PeriodicPrior:
@@ -57,7 +58,8 @@ class PeriodicPrior:
     def prior(self, x, freqs, sds, lengthscales):
         ds = 2 * np.pi * np.asarray(np.arange(self.d), dtype=np.float32)
         vals = ds[:, None, None] * (x[:, None] @ freqs[None, :])[None, :, :]
-        return (np.cos(vals) @ self.calc)[:, :, 0].T @ self.cos_weights + (np.sin(vals) @ self.calc)[:, :, 0].T @ self.sin_weights
+        return (np.cos(vals) @ self.calc)[:, :, 0].T @ self.cos_weights + (np.sin(vals) @ self.calc)[:, :,
+                                                                          0].T @ self.sin_weights
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
         x = x1[:, None] - x2
@@ -67,10 +69,7 @@ class PeriodicPrior:
         return temp
 
     def covariance(self, x, freq, sd, l):
-        return self.squared_exponential(np.sin(2 * np.pi * x * freq), sd, l)
-
-    def squared_exponential(self, x, sd, l):
-        return sd ** 2 * np.exp(-0.5 * np.square(x / l))
+        return squared_exponential(2 * np.sin(np.pi * x * freq), sd, l)
 
 class MultPrior:
     def __init__(self, d: int):
@@ -96,8 +95,8 @@ class MultPrior:
         return temp
 
     def covariance(self, x, freq, sd, l):
-        return self.periodic.covariance(x, freq, sd, l) * self.squared.covariance(x, freq, sd, l)
+        return self.periodic.covariance(x, freq, sd, l) * self.squared.kernel(x, freq, sd, l)
 
-    def squared_exponential(self, x, sd, l):
-        return sd ** 2 * np.exp(-0.5 * np.square(x / l))
 
+def squared_exponential(x, sd, l):
+    return sd ** 2 * np.exp(-0.5 * np.square(x / l))

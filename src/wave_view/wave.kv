@@ -1,6 +1,7 @@
 <RootWave>:
     #:import style src.wave_view.style
     clear: clear_button
+    single_period: single_period
     play: play_button
     back: back_button
     eraser_mode: eraser_mode
@@ -102,8 +103,15 @@
                         pos_hint: {"center_x": .5, "center_y": .5}
 
                 BoxLayout:
-                    size_hint: 1, 1
-                    orientation: 'vertical'
+                    size_hint: 1, 0.6
+
+                MDIconButton:
+                    md_bg_color: style.blue_violet
+                    id: single_period
+                    icon: 'arrow-expand-horizontal'
+                    theme_text_color: 'Custom'
+                    text_color: style.white
+                    pos_hint: {"center_x": .5, "center_y": .5}
 
 
         BoxLayout:

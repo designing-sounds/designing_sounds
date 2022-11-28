@@ -35,6 +35,7 @@ class RootWave(MDBoxLayout):
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
         # Button bindings
         self.play.bind(on_press=self.press_button_play)
+        self.single_period.bind(on_press=self.press_single_period)
         self.back.bind(on_press=self.press_button_back)
         self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
@@ -116,6 +117,18 @@ class RootWave(MDBoxLayout):
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
 
+    def press_single_period(self, _: typing.Any) -> None:
+        if self.waveform_graph.is_single_period():
+            # Single Period -> Multiple Periods
+            self.waveform_graph.set_multiple_period()
+            self.single_period.icon = "arrow-expand-horizontal"
+            self.single_period.md_bg_color = style.blue_violet
+        else:
+            # Multiple Periods -> Single Period
+            self.waveform_graph.set_single_period()
+            self.single_period.icon = "arrow-collapse-horizontal"
+            self.single_period.md_bg_color = style.dark_sky_blue
+
     def press_button_back(self, _: typing.Any) -> None:
         self.wave_sound.sound_changed()
 
@@ -177,7 +190,6 @@ class RootWave(MDBoxLayout):
     def update_sliders(self):
         self.change_power_spectrum = False
         mean, sd, harmonic_samples, num_harmonics, decay_function = self.harmonic_list[self.current_harmonic_index]
-        self.waveform_graph.set_period(mean)
         self.mean.value, self.sd.value, self.harmonic_samples.value = mean, sd, harmonic_samples
         self.num_harmonics.value, self.decay_function.text = num_harmonics, decay_function
         self.change_power_spectrum = True

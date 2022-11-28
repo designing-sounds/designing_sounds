@@ -233,5 +233,6 @@ class WaveformGraph(Graph):
         return self._eraser_mode
 
     def set_period(self, frequency) -> None:
-        self._period = 1 / frequency
-        self.update_graph_points()
+        if frequency != 0:
+            self._period = 1 / frequency
+            self.update_graph_points()

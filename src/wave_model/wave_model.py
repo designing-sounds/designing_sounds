@@ -3,25 +3,35 @@ import typing
 import numpy as np
 
 from numpy.linalg import inv
-from src.wave_model.priors import PeriodicPrior
+from src.wave_model.priors import PeriodicPrior, SquaredExpPrior
 
 
 class PowerSpectrum:
     def __init__(self, max_power_spectrum: int, max_harmonics: int):
         self.max_harmonics = max_harmonics
-        self.freqs = np.zeros(max_power_spectrum * self.max_harmonics, dtype=np.float32)
-        self.lengthscales = np.ones(max_power_spectrum * self.max_harmonics, dtype=np.float32)
-        self.sds = np.zeros(max_power_spectrum * self.max_harmonics, dtype=np.float32)
+        self.freqs = np.array([0], dtype=np.float32)
+        self.lengthscales = np.array([0], dtype=np.float32)
+        self.sds = np.array([0], dtype=np.float32)
+        self.num_kernels_per_spectrum = np.zeros(max_power_spectrum, dtype=int)
 
-    def update_harmonic(self, harmonic_index, mean: int, std: float,
+    def update_harmonic(self, harmonic_index, mean: float, std: float,
                         num_harmonics: int, lengthscale: float) -> None:
-        idx = harmonic_index * self.max_harmonics
-        self.freqs[idx:idx + self.max_harmonics] = np.zeros(self.max_harmonics)
-        self.lengthscales[idx:idx + self.max_harmonics] = np.ones(self.max_harmonics)
+        idx = np.sum(self.num_kernels_per_spectrum[:harmonic_index])
         for i in range(num_harmonics):
-            self.freqs[idx + i] = mean * (i + 1)
-            self.lengthscales[idx + i] = lengthscale
-            self.sds[idx + i] = std
+            if idx + i >= len(self.freqs):
+                self.freqs = np.append(self.freqs, mean)
+                self.lengthscales = np.append(self.lengthscales, std)
+                self.sds = np.append(self.sds, std)
+            else:
+                self.freqs[idx + i] = mean
+                self.lengthscales[idx + i] = lengthscale
+                self.sds[idx + i] = std
+        for i in range(num_harmonics, self.max_harmonics):
+            if idx + i < len(self.freqs):
+                self.freqs = np.delete(self.freqs, idx + i)
+                self.lengthscales = np.delete(self.lengthscales, idx + i)
+                self.sds = np.delete(self.sds, idx + i)
+        self.num_kernels_per_spectrum[harmonic_index] = num_harmonics
 
 
 class SoundModel:
@@ -30,10 +40,9 @@ class SoundModel:
         self.max_freq = max_freq
         self.max_power_spectrum = max_power_spectrums
         self.max_harmonics = max_harmonics
-        self.phases = None
         self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics)
         self.lock = threading.Lock()
-        self.prior = PeriodicPrior(100, self.__power_spectrum.freqs.size)
+        self.prior = PeriodicPrior(100)
         self.x_train = None
         self.y_train = None
         self.interpolation_sd = 0
@@ -43,9 +52,10 @@ class SoundModel:
         self.lock.acquire()
         x = np.linspace(0, 1, samples)
         k = np.zeros(len(x))
-        idx *= self.max_harmonics
-        max_freq = np.max(self.__power_spectrum.freqs[idx:idx + self.max_harmonics])
-        for i in range(self.max_harmonics):
+        idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:idx])
+        num_kernels = self.__power_spectrum.num_kernels_per_spectrum[idx]
+        max_freq = np.max(self.__power_spectrum.freqs[idx:idx + num_kernels])
+        for i in range(num_kernels):
             k += self.prior.covariance(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],
                                        self.__power_spectrum.lengthscales[idx + i])
 
@@ -56,21 +66,13 @@ class SoundModel:
         self.lock.release()
         return list(zip(freqs, yf)), np.max(freqs), np.max(yf)
 
-    def remove_power_spectrum(self, index, num_power_spectrums):
-        for i in range(index, num_power_spectrums - 1):
-            idx = i * self.max_harmonics
-            next_idx = (i + 1) * self.max_harmonics
-            self.__power_spectrum.freqs[idx:idx + self.max_harmonics] = self.__power_spectrum.freqs[
-                                                                        next_idx:next_idx + self.max_harmonics]
-            self.__power_spectrum.lengthscales[idx:idx + self.max_harmonics] = self.__power_spectrum.lengthscales[
-                                                                               next_idx:next_idx + self.max_harmonics]
-            self.__power_spectrum.sds[idx:idx + self.max_harmonics] = self.__power_spectrum.sds[
-                                                                      next_idx:next_idx + self.max_harmonics]
-
-        idx = (num_power_spectrums - 1) * self.max_harmonics
-        self.__power_spectrum.freqs[idx:idx + self.max_harmonics] = np.zeros(self.max_harmonics, dtype=np.float32)
-        self.__power_spectrum.lengthscales[idx:idx + self.max_harmonics] = np.ones(self.max_harmonics, dtype=np.float32)
-        self.__power_spectrum.sds[idx:idx + self.max_harmonics] = np.zeros(self.max_harmonics, dtype=np.float32)
+    def remove_power_spectrum(self, index):
+        idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:index])
+        num_kernels = self.__power_spectrum.num_kernels_per_spectrum[index]
+        indices = np.arange(idx, idx + num_kernels)
+        self.__power_spectrum.freqs = np.delete(self.__power_spectrum.freqs, indices)
+        self.__power_spectrum.lengthscales = np.delete(self.__power_spectrum.lengthscales, indices)
+        self.__power_spectrum.sds = np.delete(self.__power_spectrum.sds, indices)
         self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
 
     def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
@@ -89,7 +91,8 @@ class SoundModel:
             X, Y = [0], [0]
         self.x_train, self.y_train = np.array(X, dtype=np.float32), np.array(Y, dtype=np.float32)
         try:
-            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.interpolation_sd ** 2 * np.eye(len(self.x_train)))
+            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.interpolation_sd ** 2 * np.eye(
+                len(self.x_train)))
         except:
             self.inv = None
         self.lock.release()
@@ -118,10 +121,10 @@ class SoundModel:
 
     def update(self, x_test):
         return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (
-                    self.y_train - np.random.normal(0, self.interpolation_sd) - self.prior.prior(self.x_train,
-                                                                                                 self.__power_spectrum.freqs,
-                                                                                                 self.__power_spectrum.sds,
-                                                                                                 self.__power_spectrum.lengthscales))
+                self.y_train - np.random.normal(0, self.interpolation_sd) - self.prior.prior(self.x_train,
+                                                                                             self.__power_spectrum.freqs,
+                                                                                             self.__power_spectrum.sds,
+                                                                                             self.__power_spectrum.lengthscales))
 
     def matrix_covariance(self, x1, x2):
         return np.sum(self.prior.covariance_matrix(x1, x2, self.__power_spectrum.freqs, self.__power_spectrum.sds,

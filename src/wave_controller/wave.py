@@ -18,7 +18,7 @@ Builder.load_file('src/wave_view/wave.kv')
 class RootWave(MDBoxLayout):
     sample_rate = 44100
     graph_sample_rate = 2500
-    power_spectrum_graph_samples = 1000
+    power_spectrum_graph_samples = 5000
     waveform_duration = 1
     chunk_duration = 0.1
 

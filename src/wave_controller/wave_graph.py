@@ -43,6 +43,7 @@ class WaveformGraph(Graph):
         self._period = 500
         self.x_ticks_major = self.__initial_x_ticks_major
         self._eraser_mode = False
+        self._single_period = False
 
         # Public Class initialization
         self.xmin = 0
@@ -160,6 +161,7 @@ class WaveformGraph(Graph):
     def clear_selected_points(self) -> None:
         self.__selected_points.clear()
         self._graph_canvas.canvas.clear()
+        self.update_graph_points()
 
     def to_pixels(self, data_pos: (int, int)) -> (int, int):
         (old_x, old_y) = data_pos
@@ -199,28 +201,39 @@ class WaveformGraph(Graph):
         self._update_waveform_graph_func()
 
     def update_zoom(self, pos: typing.Tuple[float, float]) -> None:
-        x_pos, _ = self.convert_point(pos)
-        self.x_ticks_major = self.__initial_x_ticks_major / self._zoom_scale
-        left_dist = x_pos - self.xmin
-        right_dist = self.xmax - x_pos
-        proportion = self.__initial_duration / (left_dist + right_dist) / self._zoom_scale
+        if not self._single_period:
+            x_pos, _ = self.convert_point(pos)
+            self.x_ticks_major = self.__initial_x_ticks_major / self._zoom_scale
+            left_dist = x_pos - self.xmin
+            right_dist = self.xmax - x_pos
+            proportion = self.__initial_duration / (left_dist + right_dist) / self._zoom_scale
 
-        self.xmax = x_pos + proportion * right_dist
-        self.xmin = x_pos - proportion * left_dist
-        if self.xmin < 0:
-            self.xmax -= self.xmin
-            self.xmin = 0
-        self.update_graph_points()
+            self.xmax = x_pos + proportion * right_dist
+            self.xmin = x_pos - proportion * left_dist
+            if self.xmin < 0:
+                self.xmax -= self.xmin
+                self.xmin = 0
+            self.update_graph_points()
 
     def update_panning(self, is_left: bool) -> None:
-        window_length = self.xmax - self.xmin
-        factor = 1 / (self._zoom_scale * 2)
-        panning_step = -factor if is_left else factor
-        self.xmin += panning_step
-        self.xmax += panning_step
-        if self.xmin < 0:
+        if not self._single_period:
+            window_length = self.xmax - self.xmin
+            factor = 1 / (self._zoom_scale * 2)
+            panning_step = -factor if is_left else factor
+            self.xmin += panning_step
+            self.xmax += panning_step
+            if self.xmin < 0:
+                self.xmin = 0
+                self.xmax = window_length
+            self.update_graph_points()
+
+    def change_period_view(self):
+        if self._single_period:
             self.xmin = 0
-            self.xmax = window_length
+            self.xmax = self._period
+        else:
+            self.xmin = 0
+            self.xmax = self.__initial_duration / self._zoom_scale
         self.update_graph_points()
 
     # Get/Set Methods for class
@@ -232,6 +245,17 @@ class WaveformGraph(Graph):
 
     def is_eraser_mode(self) -> bool:
         return self._eraser_mode
+
+    def set_single_period(self) -> None:
+        self._single_period = True
+        self.change_period_view()
+
+    def set_multiple_period(self) -> None:
+        self._single_period = False
+        self.change_period_view()
+
+    def is_single_period(self) -> bool:
+        return self._single_period
 
     def set_period(self, frequency) -> None:
         if frequency != 0:

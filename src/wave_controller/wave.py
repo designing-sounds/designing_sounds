@@ -85,6 +85,7 @@ class RootWave(MDBoxLayout):
                                                    self.decay_function.text)
             self.update_power_spectrum_graph()
             self.update_waveform()
+            self.waveform_graph.set_period(self.mean.value)
 
     def update_power_spectrum_graph(self):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
@@ -176,6 +177,7 @@ class RootWave(MDBoxLayout):
     def update_sliders(self):
         self.change_power_spectrum = False
         mean, sd, harmonic_samples, num_harmonics, decay_function = self.harmonic_list[self.current_harmonic_index]
+        self.waveform_graph.set_period(mean)
         self.mean.value, self.sd.value, self.harmonic_samples.value = mean, sd, harmonic_samples
         self.num_harmonics.value, self.decay_function.text = num_harmonics, decay_function
         self.change_power_spectrum = True

@@ -214,9 +214,9 @@
                             thumb_color_active: style.dark_sky_blue
                             thumb_color_inactive: style.palatinate_purple
                             id: samples
-                            value: 50
+                            value: root.max_samples_per_harmonic // 2
                             min: 0
-                            max: 100
+                            max: root.max_samples_per_harmonic
                             step: 1
                             on_value: root.update_power_spectrum()
                             show_off: False

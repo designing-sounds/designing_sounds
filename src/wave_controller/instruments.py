@@ -23,6 +23,7 @@ class PianoMIDI(Instrument):
         super().__init__()
         # -- INITIALIZATION --
         midi.init()
+        self.midi_input = None
 
         self.thread = Thread(target=self._run_synth)
 

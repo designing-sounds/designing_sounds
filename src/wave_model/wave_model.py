@@ -3,7 +3,7 @@ import typing
 import numpy as np
 
 from numpy.linalg import inv
-from src.wave_model.priors import PeriodicPrior, SquaredExpPrior
+from src.wave_model.priors import PeriodicPrior, SquaredExpPrior, MultPrior
 
 
 class PowerSpectrum:
@@ -42,7 +42,7 @@ class SoundModel:
         self.max_harmonics = max_harmonics
         self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics)
         self.lock = threading.Lock()
-        self.prior = PeriodicPrior(100)
+        self.prior = MultPrior(100)
         self.x_train = None
         self.y_train = None
         self.interpolation_sd = 0

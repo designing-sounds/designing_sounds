@@ -72,3 +72,32 @@ class PeriodicPrior:
     def squared_exponential(self, x, sd, l):
         return sd ** 2 * np.exp(-0.5 * np.square(x / l))
 
+class MultPrior:
+    def __init__(self, d: int):
+        self.d = d
+        self.periodic = PeriodicPrior(self.d)
+        self.squared = SquaredExpPrior(self.d)
+
+    def resample(self):
+        self.periodic.resample()
+        self.squared.resample()
+
+    def update(self, lengthscale, sd):
+        self.periodic.update(lengthscale, sd)
+
+    def prior(self, x, freqs, sds, lengthscales):
+        return self.periodic.prior(x, freqs, sds, lengthscales) * self.squared.prior(x, freqs, sds, lengthscales)
+
+    def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
+        x = x1[:, None] - x2
+        temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
+        for i, freq in enumerate(freqs):
+            temp[i] = self.covariance(x, freq, sds[i], lengthscales[i])
+        return temp
+
+    def covariance(self, x, freq, sd, l):
+        return self.periodic.covariance(x, freq, sd, l) * self.squared.covariance(x, freq, sd, l)
+
+    def squared_exponential(self, x, sd, l):
+        return sd ** 2 * np.exp(-0.5 * np.square(x / l))
+

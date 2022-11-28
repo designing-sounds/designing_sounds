@@ -20,7 +20,7 @@ Builder.load_file('src/wave_view/wave.kv')
 class RootWave(MDBoxLayout):
     sample_rate = 16000
     graph_sample_rate = 2500
-    power_spectrum_graph_samples = 1000
+    power_spectrum_graph_samples = 5000
     waveform_duration = 1
     chunk_duration = 0.1
 
@@ -77,7 +77,6 @@ class RootWave(MDBoxLayout):
         self.double_tap = False
         self.change_power_spectrum = True
         self.piano = PianoMIDI()
-        self.piano.begin()
         Window.bind(on_request_close=self.shutdown_audio)
 
     def update_power_spectrum(self) -> None:

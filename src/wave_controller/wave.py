@@ -77,7 +77,6 @@ class RootWave(MDBoxLayout):
         self.double_tap = False
         self.change_power_spectrum = True
         self.piano = PianoMIDI()
-        self.piano.begin()
         Window.bind(on_request_close=self.shutdown_audio)
 
     def update_power_spectrum(self) -> None:

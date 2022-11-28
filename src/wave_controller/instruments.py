@@ -23,8 +23,6 @@ class PianoMIDI(Instrument):
         super().__init__()
         # -- INITIALIZATION --
         midi.init()
-        default_id = midi.get_default_input_id()
-        self.midi_input = midi.Input(device_id=default_id)
 
         self.thread = Thread(target=self._run_synth)
 
@@ -32,6 +30,8 @@ class PianoMIDI(Instrument):
         self.thread.start()
 
     def _run_synth(self):
+        default_id = midi.get_default_input_id()
+        self.midi_input = midi.Input(device_id=default_id)
         # -- RUN THE SYNTH --
         print("Starting synth...")
         notes_dict = {}
@@ -47,6 +47,6 @@ class PianoMIDI(Instrument):
                         print(freq)
 
     def shutdown(self) -> bool:
-        self.midi_input.close()
+        #self.midi_input.close()
         print("Stopping synth...")
         return False

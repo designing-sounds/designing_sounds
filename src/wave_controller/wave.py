@@ -92,7 +92,7 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
         self.power_spectrum_graph.xmax = max(int(max(self.power_plot.points, key=lambda x: x[0])[0]), 1000)
         self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
-        self.power_spectrum_graph.y_ticks_major = int(self.power_spectrum_graph.ymax / 5)
+        self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
     def update_waveform(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
@@ -157,7 +157,7 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
         self.power_spectrum_graph.xmax = max(int(max(self.power_plot.points, key=lambda x: x[0])[0]), 1000)
         self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
-        self.power_spectrum_graph.y_ticks_major = int(self.power_spectrum_graph.ymax / 5)
+        self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
     def update_display_power_spectrum(self, harmonic_index: int):
         for slider in self.power_spectrum_sliders:

@@ -93,10 +93,16 @@ class RootWave(MDBoxLayout):
     def power_spectrum_from_freqs(self, freqs: [float]):
         print(len(freqs))
         self.num_power_spectrums = len(freqs)
-        for i in range(0, len(freqs)):
+        self.sound_model.clear_all_power_spectrums()
+        for i in range(0, min(self.max_harmonics, len(freqs))):
             self.harmonic_list[i] = [freqs[i], 1, 50, 1, self.decay_function.text]
+            harmonic_samples = int(self.max_samples_per_harmonic * self.harmonic_samples.value / 100)
+            self.sound_model.update_power_spectrum(i, freqs[i], 1,
+                                                   harmonic_samples, int(1),
+                                                   self.decay_function.text)
         self.update_sliders()
-        self.update_power_spectrum()
+        self.update_waveform()
+        #self.update_power_spectrum()
 
     def update_power_spectrum_graph(self):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,

@@ -95,6 +95,12 @@ class SoundModel:
                                                        self.max_harmonics * self.max_samples_per_harmonic),
                                      dtype=np.float32)
 
+    def clear_all_power_spectrums(self) -> None:
+        with self.lock:
+            self.__power_spectrum.harmonics = np.zeros((self.max_harmonics,
+                                                        self.max_samples_per_harmonic), dtype=np.float32)
+            self.samples_per_harmonic = np.zeros(self.max_harmonics)
+
     def calculate_sins(self, x):
         freqs = self.__power_spectrum.harmonics.flatten()
         sins = np.sin((x[:, None]) * 2 * np.pi * freqs)

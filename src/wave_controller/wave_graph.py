@@ -260,4 +260,4 @@ class WaveformGraph(Graph):
     def set_period(self, frequency) -> None:
         if frequency != 0:
             self._period = 1 / frequency
-            self.__update_graph_points()
+            self.__change_period_view()

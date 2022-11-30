@@ -9,7 +9,7 @@ from kivy_garden.graph import Graph
 
 import numpy as np
 
-POINT_IMAGE = 'media/20221028_144310.jpg'
+POINT_IMAGE = 'media/dc1020.jpg'
 
 SCROLL_RIGHT = 'scrollright'
 

@@ -1,37 +1,14 @@
 import threading
 import typing
+from typing import Tuple, List, Any, Union
+
 import numpy as np
+from numpy import ndarray
 
 from numpy.linalg import inv
+
+from src.wave_model.power_spectrum import PowerSpectrum
 from src.wave_model.priors import PeriodicPrior, SquaredExpPrior, MultPrior
-
-
-class PowerSpectrum:
-    def __init__(self, max_power_spectrum: int, max_harmonics: int):
-        self.max_harmonics = max_harmonics
-        self.freqs = np.array([0], dtype=np.float32)
-        self.lengthscales = np.array([0], dtype=np.float32)
-        self.sds = np.array([0], dtype=np.float32)
-        self.num_kernels_per_spectrum = np.zeros(max_power_spectrum, dtype=int)
-
-    def update_harmonic(self, harmonic_index, mean: float, std: float,
-                        num_harmonics: int, lengthscale: float) -> None:
-        idx = np.sum(self.num_kernels_per_spectrum[:harmonic_index])
-        for i in range(num_harmonics):
-            if idx + i >= len(self.freqs):
-                self.freqs = np.append(self.freqs, np.float32(mean))
-                self.lengthscales = np.append(self.lengthscales, np.float32(std))
-                self.sds = np.append(self.sds, np.float32(std))
-            else:
-                self.freqs[idx + i] = mean
-                self.lengthscales[idx + i] = lengthscale
-                self.sds[idx + i] = std
-        for i in range(num_harmonics, self.max_harmonics):
-            if idx + i < len(self.freqs):
-                self.freqs = np.delete(self.freqs, idx + i)
-                self.lengthscales = np.delete(self.lengthscales, idx + i)
-                self.sds = np.delete(self.sds, idx + i)
-        self.num_kernels_per_spectrum[harmonic_index] = num_harmonics
 
 
 class SoundModel:
@@ -48,7 +25,8 @@ class SoundModel:
         self.interpolation_sd = 0
 
     def get_power_spectrum_histogram(self, idx: int,
-                                     samples: int) -> typing.List[typing.Tuple[float, float]]:
+                                     samples: int) -> Tuple[
+        List[Tuple[Any, Any]], Union[ndarray, int, float, complex], Union[ndarray, int, float, complex]]:
         self.lock.acquire()
         x = np.linspace(0, 1, samples)
         k = np.zeros(len(x))

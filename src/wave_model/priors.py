@@ -65,10 +65,10 @@ class PeriodicPrior:
         x = x1[:, None] - x2
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = self.covariance(x, freq, sds[i], lengthscales[i])
+            temp[i] = self.kernel(x, freq, sds[i], lengthscales[i])
         return temp
 
-    def covariance(self, x, freq, sd, l):
+    def kernel(self, x, freq, sd, l):
         return squared_exponential(2 * np.sin(np.pi * x * freq), sd, l)
 
 class MultPrior:
@@ -91,11 +91,11 @@ class MultPrior:
         x = x1[:, None] - x2
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = self.covariance(x, freq, sds[i], lengthscales[i])
+            temp[i] = self.kernel(x, freq, sds[i], lengthscales[i])
         return temp
 
-    def covariance(self, x, freq, sd, l):
-        return self.periodic.covariance(x, freq, sd, l) * self.squared.kernel(x, freq, sd, l)
+    def kernel(self, x, freq, sd, l):
+        return self.periodic.kernel(x, freq, sd, l) * self.squared.kernel(x, freq, sd, l)
 
 
 def squared_exponential(x, sd, l):

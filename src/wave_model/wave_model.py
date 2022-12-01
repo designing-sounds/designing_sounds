@@ -34,7 +34,7 @@ class SoundModel:
         idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:idx])
         max_freq = np.max(self.__power_spectrum.freqs[idx:idx + num_kernels])
         for i in range(num_kernels):
-            k += self.prior.covariance(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],
+            k += self.prior.kernel(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],
                                        self.__power_spectrum.lengthscales[idx + i])
 
         freqs = np.fft.fftfreq(len(x), 1 / samples)

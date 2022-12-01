@@ -30,8 +30,8 @@ class SoundModel:
         self.lock.acquire()
         x = np.linspace(0, 1, samples)
         k = np.zeros(len(x))
-        idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:idx])
         num_kernels = self.__power_spectrum.num_kernels_per_spectrum[idx]
+        idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:idx])
         max_freq = np.max(self.__power_spectrum.freqs[idx:idx + num_kernels])
         for i in range(num_kernels):
             k += self.prior.covariance(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],

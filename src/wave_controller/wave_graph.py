@@ -71,7 +71,6 @@ class WaveformGraph(Graph):
             if ellipse:
                 if self._eraser_mode:
                     self.__remove_point(ellipse)
-                    touch.grab(self)
                     return True
                 self._current_point = ellipse
                 self._old_pos = self.__convert_point(self._current_point.pos)

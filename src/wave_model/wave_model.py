@@ -1,7 +1,5 @@
 import threading
 import typing
-
-from math import sqrt, log, log2, log10, cos, sin, tan, ceil, floor, fabs, factorial, exp
 import numpy as np
 
 from numpy.linalg import inv
@@ -21,9 +19,9 @@ class PowerSpectrum:
         idx = np.sum(self.num_kernels_per_spectrum[:harmonic_index])
         for i in range(num_harmonics):
             if idx + i >= len(self.freqs):
-                self.freqs = np.append(self.freqs, mean)
-                self.lengthscales = np.append(self.lengthscales, std)
-                self.sds = np.append(self.sds, std)
+                self.freqs = np.append(self.freqs, np.float32(mean))
+                self.lengthscales = np.append(self.lengthscales, np.float32(std))
+                self.sds = np.append(self.sds, np.float32(std))
             else:
                 self.freqs[idx + i] = mean
                 self.lengthscales[idx + i] = lengthscale

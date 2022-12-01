@@ -187,7 +187,7 @@ class WaveformGraph(Graph):
                     Ellipse(source=POINT_IMAGE, pos=pos,
                             size=(self.__point_size, self.__point_size))
         if self.xmax - self.xmin < self._period * 15:
-            self.x_grid = False
+            self.x_grid = self._single_period
             color_line = (202, 0.30, 0.85)
             current_x = self.xmin + self._period - self.xmin % self._period
             while current_x < self.xmax:
@@ -231,9 +231,11 @@ class WaveformGraph(Graph):
         if self._single_period:
             self.xmin = 0
             self.xmax = self._period
+            self.x_ticks_major = self._period / 2
         else:
             self.xmin = 0
             self.xmax = self.__initial_duration / self._zoom_scale
+            self.x_ticks_major = self.__initial_x_ticks_major / self._zoom_scale
         self.__update_graph_points()
 
     # Get/Set Methods for class

@@ -64,7 +64,7 @@ class SoundModel:
         self.lock = threading.Lock()
 
     def get_power_spectrum_histograms(self, harmonic_index: int,
-                                      _num_bins: int) -> tuple[list[list[tuple[Any, Any]]], int]:
+                                      _num_bins: int) -> typing.Tuple[List[List[typing.Tuple[Any, Any]]], int]:
         with self.lock:
             peaks = self.__power_spectrum.harmonics[harmonic_index]
             max_freq = 0

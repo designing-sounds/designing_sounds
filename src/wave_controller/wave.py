@@ -1,11 +1,15 @@
 import typing
 
 import numpy as np
+from scipy.io import wavfile
+
 from kivy.lang import Builder
 from kivy_garden.graph import LinePlot, Graph, BarPlot
 from kivymd.app import MDApp
+from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
+from kivymd.uix.filemanager import MDFileManager
 
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
@@ -30,6 +34,8 @@ class RootWave(MDBoxLayout):
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
 
+        self.loaded_file = None
+        self.file_manager = None
         self.sound_model = SoundModel(self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
 
@@ -61,8 +67,10 @@ class RootWave(MDBoxLayout):
 
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
         self.power_plot = BarPlot(color=plot_color)
+        self.load_sound_plot = LinePlot(color=style.raisin_black, line_width=1)
 
         self.waveform_graph.add_plot(self.wave_plot)
+        self.waveform_graph.add_plot(self.load_sound_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
 
         self.power_buttons = []
@@ -72,6 +80,8 @@ class RootWave(MDBoxLayout):
         self.press_button_add(None)
         self.double_tap = False
         self.change_wave = True
+        self.manager_open = False
+        self.manager = None
 
     def update_power_spectrum(self) -> None:
         harmonic_samples = int(self.max_samples_per_harmonic * self.harmonic_samples.value / 100)
@@ -81,7 +91,7 @@ class RootWave(MDBoxLayout):
 
     def update_power_spectrum_graph(self):
         histograms, max_range = self.sound_model.get_power_spectrum_histograms(self.current_harmonic_index,
-                                                                                           self.power_spectrum_graph_samples)
+                                                                               self.power_spectrum_graph_samples)
         self.power_plot.points = [coord for histogram in histograms for coord in histogram]
         self.power_spectrum_graph.ymax = max(float(max(self.power_plot.points, key=lambda x: x[1])[1] * 2), 0.001)
         self.power_spectrum_graph.xmax = max_range
@@ -91,6 +101,19 @@ class RootWave(MDBoxLayout):
         x_max = self.waveform_graph.xmax
         points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
         self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
+        if self.loaded_file:
+            self.update_loaded_sound_graph()
+
+    def update_loaded_sound_graph(self) -> None:
+        x_min = self.waveform_graph.xmin
+        x_max = self.waveform_graph.xmax
+        sample_rate, data = self.loaded_file
+        data = data.flatten() / max(data.max(), data.min(), key=abs)
+        duration = int(sample_rate * (x_max - x_min) / self.graph_sample_rate)
+        start_index = int(sample_rate * x_min)
+        finish_index = int(sample_rate * x_max)
+        self.load_sound_plot.points = list(
+            zip(np.linspace(x_min, x_max, self.graph_sample_rate), data[start_index:finish_index:duration]))
 
     def update_wave(self) -> None:
         if self.change_wave:
@@ -212,6 +235,25 @@ class RootWave(MDBoxLayout):
         self.update_sliders()
         self.update_power_spectrum_graph()
         self.update_wave()
+
+    def file_manager_open(self):
+        if not self.manager:
+            self.file_manager = MDFileManager(
+                exit_manager=self.exit_manager, select_path=self.select_path)
+            self.file_manager.show('/')  # output manager to the screen
+
+    def select_path(self, path: str):
+
+        try:
+            print(path)
+            self.loaded_file = wavfile.read(path)
+            self.update_loaded_sound_graph()
+            self.exit_manager()
+        except ValueError:
+            toast("Not a valid file")
+
+    def exit_manager(self, *args):
+        self.file_manager.close()
 
 
 class WaveApp(MDApp):

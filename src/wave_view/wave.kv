@@ -85,6 +85,13 @@
                     BoxLayout:
                         size_hint: 1, 0.1
 
+                MDRoundFlatIconButton:
+                    text: "Open manager"
+                    icon: "folder"
+
+                    pos_hint: {'center_x': .5, 'center_y': .6}
+                    on_release: root.file_manager_open()
+
                 BoxLayout:
                     size_hint: 1, 1
                     orientation: 'vertical'
@@ -252,6 +259,7 @@
                                 id: decay_function
                                 text: '1 / x'
                                 on_text_validate: root.update_wave()
+
 
                         BoxLayout:
                             size_hint: 0.03, 1

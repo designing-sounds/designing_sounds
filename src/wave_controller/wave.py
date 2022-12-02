@@ -67,8 +67,7 @@ class RootWave(MDBoxLayout):
         self.add.bind(on_press=self.press_button_add)
 
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
-        self.power_spectrum_sliders = [self.sd, self.mean, self.lengthscale, self.num_harmonics,
-                                       self.decay_function]
+        self.power_spectrum_sliders = [self.sd, self.mean, self.lengthscale, self.num_harmonics]
 
         border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
@@ -233,8 +232,7 @@ class RootWave(MDBoxLayout):
             self.power_buttons.append(button)
             self.ids.power_spectrum_buttons.add_widget(button)
             self.update_display_power_spectrum(self.num_power_spectrums - 1)
-            self.harmonic_list[self.current_power_spectrum_index] = [self.mean.max // 2, 1, 1, 1,
-                                                                     self.decay_function.text]
+            self.harmonic_list[self.current_power_spectrum_index] = [self.mean.max // 2, 1, 1, 1]
             self.update_sliders()
             self.update_power_spectrum()
 
@@ -296,16 +294,15 @@ class RootWave(MDBoxLayout):
 
         self.harmonic_list[self.current_power_spectrum_index] = [self.mean.value, self.sd.value,
                                                                  self.lengthscale.value,
-                                                                 int(self.num_harmonics.value),
-                                                                 self.decay_function.text]
+                                                                 int(self.num_harmonics.value)]
         self.current_power_spectrum_index = harmonic_index
         self.update_sliders()
 
     def update_sliders(self):
         self.change_power_spectrum = False
-        mean, sd, lengthscale, num_harmonics, decay_function = self.harmonic_list[self.current_power_spectrum_index]
+        mean, sd, lengthscale, num_harmonics = self.harmonic_list[self.current_power_spectrum_index]
         self.mean.value, self.sd.value, self.lengthscale.value = mean, sd, lengthscale
-        self.num_harmonics.value, self.decay_function.text = num_harmonics, decay_function
+        self.num_harmonics.value = num_harmonics
         self.change_power_spectrum = True
 
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):

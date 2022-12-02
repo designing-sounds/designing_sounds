@@ -36,7 +36,6 @@
     mean: mean
     lengthscale: lengthscale
     num_harmonics: num_harmonics
-    decay_function: decay_function
     preset: preset_mode
 
 
@@ -336,32 +335,6 @@
                             show_off: False
                     BoxLayout:
                         size_hint: 1, 0.3
-
-                    BoxLayout:
-                        orientation: 'horizontal'
-
-                        BoxLayout:
-                            size_hint: 0.03, 1
-
-                        BoxLayout:
-                            size_hint: 1, 1
-                            orientation: 'vertical'
-                            MDLabel:
-                                text: 'Decay function: ' + decay_function.text
-                                halign: 'center'
-                                theme_text_color: 'Primary'
-
-                            MDTextField:
-                                color_mode: style.cyber_grape
-                                fill_color: style.dark_sky_blue
-                                line_color_focus: style.dark_sky_blue
-                                line_color_normal: style.palatinate_purple
-                                id: decay_function
-                                text: '1 / x'
-                                on_text_validate: root.update_power_spectrum()
-
-                        BoxLayout:
-                            size_hint: 0.03, 1
 
                     BoxLayout:
                         orientation: 'horizontal'

@@ -270,7 +270,7 @@
                         size_hint: 1, 1
                         orientation: 'vertical'
                         MDLabel:
-                            text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
+                            text: 'Frequency: ' + str(round(float(mean.value), 2)) + 'Hz'
                             halign: 'center'
                             theme_text_color: 'Primary'
                         MDSlider:
@@ -285,7 +285,7 @@
                             value: 500
                             min: 0
                             max: 2000
-                            step: 0.1
+                            step: 0.01
                             on_value: root.update_power_spectrum()
                             show_off: False
                     BoxLayout:

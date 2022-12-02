@@ -27,7 +27,7 @@ class RootWave(MDBoxLayout):
     max_harmonics = 5
     max_power_spectrums = 5
     num_power_spectrums = 0
-    current_harmonic_index = 0
+    current_power_spectrum_index = 0
     max_samples_per_harmonic = 500
 
     def __init__(self, **kwargs: typing.Any):
@@ -90,14 +90,14 @@ class RootWave(MDBoxLayout):
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
-            self.sound_model.update_power_spectrum(self.current_harmonic_index, self.mean.value, self.sd.value, int(self.num_harmonics.value), self.lengthscale.value)
+            self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value, self.sd.value, int(self.num_harmonics.value), self.lengthscale.value)
             self.update_power_spectrum_graph()
             self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
 
     def update_power_spectrum_graph(self):
-        self.power_plot.points, xmax, ymax = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
-                                                                               self.power_spectrum_graph_samples)
+        self.power_plot.points, xmax, ymax = self.sound_model.get_power_spectrum_histogram(self.current_power_spectrum_index,
+                                                                                           self.power_spectrum_graph_samples)
         self.power_spectrum_graph.xmax = float(xmax)
         self.power_spectrum_graph.ymax = float(ymax)
         self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
@@ -168,14 +168,14 @@ class RootWave(MDBoxLayout):
             self.power_buttons.append(button)
             self.ids.power_spectrum_buttons.add_widget(button)
             self.update_display_power_spectrum(self.num_power_spectrums - 1)
-            self.harmonic_list[self.current_harmonic_index] = [self.mean.max // 2, 1, 1, 1, self.decay_function.text]
+            self.harmonic_list[self.current_power_spectrum_index] = [self.mean.max // 2, 1, 1, 1, self.decay_function.text]
             self.update_sliders()
             self.update_power_spectrum()
 
     def press_button_all_power_spectrum(self, _: typing.Any) -> None:
         for slider in self.power_spectrum_sliders:
             slider.disabled = True
-        self.power_buttons[self.current_harmonic_index].md_bg_color = self.unselected_button_color
+        self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.unselected_button_color
         self.all_power_spectrums.md_bg_color = self.selected_button_color
         self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
@@ -187,19 +187,19 @@ class RootWave(MDBoxLayout):
         for slider in self.power_spectrum_sliders:
             slider.disabled = False
         self.all_power_spectrums.md_bg_color = self.unselected_button_color
-        self.power_buttons[self.current_harmonic_index].md_bg_color = self.unselected_button_color
+        self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.unselected_button_color
         self.power_buttons[harmonic_index].md_bg_color = self.selected_button_color
 
-        self.harmonic_list[self.current_harmonic_index] = [self.mean.value, self.sd.value,
-                                                           self.lengthscale.value,
-                                                           int(self.num_harmonics.value),
-                                                           self.decay_function.text]
-        self.current_harmonic_index = harmonic_index
+        self.harmonic_list[self.current_power_spectrum_index] = [self.mean.value, self.sd.value,
+                                                                 self.lengthscale.value,
+                                                                 int(self.num_harmonics.value),
+                                                                 self.decay_function.text]
+        self.current_power_spectrum_index = harmonic_index
         self.update_sliders()
 
     def update_sliders(self):
         self.change_power_spectrum = False
-        mean, sd, lengthscale, num_harmonics, decay_function = self.harmonic_list[self.current_harmonic_index]
+        mean, sd, lengthscale, num_harmonics, decay_function = self.harmonic_list[self.current_power_spectrum_index]
         self.mean.value, self.sd.value, self.lengthscale.value = mean, sd, lengthscale
         self.num_harmonics.value, self.decay_function.text = num_harmonics, decay_function
         self.change_power_spectrum = True
@@ -229,24 +229,24 @@ class RootWave(MDBoxLayout):
         if not self.double_tap or len(self.power_buttons) == 1:
             return
 
-        button = self.power_buttons[self.current_harmonic_index]
+        button = self.power_buttons[self.current_power_spectrum_index]
         self.power_buttons.remove(button)
         self.ids.power_spectrum_buttons.remove_widget(button)
 
-        for i in range(self.current_harmonic_index, len(self.power_buttons)):
+        for i in range(self.current_power_spectrum_index, len(self.power_buttons)):
             self.power_buttons[i].text = f"{i + 1}"
             self.harmonic_list[i] = self.harmonic_list[i + 1]
 
         # zero fill end of harmonic list to account for removal
         self.harmonic_list[self.num_power_spectrums - 1] = [0, 0, 0, 1, "1 / x"]
 
-        self.sound_model.remove_power_spectrum(self.current_harmonic_index)
+        self.sound_model.remove_power_spectrum(self.current_power_spectrum_index)
 
         self.num_power_spectrums -= 1
         # update current index selection
-        self.current_harmonic_index -= 1 if self.current_harmonic_index == len(self.power_buttons) else 0
+        self.current_power_spectrum_index -= 1 if self.current_power_spectrum_index == len(self.power_buttons) else 0
 
-        self.power_buttons[self.current_harmonic_index].md_bg_color = self.selected_button_color
+        self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
 
         self.update_sliders()
         self.update_power_spectrum()

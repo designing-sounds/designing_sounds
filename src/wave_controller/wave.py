@@ -2,10 +2,11 @@ import typing
 
 import numpy as np
 from kivy.lang import Builder
-from kivy_garden.graph import LinePlot, Graph
+from kivy_garden.graph import LinePlot, Graph, BarPlot
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
+from scipy.io import wavfile
 
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
@@ -18,7 +19,7 @@ Builder.load_file('src/wave_view/wave.kv')
 class RootWave(MDBoxLayout):
     sample_rate = 11000
     graph_sample_rate = 2500
-    power_spectrum_graph_samples = 1000
+    power_spectrum_graph_samples = 10000
     waveform_duration = 1
     chunk_duration = 0.1
 
@@ -54,7 +55,7 @@ class RootWave(MDBoxLayout):
                                             ylabel='Amplitude', precision="%.5g", x_grid=True, y_grid=True,
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
-                                          xmin=0, xmax=self.mean.max,
+                                          xmin=0, xmax=3000,
                                           ymin=0, ymax=20,
                                           draw_border=True)
 
@@ -63,11 +64,19 @@ class RootWave(MDBoxLayout):
 
         plot_color = style.cyber_grape
 
+        loaded_file = wavfile.read("media/34_Dm_Piano_SP_222_09.wav")
+        _, self.data = loaded_file
+        self.data = self.data.flatten() / max(self.data.max(), self.data.min(), key=abs)
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
+        self.load_sound_plot = LinePlot(color=style.raisin_black, line_width=1)
         self.power_plot = LinePlot(color=plot_color)
+        self.sound_power_plot = LinePlot(color=plot_color)
 
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
+        self.waveform_graph.add_plot(self.load_sound_plot)
+        self.power_spectrum_graph.add_plot(self.sound_power_plot)
+        self.sound_power_plot.points = self.sound_model.get_power_spectrum(self.data)
 
         self.power_buttons = []
         self.selected_button_color = style.dark_sky_blue
@@ -90,7 +99,6 @@ class RootWave(MDBoxLayout):
     def update_power_spectrum_graph(self):
         self.power_plot.points, xmax, ymax = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
-        self.power_spectrum_graph.xmax = float(xmax)
         self.power_spectrum_graph.ymax = float(ymax)
 
     def update_waveform(self) -> None:
@@ -102,7 +110,12 @@ class RootWave(MDBoxLayout):
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
-        self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
+        duration = int(self.sample_rate * (x_max - x_min) / self.graph_sample_rate)
+        start_index = int(self.sample_rate * x_min)
+        finish_index = int(self.sample_rate * x_max)
+        self.wave_plot.points = list(zip(np.linspace(x_min, x_max, self.graph_sample_rate), points))
+        self.load_sound_plot.points = list(
+            zip(np.linspace(x_min, x_max, self.graph_sample_rate), self.data[start_index:finish_index:duration]))
 
     def press_button_play(self, _: typing.Any) -> None:
         if self.wave_sound.is_playing():

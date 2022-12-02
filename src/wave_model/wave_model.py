@@ -54,15 +54,14 @@ class SoundModel:
         k = np.zeros(len(x))
         idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:idx])
         num_kernels = self.__power_spectrum.num_kernels_per_spectrum[idx]
-        max_freq = np.max(self.__power_spectrum.freqs[idx:idx + num_kernels])
         for i in range(num_kernels):
             k += self.prior.covariance(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],
                                        self.__power_spectrum.lengthscales[idx + i])
+            print(self.__power_spectrum.freqs[idx + i])
 
         freqs = np.fft.fftfreq(len(x), 1 / samples)
-        b = freqs < max_freq * 10
-        freqs = freqs[b]
-        yf = np.abs(np.fft.fft(k)[1:len(k) // 2])
+        freqs = freqs[1:len(k)]
+        yf = np.fft.fft(k)[1:len(k)]
         self.lock.release()
         return list(zip(freqs, yf)), np.max(freqs), np.max(yf)
 
@@ -102,6 +101,17 @@ class SoundModel:
         with self.lock:
             self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonics, lengthscale)
             self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
+
+    def get_power_spectrum(self, sound):
+        samples = sound.size
+        self.lock.acquire()
+        x = np.linspace(0, 1, samples)
+        k = sound
+        freqs = np.fft.fftfreq(len(x), 1 / samples)
+        freqs = freqs[1:len(k) // 2]
+        yf = np.abs(np.fft.fft(k)[1:len(k) // 2])
+        self.lock.release()
+        return list(zip(freqs, yf))
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,

@@ -20,7 +20,7 @@ class PowerSpectrum:
             self.freqs = np.delete(self.freqs, id)
             self.lengthscales = np.delete(self.lengthscales, id)
             self.sds = np.delete(self.sds, id)
-        for i in range(np.sum(self.num_kernels_per_spectrum[:power_spectrum_index]), id - 2):
+        for i in range(np.sum(self.num_kernels_per_spectrum[:power_spectrum_index]), id + 1):
             self.freqs[i] = mean
             self.lengthscales[i] = lengthscale
             self.sds[i] = std

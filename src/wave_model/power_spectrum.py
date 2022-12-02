@@ -9,19 +9,23 @@ class PowerSpectrum:
         self.sds = np.empty(0, dtype=np.float32)
         self.num_kernels_per_spectrum = np.zeros(max_power_spectrum, dtype=int)
 
-    def update_harmonic(self, power_spectrum_index, mean: float, std: float,
+    def update_harmonic(self, harmonic_index, mean: float, std: float,
                         num_harmonics: int, lengthscale: float) -> None:
-        id = np.sum(self.num_kernels_per_spectrum[:power_spectrum_index]) + num_harmonics - 1
-        if num_harmonics > self.num_kernels_per_spectrum[power_spectrum_index]: # We need to add
-            self.freqs = np.insert(self.freqs, id, np.float32(mean))
-            self.lengthscales = np.insert(self.lengthscales, id, np.float32(std))
-            self.sds = np.insert(self.sds, id, np.float32(std))
-        elif num_harmonics < self.num_kernels_per_spectrum[power_spectrum_index]: # We need to delete
-            self.freqs = np.delete(self.freqs, id)
-            self.lengthscales = np.delete(self.lengthscales, id)
-            self.sds = np.delete(self.sds, id)
-        for i in range(np.sum(self.num_kernels_per_spectrum[:power_spectrum_index]), id + 1):
-            self.freqs[i] = mean
-            self.lengthscales[i] = lengthscale
-            self.sds[i] = std
-        self.num_kernels_per_spectrum[power_spectrum_index] = num_harmonics
+        idx = np.sum(self.num_kernels_per_spectrum[:harmonic_index])
+        cur_num_harmonics = self.num_kernels_per_spectrum[harmonic_index]
+        if cur_num_harmonics == num_harmonics:
+            for i in range(cur_num_harmonics):
+                self.freqs[idx + i] = mean
+                self.lengthscales[idx + i] = lengthscale
+                self.sds[idx + i] = std
+        else:
+            for i in range(cur_num_harmonics, num_harmonics):
+                self.freqs = np.insert(self.freqs, idx + i, np.float32(mean))
+                self.lengthscales = np.insert(self.lengthscales, idx + i,  np.float32(std))
+                self.sds = np.insert(self.sds, idx + i, np.float32(std))
+
+            for i in reversed(range(num_harmonics, cur_num_harmonics)):
+                self.freqs = np.delete(self.freqs, idx + i)
+                self.lengthscales = np.delete(self.lengthscales, idx + i)
+                self.sds = np.delete(self.sds, idx + i)
+        self.num_kernels_per_spectrum[harmonic_index] = num_harmonics

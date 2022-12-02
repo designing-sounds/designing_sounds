@@ -25,6 +25,7 @@ SQUARE_WAVE = 1
 TRIANGLE_WAVE = 2
 SAWTOOTH_WAVE = 3
 
+
 class RightContentCls(IRightBodyTouch, MDBoxLayout):
     icon = StringProperty()
     text = StringProperty()
@@ -145,8 +146,9 @@ class RootWave(MDBoxLayout):
 
         Window.bind(on_request_close=self.shutdown_audio)
 
-    def update_interpolation_sd(self):
-        self.sound_model.interpolation_sd = self.interpolation_sd.value
+    def update_variance(self):
+        self.sound_model.variance = self.variance.value
+        self.sound_model.update_noise()
         self.update_waveform()
 
     def update_power_spectrum(self) -> None:

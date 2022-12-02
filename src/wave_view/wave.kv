@@ -32,7 +32,7 @@
     add: add_button
     all_power_spectrums: all_power_spectrum_button
     sd: sd
-    interpolation_sd: interpolation_sd
+    variance: variance
     mean: mean
     lengthscale: lengthscale
     num_harmonics: num_harmonics
@@ -224,7 +224,7 @@
                         orientation: 'vertical'
 
                         MDLabel:
-                            text: 'Interpolation Standard Deviation: ' + str(round(float(interpolation_sd.value), 2))
+                            text: 'Interpolation Variance: ' + str(round(float(variance.value), 2))
                             halign: 'center'
                             theme_text_color: 'Primary'
                         MDSlider:
@@ -235,12 +235,12 @@
                             hint_radius: [6, 0, 6, 0]
                             thumb_color_active: style.dark_sky_blue
                             thumb_color_inactive: style.palatinate_purple
-                            id: interpolation_sd
+                            id: variance
                             value: 0
                             min: 0
                             max: 10
                             step: 0.01
-                            on_value: root.update_interpolation_sd()
+                            on_value: root.update_variance()
                             show_off: False
 
                     BoxLayout:

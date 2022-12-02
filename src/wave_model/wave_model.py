@@ -22,7 +22,8 @@ class SoundModel:
         self.prior = PeriodicPrior(100)
         self.x_train = None
         self.y_train = None
-        self.interpolation_sd = 0
+        self.noise = 0
+        self.variance = 0
 
     def get_power_spectrum_histogram(self, idx: int,
                                      samples: int) -> Tuple[
@@ -35,7 +36,7 @@ class SoundModel:
         max_freq = np.max(self.__power_spectrum.freqs[idx:idx + num_kernels])
         for i in range(num_kernels):
             k += self.prior.kernel(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],
-                                       self.__power_spectrum.lengthscales[idx + i])
+                                   self.__power_spectrum.lengthscales[idx + i])
 
         freqs = np.fft.fftfreq(len(x), 1 / samples)
         b = freqs < max_freq * 10
@@ -69,7 +70,7 @@ class SoundModel:
             X, Y = [0], [0]
         self.x_train, self.y_train = np.array(X, dtype=np.float32), np.array(Y, dtype=np.float32)
         try:
-            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.interpolation_sd ** 2 * np.eye(
+            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.variance * np.eye(
                 len(self.x_train)))
         except:
             self.inv = None
@@ -97,9 +98,12 @@ class SoundModel:
     def update_prior(self):
         self.prior.resample()
 
+    def update_noise(self):
+        self.noise = np.random.normal(0, np.sqrt(self.variance))
+
     def update(self, x_test):
-        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (
-                self.y_train - np.random.normal(0, self.interpolation_sd) - self.prior.prior(self.x_train,
+        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.noise
+                                                                          - self.prior.prior(self.x_train,
                                                                                              self.__power_spectrum.freqs,
                                                                                              self.__power_spectrum.sds,
                                                                                              self.__power_spectrum.lengthscales))

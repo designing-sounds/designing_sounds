@@ -74,9 +74,9 @@ class RootWave(MDBoxLayout):
         self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
                                             update_waveform_graph=self.update_waveform_graph, size_hint=(1, 1),
                                             border_color=border_color,
-                                            xmin=0, xmax=self.waveform_duration, ymin=-1.0, ymax=1.0, padding=10,
+                                            xmin=0, xmax=self.waveform_duration, ymin=-8.0, ymax=8.0, padding=10,
                                             draw_border=True, x_grid_label=True, y_grid_label=True, xlabel='Time',
-                                            ylabel='Amplitude', precision="%.5g", x_grid=True, y_grid=True,
+                                            ylabel='Amplitude', precision="%.5g", x_grid=True, y_grid=False,
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max, ymin=0, ymax=20, padding=10,

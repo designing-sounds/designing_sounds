@@ -65,15 +65,12 @@ class SoundModel:
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         self.lock.acquire()
-        X, Y = [x for (x, _) in points], [y for (_, y) in points]
-        if not X:
-            X, Y = [0], [0]
-        self.x_train, self.y_train = np.array(X, dtype=np.float32), np.array(Y, dtype=np.float32)
-        try:
+        self.x_train = np.array([x for (x, _) in points], dtype=np.float32)
+        self.y_train = np.array([y for (_, y) in points], dtype=np.float32)
+        self.inv = None
+        if self.x_train.size != 0:
             self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.variance * np.eye(
                 len(self.x_train)))
-        except:
-            self.inv = None
         self.lock.release()
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float,

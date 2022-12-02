@@ -1,6 +1,6 @@
 import numpy as np
 
-from scipy.special import iv
+from scipy.special import ive
 
 
 class SquaredExpPrior:
@@ -53,7 +53,7 @@ class PeriodicPrior:
                 num = 1
             else:
                 num = 2
-            self.calc[k, :, 0] = sd * np.sqrt(num * iv(k, l) / np.exp(l))
+            self.calc[k, :, 0] = sd * np.sqrt(num * ive(k, l))
 
     def prior(self, x, freqs, sds, lengthscales):
         ds = 2 * np.pi * np.asarray(np.arange(self.d), dtype=np.float32)

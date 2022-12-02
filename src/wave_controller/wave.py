@@ -45,6 +45,7 @@ class RootWave(MDBoxLayout):
         self.clear.bind(on_press=self.press_button_clear)
         self.resample.bind(on_press=self.press_button_resample)
         self.add.bind(on_press=self.press_button_add)
+        self.preset.bind(on_press=self.press_button_preset)
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
         self.power_spectrum_sliders = [self.sd, self.mean, self.lengthscale, self.num_harmonics,
                                        self.decay_function]
@@ -171,6 +172,12 @@ class RootWave(MDBoxLayout):
             self.harmonic_list[self.current_power_spectrum_index] = [self.mean.max // 2, 1, 1, 1, self.decay_function.text]
             self.update_sliders()
             self.update_power_spectrum()
+
+    def press_button_preset(self, _: typing.Any):
+        num_points = 100
+        self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(0, num_points))
+        self.wave_sound.sound_changed()
+        self.update_power_spectrum()
 
     def press_button_all_power_spectrum(self, _: typing.Any) -> None:
         for slider in self.power_spectrum_sliders:

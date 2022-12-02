@@ -101,7 +101,7 @@ class WaveformGraph(Graph):
                 if ellipse:
                     self.__remove_point(ellipse)
                     return True
-
+                return False
             if touch.grab_current is self:
                 radius = self.__point_size / 2
                 for point in self.__selected_points:
@@ -155,7 +155,7 @@ class WaveformGraph(Graph):
         a_x, a_y = self.to_widget(e_x, e_y, relative=True)
         return tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y)))
 
-    def get_selected_points(self) -> typing.List[typing.Tuple[int, int]]:
+    def get_selected_points(self) -> typing.List[typing.Tuple[float, float]]:
         return self.__selected_points
 
     def clear_selected_points(self) -> None:
@@ -261,3 +261,21 @@ class WaveformGraph(Graph):
         if frequency != 0:
             self._period = 1 / frequency
             self.__update_graph_points()
+
+    def get_preset_points(self, type: int, amount: int) -> typing.List[typing.Tuple[float, float]]:
+
+        square_scale = 0.75
+        square_wave = [(float(i), -square_scale) for i in np.linspace(0, self._period / 2, amount, endpoint=False)] \
+                      + [(float(i), square_scale) for i in np.linspace(self._period / 2, self._period, amount)]
+        scale = (2 * np.pi) / self._period
+        amp_scale = 0.5
+        sin_wave = [(float(i), amp_scale * np.sin(i * scale)) for i in np.linspace(0, self._period, amount)]
+        for (i, j) in sin_wave:
+            pos = (i - self.__point_size / 2, j - self.__point_size / 2)
+            color = (0, 0, 1)
+            with self._graph_canvas.canvas:
+                Color(*color, mode='hsv')
+                Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
+
+        self.__selected_points = sin_wave
+        return self.__selected_points

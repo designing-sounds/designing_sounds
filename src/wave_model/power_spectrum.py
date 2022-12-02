@@ -13,19 +13,18 @@ class PowerSpectrum:
                         num_harmonics: int, lengthscale: float) -> None:
         idx = np.sum(self.num_kernels_per_spectrum[:harmonic_index])
         cur_num_harmonics = self.num_kernels_per_spectrum[harmonic_index]
-        if cur_num_harmonics == num_harmonics:
-            for i in range(cur_num_harmonics):
-                self.freqs[idx + i] = mean
-                self.lengthscales[idx + i] = lengthscale
-                self.sds[idx + i] = std
-        else:
-            for i in range(cur_num_harmonics, num_harmonics):
-                self.freqs = np.insert(self.freqs, idx + i, np.float32(mean))
-                self.lengthscales = np.insert(self.lengthscales, idx + i,  np.float32(std))
-                self.sds = np.insert(self.sds, idx + i, np.float32(std))
+        for i in range(cur_num_harmonics, num_harmonics):
+            self.freqs = np.insert(self.freqs, idx + i, np.float32(mean))
+            self.lengthscales = np.insert(self.lengthscales, idx + i,  np.float32(std))
+            self.sds = np.insert(self.sds, idx + i, np.float32(std))
 
-            for i in reversed(range(num_harmonics, cur_num_harmonics)):
-                self.freqs = np.delete(self.freqs, idx + i)
-                self.lengthscales = np.delete(self.lengthscales, idx + i)
-                self.sds = np.delete(self.sds, idx + i)
+        for i in reversed(range(num_harmonics, cur_num_harmonics)):
+            self.freqs = np.delete(self.freqs, idx + i)
+            self.lengthscales = np.delete(self.lengthscales, idx + i)
+            self.sds = np.delete(self.sds, idx + i)
+
+        for i in range(num_harmonics):
+            self.freqs[idx + i] = mean
+            self.lengthscales[idx + i] = lengthscale
+            self.sds[idx + i] = std
         self.num_kernels_per_spectrum[harmonic_index] = num_harmonics

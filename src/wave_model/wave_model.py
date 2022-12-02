@@ -97,6 +97,7 @@ class SoundModel:
 
     def update_prior(self):
         self.prior.resample()
+        self.update_noise()
 
     def update_noise(self):
         self.noise = np.random.normal(0, np.sqrt(self.variance))

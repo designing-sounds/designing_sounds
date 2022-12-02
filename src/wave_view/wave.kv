@@ -1,3 +1,26 @@
+<RightContentCls>
+    disabled: True
+    pos_hint: {"center_y": .5}
+
+    MDIconButton:
+        icon: root.icon
+        md_bg_color_disabled: 0, 0, 0, 0
+
+    MDLabel:
+        text: root.text
+        pos_hint: {"center_y": .5}
+
+
+<Item>
+
+    IconLeftWidget:
+        icon: root.left_icon
+
+    RightContentCls:
+        id: container
+        icon: root.right_icon
+        text: root.right_text
+
 <RootWave>:
     #:import style src.wave_view.style
     resample: resample_button
@@ -14,7 +37,8 @@
     lengthscale: lengthscale
     num_harmonics: num_harmonics
     decay_function: decay_function
-    preset: preset_button
+    preset: preset_mode
+
 
 
     BoxLayout:
@@ -132,15 +156,17 @@
                     size_hint: 1, 1
                     orientation: 'vertical'
 
+
+
                 MDRectangleFlatIconButton:
                     md_bg_color: style.blue_violet
-                    id: preset_button
-                    icon: 'selection-ellipse-remove'
-                    text: 'Preset Square'
                     icon_color: 'white'
                     text_color: 'white'
+                    icon: 'menu-down'
                     line_color: (0, 0, 0, 0)
-                    pos_hint: {"center_x": .5, "center_y": .5}
+                    id: preset_mode
+                    text: "Choose Wave"
+                    on_release: root.open_centred()
 
                 BoxLayout:
                     size_hint: 1, 1

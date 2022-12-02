@@ -3,10 +3,14 @@ import typing
 import numpy as np
 from kivy.core.window import Window
 from kivy.lang import Builder
+
+from kivy.properties import StringProperty
 from kivy_garden.graph import LinePlot, Graph
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
+from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
+from kivymd.uix.menu import MDDropdownMenu
 
 from src.wave_controller.instruments import PianoMIDI
 from src.wave_controller.wave_graph import WaveformGraph
@@ -15,6 +19,21 @@ from src.wave_model.wave_model import SoundModel
 from src.wave_view import style
 
 Builder.load_file('src/wave_view/wave.kv')
+
+SINE_WAVE = 0
+SQUARE_WAVE = 1
+TRIANGLE_WAVE = 2
+SAWTOOTH_WAVE = 3
+
+class RightContentCls(IRightBodyTouch, MDBoxLayout):
+    icon = StringProperty()
+    text = StringProperty()
+
+
+class Item(OneLineAvatarIconListItem):
+    left_icon = StringProperty()
+    right_icon = StringProperty()
+    right_text = StringProperty()
 
 
 class RootWave(MDBoxLayout):
@@ -45,7 +64,7 @@ class RootWave(MDBoxLayout):
         self.clear.bind(on_press=self.press_button_clear)
         self.resample.bind(on_press=self.press_button_resample)
         self.add.bind(on_press=self.press_button_add)
-        self.preset.bind(on_press=self.press_button_preset)
+
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
         self.power_spectrum_sliders = [self.sd, self.mean, self.lengthscale, self.num_harmonics,
                                        self.decay_function]
@@ -83,6 +102,46 @@ class RootWave(MDBoxLayout):
         self.double_tap = False
         self.change_power_spectrum = True
         self.piano = PianoMIDI()
+
+        menu_items = [
+            {
+                "text": "Sine Wave",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "sine-wave",
+                "viewclass": "Item",
+                "on_release": lambda x=True: self.preset_waves(SINE_WAVE),
+            },
+            {
+                "text": "Square Wave",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "square-wave",
+                "viewclass": "Item",
+                "on_release": lambda x=True: self.preset_waves(SQUARE_WAVE),
+            },
+            {
+                "text": "Triangle Wave",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "triangle-wave",
+                "viewclass": "Item",
+                "on_release": lambda x=True: self.preset_waves(TRIANGLE_WAVE),
+            },
+            {
+                "text": "Sawtooth Wave",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "sawtooth-wave",
+                "viewclass": "Item",
+                "on_release": lambda x=True: self.preset_waves(SAWTOOTH_WAVE),
+            }
+        ]
+        self.menu = MDDropdownMenu(
+            caller=self.preset,
+            items=menu_items,
+            width_mult=4,
+        )
 
         Window.bind(on_request_close=self.shutdown_audio)
 
@@ -177,11 +236,11 @@ class RootWave(MDBoxLayout):
             self.update_sliders()
             self.update_power_spectrum()
 
-    def press_button_preset(self, _: typing.Any):
+    def preset_waves(self, x: int):
         num_points = 100
 
         def sin_wave(x, period):
-            amp_scale = 0.5
+            amp_scale = 0.75
             scale = (2 * np.pi)
             return amp_scale * np.sin((scale / period) * x)
 
@@ -190,9 +249,8 @@ class RootWave(MDBoxLayout):
             return -square_scale if x < (period / 2) else square_scale
 
         def triangle_wave(x, period):
-            scale = 2
+            scale = 3
             slope = (scale / period)
-            print(slope)
             scale_factor = scale / 4
             if 0 <= x < period / 4:
                 return slope * x
@@ -200,7 +258,19 @@ class RootWave(MDBoxLayout):
                 return scale_factor * 2 - slope * x
             else:
                 return slope * x - scale_factor * 4
-        self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(triangle_wave, num_points))
+
+        def sawtooth_wave(x, period):
+            scale = 3
+            slope = (scale / period)
+            scale_factor = scale / 4
+            if 0 <= x < period / 4:
+                return slope * x
+            elif period / 4 <= x < 3 * period / 4:
+                return slope * x - scale_factor * 2
+            else:
+                return slope * x - scale_factor * 4
+        waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
+        self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points))
         self.wave_sound.sound_changed()
         self.update_power_spectrum()
 
@@ -283,14 +353,15 @@ class RootWave(MDBoxLayout):
         self.update_sliders()
         self.update_power_spectrum()
 
-    def shutdown_audio(self, _):
+    def shutdown_audio(self, _) -> bool:
         self.wave_sound.shutdown()
         self.piano.shutdown()
         return False
+
+    def open_centred(self) -> None:
+        self.menu.open()
 
 
 class WaveApp(MDApp):
     def build(self) -> RootWave:
         return RootWave()
-
-

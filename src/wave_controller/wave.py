@@ -98,7 +98,7 @@ class RootWave(MDBoxLayout):
         self.power_buttons = []
         self.selected_button_color = style.dark_sky_blue
         self.unselected_button_color = style.blue_violet
-        self.harmonic_list = [[0, 0, 0, 1, "1 / x"]] * self.max_power_spectrums
+        self.harmonic_list = [[0, 0, 0, 1]] * self.max_power_spectrums
         self.press_button_add(None)
         self.double_tap = False
         self.change_power_spectrum = True
@@ -338,7 +338,7 @@ class RootWave(MDBoxLayout):
             self.harmonic_list[i] = self.harmonic_list[i + 1]
 
         # zero fill end of harmonic list to account for removal
-        self.harmonic_list[self.num_power_spectrums - 1] = [0, 0, 0, 1, "1 / x"]
+        self.harmonic_list[self.num_power_spectrums - 1] = [0, 0, 0, 1]
 
         self.sound_model.remove_power_spectrum(self.current_power_spectrum_index)
 

@@ -83,6 +83,7 @@ class RootWave(MDBoxLayout):
         self.double_tap = False
         self.change_power_spectrum = True
         self.piano = PianoMIDI()
+
         Window.bind(on_request_close=self.shutdown_audio)
 
     def update_interpolation_sd(self):
@@ -91,14 +92,16 @@ class RootWave(MDBoxLayout):
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
-            self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value, self.sd.value, int(self.num_harmonics.value), self.lengthscale.value)
+            self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value, self.sd.value,
+                                                   int(self.num_harmonics.value), self.lengthscale.value)
             self.update_power_spectrum_graph()
             self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
 
     def update_power_spectrum_graph(self):
-        self.power_plot.points, xmax, ymax = self.sound_model.get_power_spectrum_histogram(self.current_power_spectrum_index,
-                                                                                           self.power_spectrum_graph_samples)
+        self.power_plot.points, xmax, ymax = self.sound_model.get_power_spectrum_histogram(
+            self.current_power_spectrum_index,
+            self.power_spectrum_graph_samples)
         self.power_spectrum_graph.xmax = float(xmax)
         self.power_spectrum_graph.ymax = float(ymax)
         self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
@@ -169,13 +172,35 @@ class RootWave(MDBoxLayout):
             self.power_buttons.append(button)
             self.ids.power_spectrum_buttons.add_widget(button)
             self.update_display_power_spectrum(self.num_power_spectrums - 1)
-            self.harmonic_list[self.current_power_spectrum_index] = [self.mean.max // 2, 1, 1, 1, self.decay_function.text]
+            self.harmonic_list[self.current_power_spectrum_index] = [self.mean.max // 2, 1, 1, 1,
+                                                                     self.decay_function.text]
             self.update_sliders()
             self.update_power_spectrum()
 
     def press_button_preset(self, _: typing.Any):
         num_points = 100
-        self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(0, num_points))
+
+        def sin_wave(x, period):
+            amp_scale = 0.5
+            scale = (2 * np.pi)
+            return amp_scale * np.sin((scale / period) * x)
+
+        def square_wave(x, period):
+            square_scale = 0.75
+            return -square_scale if x < (period / 2) else square_scale
+
+        def triangle_wave(x, period):
+            scale = 2
+            slope = (scale / period)
+            print(slope)
+            scale_factor = scale / 4
+            if 0 <= x < period / 4:
+                return slope * x
+            elif period / 4 <= x < 3 * period / 4:
+                return scale_factor * 2 - slope * x
+            else:
+                return slope * x - scale_factor * 4
+        self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(triangle_wave, num_points))
         self.wave_sound.sound_changed()
         self.update_power_spectrum()
 
@@ -267,3 +292,5 @@ class RootWave(MDBoxLayout):
 class WaveApp(MDApp):
     def build(self) -> RootWave:
         return RootWave()
+
+

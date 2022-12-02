@@ -14,7 +14,7 @@ class PowerSpectrum:
         idx = np.sum(self.num_kernels_per_spectrum[:harmonic_index])
         cur_num_harmonics = self.num_kernels_per_spectrum[harmonic_index]
         for i in range(cur_num_harmonics, num_harmonics):
-            self.freqs = np.insert(self.freqs, idx + i, np.float32(mean))
+            self.freqs = np.insert(self.freqs, idx + i, np.float32(mean * (i + 1)))
             self.lengthscales = np.insert(self.lengthscales, idx + i,  np.float32(std))
             self.sds = np.insert(self.sds, idx + i, np.float32(std))
 
@@ -24,7 +24,7 @@ class PowerSpectrum:
             self.sds = np.delete(self.sds, idx + i)
 
         for i in range(num_harmonics):
-            self.freqs[idx + i] = mean
+            self.freqs[idx + i] = mean * (i + 1)
             self.lengthscales[idx + i] = lengthscale
             self.sds[idx + i] = std
         self.num_kernels_per_spectrum[harmonic_index] = num_harmonics

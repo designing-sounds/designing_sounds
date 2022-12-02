@@ -28,22 +28,20 @@ class SoundModel:
     def get_power_spectrum_histogram(self, idx: int,
                                      samples: int) -> Tuple[
         List[Tuple[Any, Any]], Union[ndarray, int, float, complex], Union[ndarray, int, float, complex]]:
-        self.lock.acquire()
-        x = np.linspace(0, 1, samples)
-        k = np.zeros(len(x))
-        num_kernels = self.__power_spectrum.num_kernels_per_spectrum[idx]
-        idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:idx])
-        max_freq = np.max(self.__power_spectrum.freqs[idx:idx + num_kernels])
-        for i in range(num_kernels):
-            k += self.prior.kernel(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],
-                                   self.__power_spectrum.lengthscales[idx + i])
+        with self.lock:
+            x = np.linspace(0, 1, samples)
+            k = np.zeros(len(x))
+            num_kernels = self.__power_spectrum.num_kernels_per_spectrum[idx]
+            idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:idx])
+            for i in range(num_kernels):
+                k += self.prior.kernel(x, self.__power_spectrum.freqs[idx + i], self.__power_spectrum.sds[idx + i],
+                                       self.__power_spectrum.lengthscales[idx + i])
 
-        freqs = np.fft.fftfreq(len(x), 1 / samples)
-        b = freqs < max_freq * 10
-        freqs = freqs[b]
-        yf = np.abs(np.fft.fft(k)[1:len(k) // 2])
-        self.lock.release()
-        return list(zip(freqs, yf)), np.max(freqs), np.max(yf)
+            freqs = np.fft.fftfreq(samples, 1 / samples)
+            freqs = [0] + freqs[1:samples // 2]
+            yf = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
+
+        return list(zip(freqs, yf)), np.max(yf)
 
     def remove_power_spectrum(self, index):
         idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:index])
@@ -64,14 +62,16 @@ class SoundModel:
         return list(zip(bin_edges, histogram))
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
-        self.lock.acquire()
-        self.x_train = np.array([x for (x, _) in points], dtype=np.float32)
-        self.y_train = np.array([y for (_, y) in points], dtype=np.float32)
-        self.inv = None
-        if self.x_train.size != 0:
-            self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.variance * np.eye(
-                len(self.x_train)))
-        self.lock.release()
+        with self.lock:
+            self.x_train = np.array([x for (x, _) in points], dtype=np.float32)
+            self.y_train = np.array([y for (_, y) in points], dtype=np.float32)
+            self.inv = None
+            if self.x_train.size != 0:
+                try:
+                    self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.variance * np.eye(len(self.x_train)))
+                except:
+                    pass
+
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float,
                               num_harmonics: int, lengthscale: float) -> None:

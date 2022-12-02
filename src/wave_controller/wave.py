@@ -38,9 +38,8 @@ class Item(OneLineAvatarIconListItem):
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 11000
+    sample_rate = 44100
     graph_sample_rate = 2500
-    power_spectrum_graph_samples = 1000
     waveform_duration = 1
     chunk_duration = 0.1
 
@@ -52,6 +51,7 @@ class RootWave(MDBoxLayout):
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
+        self.power_spectrum_graph_samples = 2 * (self.mean.max * self.max_harmonics + 1000)
         self.num_harmonics.max = self.max_harmonics
         self.max_harmonics = self.num_harmonics.max
         self.sound_model = SoundModel(self.max_power_spectrums, int(self.mean.max), self.max_harmonics)
@@ -78,10 +78,11 @@ class RootWave(MDBoxLayout):
                                             ylabel='Amplitude', precision="%.5g", x_grid=True, y_grid=True,
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
         self.power_spectrum_graph = Graph(border_color=border_color,
-                                          xmin=0, xmax=self.mean.max, ymin=0, ymax=20, padding=10,
-                                          x_grid_label=True, y_grid_label=True, xlabel='Frequency (Hz)',
-                                          ylabel='Samples', x_ticks_major=100, y_ticks_major=10, y_ticks_minor=5,
-                                          tick_color=(1, 0, 0, 0), label_options=dict(color=(0, 0, 0, 1)))
+                                          xmin=0, xmax=self.power_spectrum_graph_samples // 2, ymin=0, ymax=20,
+                                          padding=10, x_grid_label=True, y_grid_label=True, xlabel='Frequency (Hz)',
+                                          ylabel='Samples', x_ticks_major=self.power_spectrum_graph_samples // 20,
+                                          y_ticks_major=10, y_ticks_minor=5, tick_color=(1, 0, 0, 0),
+                                          label_options=dict(color=(0, 0, 0, 1)))
 
         self.ids.modulation.add_widget(self.waveform_graph)
         self.ids.power_spectrum.add_widget(self.power_spectrum_graph)
@@ -159,12 +160,10 @@ class RootWave(MDBoxLayout):
             self.waveform_graph.set_period(self.mean.value)
 
     def update_power_spectrum_graph(self):
-        self.power_plot.points, xmax, ymax = self.sound_model.get_power_spectrum_histogram(
+        self.power_plot.points, ymax = self.sound_model.get_power_spectrum_histogram(
             self.current_power_spectrum_index,
             self.power_spectrum_graph_samples)
-        self.power_spectrum_graph.xmax = float(xmax)
         self.power_spectrum_graph.ymax = float(ymax)
-        self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
         self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
     def update_waveform(self) -> None:

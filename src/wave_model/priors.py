@@ -26,10 +26,10 @@ class Prior:
         x = x1[:, None] - x2
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = self.kernel(x, 0, sds[i], lengthscales[i])
+            temp[i] = self.kernel(x, freq, sds[i], lengthscales[i])
         return np.exp(-0.5 * temp)
 
-    def kernel(self, x, _, sd, l):
+    def kernel(self, x, freq, sd, l):
         return None
 
 
@@ -57,26 +57,26 @@ class SquaredExpPrior(Prior):
 
 class PeriodicPrior(Prior):
     def __init__(self, d):
-        Prior.__init__(self, d // 2)
+        Prior.__init__(self, d)
         self.calc = None
-        self.ds = 2 * np.pi * np.arange(self.d, dtype=np.float32)
+        self.ds = 2 * np.pi * np.arange(self.d // 2, dtype=np.float32)
 
     def update(self, lengthscale, sd):
-        self.calc = np.zeros((sd.size, 1,  2 * self.d), dtype=np.float32)
+        self.calc = np.zeros((sd.size, 1, self.d), dtype=np.float32)
         l = np.power(lengthscale, -2)
-        for k in range(self.d):
+        for k in range(self.d // 2):
             if self.d == 0:
                 num = 1
             else:
                 num = 2
             self.calc[:, 0, k] = sd * np.sqrt(num * ive(k, l))
-        self.calc[:, :, self.d:] = self.calc[:, :, :self.d]
+        self.calc[:, :, self.d // 2:] = self.calc[:, :, :self.d // 2]
 
     def z(self, x, freqs, sds, lengthscales):
         vals = freqs[:, None, None] * (x[:, None] @ self.ds[None, :])
-        residue = np.empty((freqs.size, x.size, self.d * 2), dtype=np.float32)
-        residue[:, :, :self.d] = np.cos(vals)
-        residue[:, :, self.d:] = np.sin(vals)
+        residue = np.empty((freqs.size, x.size, self.d), dtype=np.float32)
+        residue[:, :, :self.d // 2] = np.cos(vals)
+        residue[:, :, self.d // 2:] = np.sin(vals)
         return residue * self.calc
 
     def kernel(self, x, freq, sd, l):

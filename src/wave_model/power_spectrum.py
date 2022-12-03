@@ -1,8 +1,10 @@
 import numpy as np
 
+from src.wave_model.priors import Prior
+
 
 class PowerSpectrum:
-    def __init__(self, max_power_spectrum: int, max_harmonics: int, prior):
+    def __init__(self, max_power_spectrum: int, max_harmonics: int, prior: Prior):
         self.max_harmonics = max_harmonics
         self.freqs = np.empty(0, dtype=np.float32)
         self.lengthscales = np.empty(0, dtype=np.float32)

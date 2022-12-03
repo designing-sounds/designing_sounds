@@ -25,8 +25,7 @@ class SoundModel:
         self.noise = 0
         self.variance = 0
 
-    def get_power_spectrum_histogram(self, idx: int,
-                                     samples: int) -> Tuple[
+    def get_power_spectrum_histogram(self, idx: int, samples: int) -> Tuple[
         List[Tuple[Any, Any]], Union[ndarray, int, float, complex], Union[ndarray, int, float, complex]]:
         with self.lock:
             x = np.linspace(0, 1, samples)
@@ -52,14 +51,19 @@ class SoundModel:
         self.__power_spectrum.sds = np.delete(self.__power_spectrum.sds, indices)
         self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
 
-    def get_sum_all_power_spectrum_histogram(self) -> typing.List[typing.Tuple[float, float]]:
-        self.lock.acquire()
-        freqs = self.__power_spectrum.freqs.flatten()
-        freqs = freqs[np.nonzero(freqs)]
-        max_range = max(1000, freqs.max() + 100) if len(freqs) > 0 else 1000
-        histogram, bin_edges = np.histogram(freqs, self.max_freq // 2, range=(0.1, max_range))
-        self.lock.release()
-        return list(zip(bin_edges, histogram))
+    def get_sum_all_power_spectrum_histogram(self, samples: int) -> typing.List[typing.Tuple[float, float]]:
+        with self.lock:
+            x = np.linspace(0, 1, samples)
+            k = np.zeros(len(x))
+            for i in range(len(self.__power_spectrum.freqs)):
+                k += self.prior.kernel(x, self.__power_spectrum.freqs[i], self.__power_spectrum.sds[i],
+                                       self.__power_spectrum.lengthscales[i])
+
+            freqs = np.fft.fftfreq(samples, 1 / samples)
+            freqs = [0] + freqs[1:samples // 2]
+            yf = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
+
+        return list(zip(freqs, yf)), np.max(yf)
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         with self.lock:

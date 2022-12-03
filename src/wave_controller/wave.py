@@ -278,10 +278,8 @@ class RootWave(MDBoxLayout):
             slider.disabled = True
         self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.unselected_button_color
         self.all_power_spectrums.md_bg_color = self.selected_button_color
-        self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()
-        self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
-        self.power_spectrum_graph.xmax = max(int(max(self.power_plot.points, key=lambda x: x[0])[0]), 1000)
-        self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
+        self.power_plot.points, y_max = self.sound_model.get_sum_all_power_spectrum_histogram(self.power_spectrum_graph_samples)
+        self.power_spectrum_graph.ymax = max(int(y_max), 1)
         self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
     def update_display_power_spectrum(self, harmonic_index: int):

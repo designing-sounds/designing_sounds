@@ -19,19 +19,16 @@ class PowerSpectrum:
             self.freqs = np.insert(self.freqs, idx + i, np.float32(mean * (i + 1)))
             self.lengthscales = np.insert(self.lengthscales, idx + i,  np.float32(std))
             self.sds = np.insert(self.sds, idx + i, np.float32(std))
-            if self.prior.cos_weights is None:
-                self.prior.cos_weights = np.asarray(np.random.randn(1, d), dtype=np.float32)
-                self.prior.sin_weights = np.asarray(np.random.randn(1, d), dtype=np.float32)
+            if self.prior.weights is None:
+                self.prior.weights = np.asarray(np.random.randn(1, d), dtype=np.float32)
             else:
-                self.prior.cos_weights = np.insert(self.prior.cos_weights, idx + i, np.random.randn(d), axis=0)
-                self.prior.sin_weights = np.insert(self.prior.sin_weights, idx + i, np.random.randn(d), axis=0)
+                self.prior.weights = np.insert(self.prior.weights, idx + i, np.random.randn(d), axis=0)
 
         for i in reversed(range(num_harmonics, cur_num_harmonics)):
             self.freqs = np.delete(self.freqs, idx + i)
             self.lengthscales = np.delete(self.lengthscales, idx + i)
             self.sds = np.delete(self.sds, idx + i)
-            self.prior.cos_weights = np.delete(self.prior.cos_weights, idx + i, axis=0)
-            self.prior.sin_weights = np.delete(self.prior.sin_weights, idx + i, axis=0)
+            self.prior.weights = np.delete(self.prior.weights, idx + i, axis=0)
 
         for i in range(num_harmonics):
             self.freqs[idx + i] = mean * (i + 1)

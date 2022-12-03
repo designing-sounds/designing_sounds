@@ -7,21 +7,23 @@ class SquaredExpPrior:
     def __init__(self, d: int):
         self.w = np.asarray(np.random.randn(d), dtype=np.float32)
         self.b = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
-        self.weights = np.asarray(np.random.randn(d), dtype=np.float32)
+        self.weights = None
         self.d = d
 
     def update(self, a, b):
         pass
 
     def resample(self):
-        self.weights = np.asarray(np.random.randn(self.d), dtype=np.float32)
+        self.weights = np.asarray(np.random.randn(*self.weights.shape), dtype=np.float32)
+        self.w = np.asarray(np.random.randn(self.d), dtype=np.float32)
+        self.b = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
 
     def z(self, x, sds, lengthscales):
         return sds[:, None, None] * np.sqrt(2 / len(self.w)) * np.cos(
             ((1 / lengthscales)[:, None, None] * (x[:, None] @ self.w[None, :])[None, :, :]) + self.b)
 
     def prior(self, x, _, sds, lengthscales):
-        return np.sum(self.z(x, sds, lengthscales), axis=0) @ self.weights
+        return np.sum((self.z(x, sds, lengthscales) @ self.weights[:, :, None])[:, :, 0], axis=0)
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
         x = x1[:, None] - x2
@@ -36,18 +38,17 @@ class SquaredExpPrior:
 
 class PeriodicPrior:
     def __init__(self, d: int):
-        self.d = d
-        self.cos_weights = None
+        self.d = d // 2
+        self.weights = None
         self.sin_weights = None
-        self.calc = np.zeros((self.d, 1, 1), dtype=np.float32)
+        self.calc = None
         self.ds = 2 * np.pi * np.arange(self.d, dtype=np.float32)
 
     def resample(self):
-        self.cos_weights = np.asarray(np.random.randn(*self.cos_weights.shape), dtype=np.float32)
-        self.sin_weights = np.asarray(np.random.randn(*self.sin_weights.shape), dtype=np.float32)
+        self.weights = np.asarray(np.random.randn(*self.weights.shape), dtype=np.float32)
 
     def update(self, lengthscale, sd):
-        self.calc = np.zeros((sd.size, 1, self.d), dtype=np.float32)
+        self.calc = np.zeros((sd.size, 1,  2 * self.d), dtype=np.float32)
         l = np.power(lengthscale, -2)
         for k in range(self.d):
             if self.d == 0:
@@ -55,10 +56,17 @@ class PeriodicPrior:
             else:
                 num = 2
             self.calc[:, 0, k] = sd * np.sqrt(num * ive(k, l))
+        self.calc[:, :, self.d:] = self.calc[:, :, :self.d]
+
+    def z(self, x, freqs, sds, lengthscales):
+        vals = freqs[:, None, None] * (x[:, None] @ self.ds[None, :])
+        residue = np.empty((freqs.size, x.size, self.d * 2), dtype=np.float32)
+        residue[:, :, :self.d] = np.cos(vals)
+        residue[:, :, self.d:] = np.sin(vals)
+        return residue * self.calc
 
     def prior(self, x, freqs, sds, lengthscales):
-        vals = freqs[:, None, None] * (x[:, None] @ self.ds[None, :])
-        return np.sum(((np.cos(vals) * self.calc) @ self.cos_weights[:, :, None] + ((np.sin(vals) * self.calc) @ self.sin_weights[:, :, None]))[:, :, 0], axis=0)
+        return np.sum((self.z(x, freqs, sds, lengthscales) @ self.weights[:, :, None])[:, :, 0], axis=0)
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
         x = x1[:, None] - x2
@@ -69,6 +77,7 @@ class PeriodicPrior:
 
     def kernel(self, x, freq, sd, l):
         return squared_exponential(2 * np.sin(np.pi * x * freq), sd, l)
+
 
 class MultPrior:
     def __init__(self, d: int):
@@ -83,8 +92,11 @@ class MultPrior:
     def update(self, lengthscale, sd):
         self.periodic.update(lengthscale, sd)
 
+    def z(self, x, freqs, sds, lengthscales):
+        return self.self.periodic.z(x, freqs, sds, lengthscales) * self.squared.z(x, freqs, sds, lengthscales)
+
     def prior(self, x, freqs, sds, lengthscales):
-        return self.periodic.prior(x, freqs, sds, lengthscales) * self.squared.prior(x, freqs, sds, lengthscales)
+        return np.sum((self.z(x, freqs, sds, lengthscales) @ self.weights[:, :, None])[:, :, 0], axis=0)
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
         x = x1[:, None] - x2

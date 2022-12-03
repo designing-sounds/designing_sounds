@@ -17,7 +17,7 @@ class SoundModel:
         self.max_freq = max_freq
         self.max_power_spectrum = max_power_spectrums
         self.max_harmonics = max_harmonics
-        self.prior = SquaredExpPrior(50)
+        self.prior = MultPrior(50)
         self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics, self.prior)
         self.lock = threading.Lock()
         self.x_train = None
@@ -75,7 +75,6 @@ class SoundModel:
                     self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.variance * np.eye(len(self.x_train)))
                 except:
                     pass
-
 
     def update_power_spectrum(self, harmonic_index: int, mean: int, std: float,
                               num_harmonics: int, lengthscale: float) -> None:

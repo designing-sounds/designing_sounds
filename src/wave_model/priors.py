@@ -37,29 +37,28 @@ class SquaredExpPrior:
 class PeriodicPrior:
     def __init__(self, d: int):
         self.d = d
-        self.cos_weights = np.asarray(np.random.randn(d), dtype=np.float32)
-        self.sin_weights = np.asarray(np.random.randn(d), dtype=np.float32)
+        self.cos_weights = None
+        self.sin_weights = None
         self.calc = np.zeros((self.d, 1, 1), dtype=np.float32)
+        self.ds = 2 * np.pi * np.arange(self.d, dtype=np.float32)
 
     def resample(self):
-        self.cos_weights = np.asarray(np.random.randn(self.d), dtype=np.float32)
-        self.sin_weights = np.asarray(np.random.randn(self.d), dtype=np.float32)
+        self.cos_weights = np.asarray(np.random.randn(*self.cos_weights.shape), dtype=np.float32)
+        self.sin_weights = np.asarray(np.random.randn(*self.sin_weights.shape), dtype=np.float32)
 
     def update(self, lengthscale, sd):
-        self.calc = np.zeros((self.d, sd.size, 1), dtype=np.float32)
+        self.calc = np.zeros((sd.size, 1, self.d), dtype=np.float32)
         l = np.power(lengthscale, -2)
         for k in range(self.d):
             if self.d == 0:
                 num = 1
             else:
                 num = 2
-            self.calc[k, :, 0] = sd * np.sqrt(num * ive(k, l))
+            self.calc[:, 0, k] = sd * np.sqrt(num * ive(k, l))
 
     def prior(self, x, freqs, sds, lengthscales):
-        ds = 2 * np.pi * np.asarray(np.arange(self.d), dtype=np.float32)
-        vals = ds[:, None, None] * (x[:, None] @ freqs[None, :])[None, :, :]
-        return (np.cos(vals) @ self.calc)[:, :, 0].T @ self.cos_weights + (np.sin(vals) @ self.calc)[:, :,
-                                                                          0].T @ self.sin_weights
+        vals = freqs[:, None, None] * (x[:, None] @ self.ds[None, :])
+        return np.sum(((np.cos(vals) * self.calc) @ self.cos_weights[:, :, None] + ((np.sin(vals) * self.calc) @ self.sin_weights[:, :, None]))[:, :, 0], axis=0)
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
         x = x1[:, None] - x2

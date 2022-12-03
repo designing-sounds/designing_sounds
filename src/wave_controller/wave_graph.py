@@ -9,8 +9,6 @@ from kivy_garden.graph import Graph
 
 import numpy as np
 
-POINT_IMAGE = 'media/20221028_144310.jpg'
-
 SCROLL_RIGHT = 'scrollright'
 
 SCROLL_LEFT = 'scrollleft'
@@ -85,7 +83,7 @@ class WaveformGraph(Graph):
 
                 with self._graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
+                    Ellipse(pos=pos, size=(self.__point_size, self.__point_size))
 
                 self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
                 self._update_waveform_func()
@@ -184,7 +182,7 @@ class WaveformGraph(Graph):
                 pos = (new_x - self.__point_size / 2, new_y - self.__point_size / 2)
                 with self._graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(source=POINT_IMAGE, pos=pos,
+                    Ellipse(pos=pos,
                             size=(self.__point_size, self.__point_size))
         if self.xmax - self.xmin < self._period * 15:
             self.x_grid = False
@@ -270,7 +268,7 @@ class WaveformGraph(Graph):
             color = (0, 0, 1)
             with self._graph_canvas.canvas:
                 Color(*color, mode='hsv')
-                Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
+                Ellipse(pos=pos, size=(self.__point_size, self.__point_size))
 
         self.__selected_points = preset_wave
         return self.__selected_points

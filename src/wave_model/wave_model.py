@@ -17,9 +17,9 @@ class SoundModel:
         self.max_freq = max_freq
         self.max_power_spectrum = max_power_spectrums
         self.max_harmonics = max_harmonics
-        self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics)
-        self.lock = threading.Lock()
         self.prior = PeriodicPrior(100)
+        self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics, self.prior)
+        self.lock = threading.Lock()
         self.x_train = None
         self.y_train = None
         self.noise = 0

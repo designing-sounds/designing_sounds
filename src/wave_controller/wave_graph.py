@@ -6,7 +6,7 @@ from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.uix.boxlayout import BoxLayout
 from kivy.input.motionevent import MotionEvent
 from kivy_garden.graph import Graph
-
+from src.wave_view import style
 import numpy as np
 
 SCROLL_RIGHT = 'scrollright'
@@ -77,13 +77,13 @@ class WaveformGraph(Graph):
                 return True
 
             if not self._eraser_mode:
-                color = (0, 0, 1)
+                color = (1, 0, 0)
 
                 pos = (touch.x - self.__point_size / 2, touch.y - self.__point_size / 2)
 
                 with self._graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(pos=pos, size=(self.__point_size, self.__point_size))
+                    Ellipse(color=style.blue_violet, pos=pos, size=(self.__point_size, self.__point_size))
 
                 self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
                 self._update_waveform_func()
@@ -178,11 +178,11 @@ class WaveformGraph(Graph):
         for x, y in self.__selected_points:
             if self.xmin <= x <= self.xmax:
                 new_x, new_y = self.__to_pixels((x, y))
-                color = (0, 0, 1)
+                color = (1, 0, 0)
                 pos = (new_x - self.__point_size / 2, new_y - self.__point_size / 2)
                 with self._graph_canvas.canvas:
                     Color(*color, mode='hsv')
-                    Ellipse(pos=pos,
+                    Ellipse(color=style.blue_violet, pos=pos,
                             size=(self.__point_size, self.__point_size))
         if self.xmax - self.xmin < self._period * 15:
             self.x_grid = False
@@ -265,7 +265,7 @@ class WaveformGraph(Graph):
         preset_wave = [(float(i), preset_func(i, self._period)) for i in np.linspace(0, self._period, amount)]
         for (i, j) in preset_wave:
             pos = (i - self.__point_size / 2, j - self.__point_size / 2)
-            color = (0, 0, 1)
+            color = (1, 0, 0)
             with self._graph_canvas.canvas:
                 Color(*color, mode='hsv')
                 Ellipse(pos=pos, size=(self.__point_size, self.__point_size))

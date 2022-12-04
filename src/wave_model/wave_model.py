@@ -87,7 +87,6 @@ class SoundModel:
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]
             yf = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
-            print(yf)
         return list(zip(freqs, yf))
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:

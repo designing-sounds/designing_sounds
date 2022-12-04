@@ -190,8 +190,9 @@ class RootWave(MDBoxLayout):
         duration = int(sample_rate * (x_max - x_min) / self.graph_sample_rate)
         start_index = int(sample_rate * x_min)
         finish_index = int(sample_rate * x_max)
+        print(start_index, finish_index, duration)
         self.load_sound_plot.points = list(
-            zip(np.linspace(x_min, x_max, self.graph_sample_rate), data[start_index:finish_index:duration]))
+            zip(np.linspace(x_min, x_max, finish_index - start_index), data[start_index:finish_index]))
 
     def update_waveform_graph(self) -> None:
         x_min = self.waveform_graph.xmin

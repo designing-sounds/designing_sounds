@@ -393,10 +393,9 @@ class RootWave(MDBoxLayout):
         self.menu.open()
 
     def file_manager_open(self) -> None:
-        if not self.file_manager:
-            self.file_manager = MDFileManager(
-                exit_manager=self.exit_manager, select_path=self.select_path)
-            self.file_manager.show('/')  # output manager to the screen
+        self.file_manager = MDFileManager(
+            exit_manager=self.exit_manager, select_path=self.select_path)
+        self.file_manager.show('/')  # output manager to the screen
 
     def select_path(self, path: str) -> None:
         try:

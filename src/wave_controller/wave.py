@@ -239,7 +239,7 @@ class RootWave(MDBoxLayout):
                 self.show_loaded.text = "Hide Loaded Sound"
                 _, data = self.loaded_file
                 self.update_loaded_sound_graph()
-                self.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
+                self.sound_power_plot.points = self.sound_model.get_power_spectrum(data, self.power_spectrum_graph_samples)
                 self.show_loaded.md_bg_color = style.dark_sky_blue
 
     def press_button_back(self, _: typing.Any) -> None:
@@ -411,13 +411,12 @@ class RootWave(MDBoxLayout):
     def select_path(self, path: str) -> None:
 
         try:
-            print(path)
             self.loaded_file = wavfile.read(path)
             data = self.loaded_file[1]
             self.is_showing = True
             self.show_loaded.disabled = False
-            self.loaded_file = (self.loaded_file[0], data.flatten() / max(data.max(), data.min(), key=abs))
-            self.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
+            self.loaded_file = (self.loaded_file[0], np.sum(data, axis=1) / max(data.max(), data.min(), key=abs))
+            self.sound_power_plot.points = self.sound_model.get_power_spectrum(data, self.power_spectrum_graph_samples)
             self.update_loaded_sound_graph()
             self.exit_manager()
             toast("File Loaded Successfully")

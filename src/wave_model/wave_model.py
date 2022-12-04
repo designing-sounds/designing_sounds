@@ -83,15 +83,12 @@ class SoundModel:
             self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonics, lengthscale)
             self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
 
-    def get_power_spectrum(self, sound):
-        samples = sound.size
-        self.lock.acquire()
-        x = np.linspace(0, 1, samples)
-        k = sound
-        freqs = np.fft.fftfreq(len(x), 1 / samples)
-        freqs = freqs[1:len(k) // 2]
-        yf = np.abs(np.fft.fft(k)[1:len(k) // 2])
-        self.lock.release()
+    def get_power_spectrum(self, sound, samples: int):
+        with self.lock:
+            k = sound[::sound.size // samples]
+            freqs = np.fft.fftfreq(samples, 1 / samples)
+            freqs = [0] + freqs[1:samples // 2]
+            yf = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
         return list(zip(freqs, yf))
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:

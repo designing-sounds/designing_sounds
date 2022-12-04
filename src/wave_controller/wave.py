@@ -300,15 +300,7 @@ class RootWave(MDBoxLayout):
                 return slope * x - scale_factor * 4
 
         def sawtooth_wave(x, period):
-            scale = 3
-            slope = (scale / period)
-            scale_factor = scale / 4
-            if 0 <= x < period / 4:
-                return slope * x
-            elif period / 4 <= x < 3 * period / 4:
-                return slope * x - scale_factor * 2
-            else:
-                return slope * x - scale_factor * 4
+            return 3 / 2 / period* x - 3 / 4
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points))
@@ -415,6 +407,14 @@ class RootWave(MDBoxLayout):
             self.show_loaded.disabled = False
             self.loaded_file = (self.loaded_file[0], data)
             self.sound_power_plot.points = self.sound_model.get_power_spectrum(data, self.power_spectrum_graph_samples)
+            step = data.size//500
+            y = data[:self.sample_rate//4:step]
+            points = [(float(i) * step / 44100, y[i]) for i in np.arange(y.size)]
+            self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
+            self.wave_sound.sound_changed()
+            self.update_power_spectrum()
+
+
             self.update_loaded_sound_graph()
             self.exit_manager()
             toast("File Loaded Successfully")

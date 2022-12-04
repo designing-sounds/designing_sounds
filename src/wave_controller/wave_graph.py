@@ -272,3 +272,15 @@ class WaveformGraph(Graph):
 
         self.__selected_points = preset_wave
         return self.__selected_points
+
+    def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
+
+        for (i, j) in points:
+            pos = (i - self.__point_size / 2, j - self.__point_size / 2)
+            color = (1, 0, 0)
+            with self._graph_canvas.canvas:
+                Color(*color, mode='hsv')
+                Ellipse(pos=pos, size=(self.__point_size, self.__point_size))
+
+        self.__selected_points = points
+        return self.__selected_points

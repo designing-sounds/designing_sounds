@@ -98,8 +98,8 @@ class RootWave(MDBoxLayout):
 
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
         self.power_plot = LinePlot(color=plot_color)
-        self.load_sound_plot = LinePlot(color=style.raisin_black, line_width=1)
-        self.sound_power_plot = LinePlot(color=plot_color)
+        self.load_sound_plot = LinePlot(color=style.red, line_width=1)
+        self.sound_power_plot = LinePlot(color=style.red)
 
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
@@ -186,11 +186,8 @@ class RootWave(MDBoxLayout):
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         sample_rate, data = self.loaded_file
-
-        duration = int(sample_rate * (x_max - x_min) / self.graph_sample_rate)
         start_index = int(sample_rate * x_min)
         finish_index = int(sample_rate * x_max)
-        print(start_index, finish_index, duration)
         self.load_sound_plot.points = list(
             zip(np.linspace(x_min, x_max, finish_index - start_index), data[start_index:finish_index]))
 
@@ -410,13 +407,13 @@ class RootWave(MDBoxLayout):
             self.file_manager.show('/')  # output manager to the screen
 
     def select_path(self, path: str) -> None:
-
         try:
             self.loaded_file = wavfile.read(path)
-            data = self.loaded_file[1]
+            data = np.sum(self.loaded_file[1], axis=1)
+            data = data / max(data.max(), data.min(), key=abs)
             self.is_showing = True
             self.show_loaded.disabled = False
-            self.loaded_file = (self.loaded_file[0], np.sum(data, axis=1) / max(data.max(), data.min(), key=abs))
+            self.loaded_file = (self.loaded_file[0], data)
             self.sound_power_plot.points = self.sound_model.get_power_spectrum(data, self.power_spectrum_graph_samples)
             self.update_loaded_sound_graph()
             self.exit_manager()

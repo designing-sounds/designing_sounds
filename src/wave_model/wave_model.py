@@ -17,7 +17,7 @@ class SoundModel:
         self.max_freq = max_freq
         self.max_power_spectrum = max_power_spectrums
         self.max_harmonics = max_harmonics
-        self.prior = PeriodicPrior(50)
+        self.prior = MultPrior(50)
         self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics, self.prior)
         self.lock = threading.Lock()
         self.x_train = None
@@ -43,12 +43,9 @@ class SoundModel:
         return list(zip(freqs, yf)), np.max(yf)
 
     def remove_power_spectrum(self, index):
-        idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:index])
         num_kernels = self.__power_spectrum.num_kernels_per_spectrum[index]
-        indices = np.arange(idx, idx + num_kernels)
-        self.__power_spectrum.freqs = np.delete(self.__power_spectrum.freqs, indices)
-        self.__power_spectrum.lengthscales = np.delete(self.__power_spectrum.lengthscales, indices)
-        self.__power_spectrum.sds = np.delete(self.__power_spectrum.sds, indices)
+        self.__power_spectrum.delete_harmonics(index, 0, num_kernels)
+        self.__power_spectrum.num_kernels_per_spectrum[index] = 0
         self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
 
     def get_sum_all_power_spectrum_histogram(self, samples: int) -> typing.List[typing.Tuple[float, float]]:
@@ -85,10 +82,12 @@ class SoundModel:
 
     def get_power_spectrum(self, sound, samples: int):
         with self.lock:
-            k = sound[::sound.size // samples]
+            k = sound
+            samples = k.size
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]
             yf = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
+            print(yf)
         return list(zip(freqs, yf))
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:

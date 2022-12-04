@@ -26,14 +26,19 @@ class PowerSpectrum:
             else:
                 self.prior.weights = np.insert(self.prior.weights, idx + i, np.random.randn(d), axis=0)
 
-        for i in reversed(range(num_harmonics, cur_num_harmonics)):
-            self.freqs = np.delete(self.freqs, idx + i)
-            self.lengthscales = np.delete(self.lengthscales, idx + i)
-            self.sds = np.delete(self.sds, idx + i)
-            self.prior.weights = np.delete(self.prior.weights, idx + i, axis=0)
+        self.delete_harmonics(harmonic_index, num_harmonics, cur_num_harmonics)
 
         for i in range(num_harmonics):
             self.freqs[idx + i] = mean * (i + 1)
             self.lengthscales[idx + i] = lengthscale
             self.sds[idx + i] = std
         self.num_kernels_per_spectrum[harmonic_index] = num_harmonics
+
+    def delete_harmonics(self, power_spec_idx: int, first_harmonic: int, last_harmonic: int):
+        idx = np.sum(self.num_kernels_per_spectrum[:power_spec_idx])
+        for i in reversed(range(first_harmonic, last_harmonic)):
+            self.freqs = np.delete(self.freqs, idx + i)
+            self.lengthscales = np.delete(self.lengthscales, idx + i)
+            self.sds = np.delete(self.sds, idx + i)
+            self.prior.weights = np.delete(self.prior.weights, idx + i, axis=0)
+        self.num_kernels_per_spectrum[power_spec_idx] = first_harmonic

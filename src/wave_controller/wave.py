@@ -7,10 +7,13 @@ from kivy.lang import Builder
 from kivy.properties import StringProperty
 from kivy_garden.graph import LinePlot, Graph
 from kivymd.app import MDApp
+from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRectangleFlatButton
+from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
 from kivymd.uix.menu import MDDropdownMenu
+from scipy.io import wavfile
 
 from src.wave_controller.instruments import PianoMIDI
 from src.wave_controller.wave_graph import WaveformGraph
@@ -51,6 +54,8 @@ class RootWave(MDBoxLayout):
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
+        self.file_manager = None
+        self.loaded_file = None
         self.power_spectrum_graph_samples = 2 * (self.mean.max * self.max_harmonics + 1000)
         self.num_harmonics.max = self.max_harmonics
         self.max_harmonics = self.num_harmonics.max
@@ -91,9 +96,13 @@ class RootWave(MDBoxLayout):
 
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
         self.power_plot = LinePlot(color=plot_color)
+        self.load_sound_plot = LinePlot(color=style.raisin_black, line_width=1)
+        self.sound_power_plot = LinePlot(color=plot_color)
 
         self.waveform_graph.add_plot(self.wave_plot)
         self.power_spectrum_graph.add_plot(self.power_plot)
+        self.waveform_graph.add_plot(self.load_sound_plot)
+        self.power_spectrum_graph.add_plot(self.sound_power_plot)
 
         self.power_buttons = []
         self.selected_button_color = style.dark_sky_blue
@@ -170,6 +179,19 @@ class RootWave(MDBoxLayout):
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
         self.wave_sound.sound_changed()
         self.update_waveform_graph()
+        if self.loaded_file:
+            self.update_loaded_sound_graph()
+
+    def update_loaded_sound_graph(self) -> None:
+        x_min = self.waveform_graph.xmin
+        x_max = self.waveform_graph.xmax
+        sample_rate, data = self.loaded_file
+
+        duration = int(sample_rate * (x_max - x_min) / self.graph_sample_rate)
+        start_index = int(sample_rate * x_min)
+        finish_index = int(sample_rate * x_max)
+        self.load_sound_plot.points = list(
+            zip(np.linspace(x_min, x_max, self.graph_sample_rate), data[start_index:finish_index:duration]))
 
     def update_waveform_graph(self) -> None:
         x_min = self.waveform_graph.xmin
@@ -268,6 +290,7 @@ class RootWave(MDBoxLayout):
                 return slope * x - scale_factor * 2
             else:
                 return slope * x - scale_factor * 4
+
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points))
         self.wave_sound.sound_changed()
@@ -278,7 +301,8 @@ class RootWave(MDBoxLayout):
             slider.disabled = True
         self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.unselected_button_color
         self.all_power_spectrums.md_bg_color = self.selected_button_color
-        self.power_plot.points, y_max = self.sound_model.get_sum_all_power_spectrum_histogram(self.power_spectrum_graph_samples)
+        self.power_plot.points, y_max = self.sound_model.get_sum_all_power_spectrum_histogram(
+            self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = max(int(y_max), 1)
         self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
@@ -356,6 +380,28 @@ class RootWave(MDBoxLayout):
 
     def open_centred(self) -> None:
         self.menu.open()
+
+    def file_manager_open(self):
+        if not self.file_manager:
+            self.file_manager = MDFileManager(
+                exit_manager=self.exit_manager, select_path=self.select_path)
+            self.file_manager.show('/Users/dcupe/PycharmProjects/')  # output manager to the screen
+
+    def select_path(self, path: str):
+
+        try:
+            print(path)
+            self.loaded_file = wavfile.read(path)
+            data = self.loaded_file[1]
+            self.loaded_file = (self.loaded_file[0], data.flatten() / max(data.max(), data.min(), key=abs))
+            self.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
+            self.update_loaded_sound_graph()
+            self.exit_manager()
+        except ValueError:
+            toast("Not a valid file")
+
+    def exit_manager(self, *args):
+        self.file_manager.close()
 
 
 class WaveApp(MDApp):

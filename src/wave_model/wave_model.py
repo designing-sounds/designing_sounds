@@ -72,7 +72,8 @@ class SoundModel:
             self.inv = None
             if self.x_train.size != 0:
                 try:
-                    self.inv = inv(self.matrix_covariance(self.x_train, self.x_train) + self.variance * np.eye(len(self.x_train)))
+                    self.inv = inv(
+                        self.matrix_covariance(self.x_train, self.x_train) + self.variance * np.eye(len(self.x_train)))
                 except:
                     pass
 
@@ -81,6 +82,17 @@ class SoundModel:
         with self.lock:
             self.__power_spectrum.update_harmonic(harmonic_index, mean, std, num_harmonics, lengthscale)
             self.prior.update(self.__power_spectrum.lengthscales, self.__power_spectrum.sds)
+
+    def get_power_spectrum(self, sound):
+        samples = sound.size
+        self.lock.acquire()
+        x = np.linspace(0, 1, samples)
+        k = sound
+        freqs = np.fft.fftfreq(len(x), 1 / samples)
+        freqs = freqs[1:len(k) // 2]
+        yf = np.abs(np.fft.fft(k)[1:len(k) // 2])
+        self.lock.release()
+        return list(zip(freqs, yf))
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,

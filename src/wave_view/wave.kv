@@ -37,6 +37,7 @@
     lengthscale: lengthscale
     num_harmonics: num_harmonics
     preset: preset_mode
+    show_loaded: show_loaded
 
 
 
@@ -163,6 +164,7 @@
                     text_color: 'white'
                     icon: 'menu-down'
                     line_color: (0, 0, 0, 0)
+                    pos_hint: {'center_x': .5, 'center_y': .6}
                     id: preset_mode
                     text: "Choose Wave"
                     on_release: root.open_centred()
@@ -171,12 +173,30 @@
                     size_hint: 1, 1
                     orientation: 'vertical'
 
-                MDRoundFlatIconButton:
-                    text: "Open manager"
+                MDRectangleFlatIconButton:
+                    text: "Load Sound"
                     icon: "folder"
-
+                    md_bg_color: style.blue_violet
                     pos_hint: {'center_x': .5, 'center_y': .6}
                     on_release: root.file_manager_open()
+                    icon_color: 'white'
+                    text_color: 'white'
+                    line_color: (0, 0, 0, 0)
+
+                BoxLayout:
+                    size_hint: 1, 1
+                    orientation: 'vertical'
+
+                MDRectangleFlatIconButton:
+                    md_bg_color: style.dark_sky_blue
+                    id: show_loaded
+                    icon: 'file-hidden'
+                    text: 'Hide Loaded Sound'
+                    disabled: True
+                    icon_color: 'white'
+                    text_color: 'white'
+                    pos_hint: {'center_x': .5, 'center_y': .6}
+                    line_color: (0, 0, 0, 0)
 
 
         BoxLayout:

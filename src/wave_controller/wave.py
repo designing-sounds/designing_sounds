@@ -54,6 +54,7 @@ class RootWave(MDBoxLayout):
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
+        self.is_showing = False
         self.file_manager = None
         self.loaded_file = None
         self.power_spectrum_graph_samples = 2 * (self.mean.max * self.max_harmonics + 1000)
@@ -70,6 +71,7 @@ class RootWave(MDBoxLayout):
         self.clear.bind(on_press=self.press_button_clear)
         self.resample.bind(on_press=self.press_button_resample)
         self.add.bind(on_press=self.press_button_add)
+        self.show_loaded.bind(on_press=self.press_button_show_loaded_sound)
 
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
         self.power_spectrum_sliders = [self.sd, self.mean, self.lengthscale, self.num_harmonics]
@@ -196,7 +198,7 @@ class RootWave(MDBoxLayout):
         x_max = self.waveform_graph.xmax
         points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
         self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
-        if self.loaded_file:
+        if self.loaded_file and self.is_showing:
             self.update_loaded_sound_graph()
 
     def press_button_play(self, _: typing.Any) -> None:
@@ -220,6 +222,25 @@ class RootWave(MDBoxLayout):
             self.waveform_graph.set_single_period()
             self.single_period.icon = "arrow-collapse-horizontal"
             self.single_period.md_bg_color = style.dark_sky_blue
+
+    def press_button_show_loaded_sound(self, _: typing.Any) -> None:
+        if self.loaded_file:
+            if self.is_showing:
+                # Hide the graphs
+                self.is_showing = False
+                self.show_loaded.icon = "cellphone-sound"
+                self.show_loaded.text = "Show Loaded Sound"
+                self.load_sound_plot.points = []
+                self.sound_power_plot.points = []
+                self.show_loaded.md_bg_color = style.blue_violet
+            else:
+                self.is_showing = True
+                self.show_loaded.icon = "file-hidden"
+                self.show_loaded.text = "Hide Loaded Sound"
+                _, data = self.loaded_file
+                self.update_loaded_sound_graph()
+                self.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
+                self.show_loaded.md_bg_color = style.dark_sky_blue
 
     def press_button_back(self, _: typing.Any) -> None:
         self.wave_sound.sound_changed()
@@ -393,10 +414,13 @@ class RootWave(MDBoxLayout):
             print(path)
             self.loaded_file = wavfile.read(path)
             data = self.loaded_file[1]
+            self.is_showing = True
+            self.show_loaded.disabled = False
             self.loaded_file = (self.loaded_file[0], data.flatten() / max(data.max(), data.min(), key=abs))
             self.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
             self.update_loaded_sound_graph()
             self.exit_manager()
+            toast("File Loaded Successfully")
         except ValueError:
             toast("Not a valid file")
 

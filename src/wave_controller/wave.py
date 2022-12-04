@@ -381,13 +381,13 @@ class RootWave(MDBoxLayout):
     def open_centred(self) -> None:
         self.menu.open()
 
-    def file_manager_open(self):
+    def file_manager_open(self) -> None:
         if not self.file_manager:
             self.file_manager = MDFileManager(
                 exit_manager=self.exit_manager, select_path=self.select_path)
-            self.file_manager.show('/Users/dcupe/PycharmProjects/')  # output manager to the screen
+            self.file_manager.show('/')  # output manager to the screen
 
-    def select_path(self, path: str):
+    def select_path(self, path: str) -> None:
 
         try:
             print(path)
@@ -400,7 +400,7 @@ class RootWave(MDBoxLayout):
         except ValueError:
             toast("Not a valid file")
 
-    def exit_manager(self, *args):
+    def exit_manager(self, *args: typing.Any) -> None:
         self.file_manager.close()
 
 

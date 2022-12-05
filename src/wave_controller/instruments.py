@@ -83,6 +83,8 @@ class PianoMIDI(Instrument):
             self.changed = False
         return self.running
 
+    # Map<Note, ([PS], [Points])>
+
     def shutdown(self) -> bool:
         if self.running:
             self.running = False

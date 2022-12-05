@@ -74,7 +74,8 @@ class RootWave(MDBoxLayout):
         self.show_loaded.bind(on_press=self.press_button_show_loaded_sound)
 
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
-        self.power_spectrum_sliders = [self.sd, self.mean, self.lengthscale, self.num_harmonics]
+        # TODO: Update this with sqaured_sd and sqaured_lengthscale
+        self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics]
 
         border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
@@ -164,8 +165,9 @@ class RootWave(MDBoxLayout):
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
-            self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value, self.sd.value,
-                                                   int(self.num_harmonics.value), self.lengthscale.value)
+            # TODO: Update this - first function that gets called when a slider is changed
+            self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value, self.periodic_sd.value,
+                                                   int(self.num_harmonics.value), self.periodic_lengthscale.value)
             self.update_power_spectrum_graph()
             self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
@@ -318,22 +320,24 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
     def update_display_power_spectrum(self, harmonic_index: int):
+        # TODO: Update this
         for slider in self.power_spectrum_sliders:
             slider.disabled = False
         self.all_power_spectrums.md_bg_color = self.unselected_button_color
         self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.unselected_button_color
         self.power_buttons[harmonic_index].md_bg_color = self.selected_button_color
 
-        self.harmonic_list[self.current_power_spectrum_index] = [self.mean.value, self.sd.value,
-                                                                 self.lengthscale.value,
+        self.harmonic_list[self.current_power_spectrum_index] = [self.mean.value, self.periodic_sd.value,
+                                                                 self.periodic_lengthscale.value,
                                                                  int(self.num_harmonics.value)]
         self.current_power_spectrum_index = harmonic_index
         self.update_sliders()
 
     def update_sliders(self):
         self.change_power_spectrum = False
-        mean, sd, lengthscale, num_harmonics = self.harmonic_list[self.current_power_spectrum_index]
-        self.mean.value, self.sd.value, self.lengthscale.value = mean, sd, lengthscale
+        # TODO: Update with squared_sd and squared_lengthscale
+        mean, periodic_sd, periodic_lengthscale, num_harmonics = self.harmonic_list[self.current_power_spectrum_index]
+        self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value = mean, periodic_sd, periodic_lengthscale
         self.num_harmonics.value = num_harmonics
         self.change_power_spectrum = True
 

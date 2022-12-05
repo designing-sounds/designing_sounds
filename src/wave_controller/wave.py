@@ -166,8 +166,10 @@ class RootWave(MDBoxLayout):
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
             # TODO: Update this - first function that gets called when a slider is changed
-            self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value, self.periodic_sd.value,
-                                                   int(self.num_harmonics.value), self.periodic_lengthscale.value)
+            self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value,
+                                                   self.periodic_sd.value, self.periodic_lengthscale.value,
+                                                   self.squared_sd.value, self.squared_lengthscale.value,
+                                                   int(self.num_harmonics.value))
             self.update_power_spectrum_graph()
             self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
@@ -239,7 +241,8 @@ class RootWave(MDBoxLayout):
                 self.show_loaded.text = "Hide Loaded Sound"
                 _, data = self.loaded_file
                 self.update_loaded_sound_graph()
-                self.sound_power_plot.points = self.sound_model.get_power_spectrum(data, self.power_spectrum_graph_samples)
+                self.sound_power_plot.points = self.sound_model.get_power_spectrum(data,
+                                                                                   self.power_spectrum_graph_samples)
                 self.show_loaded.md_bg_color = style.dark_sky_blue
 
     def press_button_back(self, _: typing.Any) -> None:
@@ -302,7 +305,7 @@ class RootWave(MDBoxLayout):
                 return slope * x - scale_factor * 4
 
         def sawtooth_wave(x, period):
-            return 3 / 2 / period* x - 3 / 4
+            return 3 / 2 / period * x - 3 / 4
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points))
@@ -411,13 +414,12 @@ class RootWave(MDBoxLayout):
             self.show_loaded.disabled = False
             self.loaded_file = (self.loaded_file[0], data)
             self.sound_power_plot.points = self.sound_model.get_power_spectrum(data, self.power_spectrum_graph_samples)
-            step = data.size//500
-            y = data[:self.sample_rate//4:step]
+            step = data.size // 500
+            y = data[:self.sample_rate // 4:step]
             points = [(float(i) * step / 44100, y[i]) for i in np.arange(y.size)]
             self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
             self.wave_sound.sound_changed()
             self.update_power_spectrum()
-
 
             self.update_loaded_sound_graph()
             self.exit_manager()

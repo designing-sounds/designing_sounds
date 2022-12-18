@@ -19,7 +19,7 @@ class PowerSpectrum:
             self.functions['x'] = x + 1
             decay_factor = 0
             try:
-                decay_factor = eval(decay_function, {'__builtins__': self.functions})
+                decay_factor = max(0, eval(decay_function, {'__builtins__': self.functions}))
             except:
                 decay_factor = 0
             finally:
@@ -32,7 +32,7 @@ class PowerSpectrum:
             sample_ratio = decay_ratios[i] / decay_ratios_sum if decay_ratios_sum != 0 else 0
             sample_size = int(num_harmonic_samples * sample_ratio)
             num_samples += sample_size
-            freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * pow(2, i))
+            freqs = np.append(freqs, np.random.randn(sample_size) * std + mean * (i + 1))
 
         self.harmonics[harmonic_index] = np.zeros(self.max_samples_per_harmonic)
         self.harmonics[harmonic_index, :num_samples] = freqs

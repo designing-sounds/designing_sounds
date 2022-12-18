@@ -18,24 +18,24 @@ Builder.load_file('src/wave_view/wave.kv')
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 44100
+    sample_rate = 16000
     graph_sample_rate = 2500
-    power_spectrum_graph_samples = 1000
+    power_spectrum_graph_samples = 5000
     waveform_duration = 1
     chunk_duration = 0.1
 
     max_harmonics = 10
     num_power_spectrums = 0
     current_harmonic_index = 0
-    max_samples_per_harmonic = 100
+    max_samples_per_harmonic = 500
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, int(self.mean.max))
         self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
-
         # Button bindings
         self.play.bind(on_press=self.press_button_play)
+        self.single_period.bind(on_press=self.press_single_period)
         self.back.bind(on_press=self.press_button_back)
         self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
@@ -57,8 +57,8 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_graph = Graph(border_color=border_color,
                                           xmin=0, xmax=self.mean.max, ymin=0, ymax=20, padding=10,
                                           x_grid_label=True, y_grid_label=True, xlabel='Frequency (Hz)',
-                                          x_ticks_major=100, y_ticks_major=10, y_ticks_minor=5, tick_color=(1, 0, 0, 0),
-                                          label_options=dict(color=(0, 0, 0, 1)))
+                                          ylabel='Samples', x_ticks_major=100, y_ticks_major=10, y_ticks_minor=5,
+                                          tick_color=(1, 0, 0, 0), label_options=dict(color=(0, 0, 0, 1)))
 
         self.ids.modulation.add_widget(self.waveform_graph)
         self.ids.power_spectrum.add_widget(self.power_spectrum_graph)
@@ -83,12 +83,12 @@ class RootWave(MDBoxLayout):
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
-            harmonic_samples = int(self.max_samples_per_harmonic * self.harmonic_samples.value / 100)
             self.sound_model.update_power_spectrum(self.current_harmonic_index, self.mean.value, self.sd.value,
-                                                   harmonic_samples, int(self.num_harmonics.value),
+                                                   self.harmonic_samples.value, int(self.num_harmonics.value),
                                                    self.decay_function.text)
             self.update_power_spectrum_graph()
             self.update_waveform()
+            self.waveform_graph.set_period(self.mean.value)
 
     def power_spectrum_from_freqs(self, freqs: [float]):
         num_spectrums = self.num_power_spectrums
@@ -115,6 +115,9 @@ class RootWave(MDBoxLayout):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
+        self.power_spectrum_graph.xmax = max(int(max(self.power_plot.points, key=lambda x: x[0])[0]), 1000)
+        self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
+        self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
     def update_waveform(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
@@ -136,6 +139,18 @@ class RootWave(MDBoxLayout):
             self.wave_sound.play_audio()
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
+
+    def press_single_period(self, _: typing.Any) -> None:
+        if self.waveform_graph.is_single_period():
+            # Single Period -> Multiple Periods
+            self.waveform_graph.set_multiple_period()
+            self.single_period.icon = "arrow-expand-horizontal"
+            self.single_period.md_bg_color = style.blue_violet
+        else:
+            # Multiple Periods -> Single Period
+            self.waveform_graph.set_single_period()
+            self.single_period.icon = "arrow-collapse-horizontal"
+            self.single_period.md_bg_color = style.dark_sky_blue
 
     def press_button_connect(self, _:typing.Any) -> None:
         if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
@@ -172,7 +187,9 @@ class RootWave(MDBoxLayout):
             self.power_buttons.append(button)
             self.ids.power_spectrum_buttons.add_widget(button)
             self.update_display_power_spectrum(self.num_power_spectrums - 1)
-            self.harmonic_list[self.current_harmonic_index] = [self.mean.max // 2, 1, 50, 1, self.decay_function.text]
+            self.harmonic_list[self.current_harmonic_index] = [self.mean.max // 2, 1,
+                                                               self.max_samples_per_harmonic // 2, 1,
+                                                               self.decay_function.text]
             self.update_sliders()
             self.update_power_spectrum()
 
@@ -183,6 +200,9 @@ class RootWave(MDBoxLayout):
         self.all_power_spectrums.md_bg_color = self.selected_button_color
         self.power_plot.points = self.sound_model.get_sum_all_power_spectrum_histogram()
         self.power_spectrum_graph.ymax = max(int(max(self.power_plot.points, key=lambda x: x[1])[1]), 1)
+        self.power_spectrum_graph.xmax = max(int(max(self.power_plot.points, key=lambda x: x[0])[0]), 1000)
+        self.power_spectrum_graph.x_ticks_major = int(self.power_spectrum_graph.xmax / 10)
+        self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
     def update_display_power_spectrum(self, harmonic_index: int):
         for slider in self.power_spectrum_sliders:

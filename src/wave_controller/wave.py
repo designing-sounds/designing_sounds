@@ -18,7 +18,7 @@ Builder.load_file('src/wave_view/wave.kv')
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 16000
+    sample_rate = 44100
     graph_sample_rate = 2500
     power_spectrum_graph_samples = 5000
     waveform_duration = 1
@@ -103,7 +103,7 @@ class RootWave(MDBoxLayout):
         self.sound_model.clear_all_power_spectrums()
         for i in range(0, min(self.max_harmonics, len(freqs))):
             self.harmonic_list[i] = [freqs[i], 1, 50, 1, self.decay_function.text]
-            harmonic_samples = int(self.max_samples_per_harmonic * self.harmonic_samples.value / 100)
+            harmonic_samples = self.max_samples_per_harmonic // 2
             self.sound_model.update_power_spectrum(i, freqs[i], 1,
                                                    harmonic_samples, int(1),
                                                    self.decay_function.text)

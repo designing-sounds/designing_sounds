@@ -28,13 +28,12 @@ class PianoMIDI():
 
         # Otherwise Already running so stop
         self.running = False
+        print("Stopping synth...")
         return False
 
     def _run_synth(self):
         default_id = midi.get_default_input_id()
-        print(default_id)
         self.midi_input = midi.Input(device_id=default_id)
-        print(self.midi_input)
 
         # -- RUN THE SYNTH --
         while self.midi_input.poll():  # Clear anything from the buffer while turned off
@@ -61,12 +60,9 @@ class PianoMIDI():
         if self.changed:
             freqs = list(map(midi.midi_to_frequency, self.play_notes))
             if len(freqs) > 0:
-                print(str(self.play_notes) + str(list(freqs)))
                 self.callback_update(freqs)
             self.changed = False
         return self.running
-
-    # Map<Note, ([PS], [Points])>
 
     def shutdown(self) -> bool:
         if self.running:

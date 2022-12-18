@@ -1,6 +1,3 @@
-import time
-from threading import Thread
-
 from kivy.clock import Clock
 from pygame import midi
 
@@ -33,12 +30,12 @@ class PianoMIDI(Instrument):
         self.changed = False
         midi.init()
         self.midi_input = None
-        self.f = None
+        self.callback_update = None
         self.running = False
         self.thread = None
 
     def begin(self, f) -> bool:  # Returns current running start after operation
-        self.f = f
+        self.callback_update = f
         if not self.running:  # Not running so should start
             self.running = True
             self._run_synth()
@@ -50,6 +47,7 @@ class PianoMIDI(Instrument):
 
     def _run_synth(self):
         default_id = midi.get_default_input_id()
+        print(default_id)
         self.midi_input = midi.Input(device_id=default_id)
         print(self.midi_input)
 
@@ -61,7 +59,7 @@ class PianoMIDI(Instrument):
 
         Clock.schedule_interval(self.loop, 0.1)
 
-    def loop(self, dt):
+    def loop(self, _):
         if self.midi_input.poll():
             # Add or remove notes from notes_dict
             for event in self.midi_input.read(num_events=16):
@@ -79,7 +77,7 @@ class PianoMIDI(Instrument):
             freqs = list(map(midi.midi_to_frequency, self.play_notes))
             if len(freqs) > 0:
                 print(str(self.play_notes) + str(list(freqs)))
-                self.f(freqs)
+                self.callback_update(freqs)
             self.changed = False
         return self.running
 

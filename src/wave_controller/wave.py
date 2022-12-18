@@ -91,17 +91,14 @@ class RootWave(MDBoxLayout):
             self.update_waveform()
 
     def power_spectrum_from_freqs(self, freqs: [float]):
-        spectrums = self.num_power_spectrums
-        print(spectrums)
-        for i in range(spectrums, len(freqs), -1):
+        num_spectrums = self.num_power_spectrums
+        for i in range(num_spectrums, len(freqs), -1):
             self.current_harmonic_index = i - 1
             self.double_tap = True
-            print("removed" + str(i - 1))
-            self.remove_power_spectrum(None);
-        for i in range(spectrums, len(freqs), 1):
-            print("added")
+            self.remove_power_spectrum(None)
+        self.double_tap = False
+        for i in range(num_spectrums, len(freqs), 1):
             self.press_button_add(None)
-        print(len(freqs))
         self.num_power_spectrums = len(freqs)
         self.sound_model.clear_all_power_spectrums()
         for i in range(0, min(self.max_harmonics, len(freqs))):

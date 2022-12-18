@@ -2,22 +2,7 @@ from kivy.clock import Clock
 from pygame import midi
 
 
-class Instrument:
-    """
-    Abstract instrument class.
-    """
-
-    def __init__(self):
-        pass
-
-    def begin(self):
-        NotImplementedError()
-
-    def shutdown(self):
-        NotImplementedError()
-
-
-class PianoMIDI(Instrument):
+class PianoMIDI():
     """
     Piano connected through midi signal
     """
@@ -34,8 +19,8 @@ class PianoMIDI(Instrument):
         self.running = False
         self.thread = None
 
-    def begin(self, f) -> bool:  # Returns current running start after operation
-        self.callback_update = f
+    def begin(self, callback_update) -> bool:  # Returns current running start after operation
+        self.callback_update = callback_update
         if not self.running:  # Not running so should start
             self.running = True
             self._run_synth()

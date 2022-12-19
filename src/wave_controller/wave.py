@@ -91,6 +91,8 @@ class RootWave(MDBoxLayout):
             self.waveform_graph.set_period(self.mean.value)
 
     def power_spectrum_from_freqs(self, freqs: [float]):
+        if len(freqs) > 10:
+            return
         num_spectrums = self.num_power_spectrums
         for i in range(num_spectrums, len(freqs), -1):
             self.current_harmonic_index = i - 1

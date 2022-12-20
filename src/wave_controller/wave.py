@@ -18,7 +18,7 @@ Builder.load_file('src/wave_view/wave.kv')
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 16000
+    sample_rate = 44100
     graph_sample_rate = 2500
     power_spectrum_graph_samples = 5000
     waveform_duration = 1
@@ -43,7 +43,9 @@ class RootWave(MDBoxLayout):
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
         self.power_spectrum_sliders = [self.sd, self.mean, self.harmonic_samples, self.num_harmonics,
                                        self.decay_function]
+        self.connect_button.bind(on_press=self.press_button_connect)
 
+        # Wave Graphs
         border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
                                             update_waveform_graph=self.update_waveform_graph, size_hint=(1, 1),
@@ -88,6 +90,29 @@ class RootWave(MDBoxLayout):
             self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
 
+    def power_spectrum_from_freqs(self, freqs: [float]):
+        if len(freqs) > 10:
+            return
+        num_spectrums = self.num_power_spectrums
+        for i in range(num_spectrums, len(freqs), -1):
+            self.current_harmonic_index = i - 1
+            self.double_tap = True
+            self.remove_power_spectrum(None)
+        self.double_tap = False
+        for i in range(num_spectrums, len(freqs), 1):
+            self.press_button_add(None)
+        self.num_power_spectrums = len(freqs)
+        self.sound_model.clear_all_power_spectrums()
+        for i in range(0, min(self.max_harmonics, len(freqs))):
+            self.harmonic_list[i] = [min(freqs[i], self.mean.max), 1, 50, 1, self.decay_function.text]
+            harmonic_samples = self.max_samples_per_harmonic // 2
+            self.sound_model.update_power_spectrum(i, min(freqs[i], self.mean.max), 1,
+                                                   harmonic_samples, int(1),
+                                                   self.decay_function.text)
+        self.update_sliders()
+        self.update_waveform()
+        self.update_power_spectrum()
+
     def update_power_spectrum_graph(self):
         self.power_plot.points = self.sound_model.get_power_spectrum_histogram(self.current_harmonic_index,
                                                                                self.power_spectrum_graph_samples)
@@ -128,6 +153,14 @@ class RootWave(MDBoxLayout):
             self.waveform_graph.set_single_period()
             self.single_period.icon = "arrow-collapse-horizontal"
             self.single_period.md_bg_color = style.dark_sky_blue
+
+    def press_button_connect(self, _:typing.Any) -> None:
+        if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
+            self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
+            self.connect_button.md_bg_color = style.dark_sky_blue
+        else:  # Was already running so disconnected
+            self.connect_button.text = 'Connect MIDI Piano Power Spectrum'
+            self.connect_button.md_bg_color = style.blue_violet
 
     def press_button_back(self, _: typing.Any) -> None:
         self.wave_sound.sound_changed()

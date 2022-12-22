@@ -6,6 +6,8 @@
     back: back_button
     eraser_mode: eraser_mode
     connect_button: connect_button
+    save_notes_button: save_notes_button
+    play_notes_button: play_notes_button
     add: add_button
     all_power_spectrums: all_power_spectrum_button
     sd: sd
@@ -318,6 +320,7 @@
 
                 BoxLayout:
                     size_hint: 0.35, 1
+                    orientation: 'vertical'
 
                     BoxLayout:
                         size_hint: 0.2, 1
@@ -327,6 +330,32 @@
                         id: connect_button
                         icon: 'piano'
                         text: 'MIDI Piano Power Spectrum'
+                        icon_color: 'white'
+                        text_color: 'white'
+                        line_color: (0, 0, 0, 0)
+                        pos_hint: {"center_x": .5, "center_y": .5}
+
+                    BoxLayout:
+                        size_hint: 0.2, 0.2
+
+                    MDRectangleFlatIconButton:
+                        md_bg_color: style.blue_violet
+                        id: save_notes_button
+                        icon: 'music-note'
+                        text: 'Save Notes'
+                        icon_color: 'white'
+                        text_color: 'white'
+                        line_color: (0, 0, 0, 0)
+                        pos_hint: {"center_x": .5, "center_y": .5}
+
+                    BoxLayout:
+                        size_hint: 0.2, 0.2
+
+                    MDRectangleFlatIconButton:
+                        md_bg_color: style.blue_violet
+                        id: play_notes_button
+                        icon: 'speaker-play'
+                        text: 'Play Saved Notes'
                         icon_color: 'white'
                         text_color: 'white'
                         line_color: (0, 0, 0, 0)

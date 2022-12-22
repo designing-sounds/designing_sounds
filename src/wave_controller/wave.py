@@ -44,6 +44,8 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_sliders = [self.sd, self.mean, self.harmonic_samples, self.num_harmonics,
                                        self.decay_function]
         self.connect_button.bind(on_press=self.press_button_connect)
+        self.save_notes_button.bind(on_press=self.press_button_connect)
+        self.play_notes_button.bind(on_press=self.press_button_connect)
 
         # Wave Graphs
         border_color = [0, 0, 0, 1]

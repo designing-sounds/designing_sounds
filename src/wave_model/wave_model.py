@@ -35,7 +35,9 @@ class SoundModel:
             for i in range(num_kernels):
                 k += self.prior.kernel(x, self.__power_spectrum.freqs[idx + i],
                                        self.__power_spectrum.periodic_sds[idx + i],
-                                       self.__power_spectrum.periodic_lengthscales[idx + i])
+                                       self.__power_spectrum.periodic_lengthscales[idx + i],
+                                       self.__power_spectrum.squared_sds[idx + i],
+                                       self.__power_spectrum.squared_lengthscales[idx + i])
 
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]
@@ -98,7 +100,8 @@ class SoundModel:
 
         self.lock.acquire()
         sound = self.prior.prior(x, self.__power_spectrum.freqs, self.__power_spectrum.periodic_sds,
-                                 self.__power_spectrum.periodic_lengthscales)
+                                 self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.squared_sds,
+                                 self.__power_spectrum.squared_lengthscales)
         if not (self.inv is None or self.x_train is None or self.y_train is None):
             sound += self.update(x)
         self.lock.release()
@@ -117,9 +120,12 @@ class SoundModel:
                                                                           - self.prior.prior(self.x_train,
                                                                                              self.__power_spectrum.freqs,
                                                                                              self.__power_spectrum.periodic_sds,
-                                                                                             self.__power_spectrum.periodic_lengthscales))
+                                                                                             self.__power_spectrum.periodic_lengthscales,
+                                                                                             self.__power_spectrum.squared_sds,
+                                                                                             self.__power_spectrum.squared_lengthscales))
 
     def matrix_covariance(self, x1, x2):
         return np.sum(
             self.prior.covariance_matrix(x1, x2, self.__power_spectrum.freqs, self.__power_spectrum.periodic_sds,
-                                         self.__power_spectrum.periodic_lengthscales), axis=0)
+                                         self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.squared_sds,
+                                         self.__power_spectrum.squared_lengthscales), axis=0)

@@ -16,20 +16,20 @@ class Prior:
             return
         self.weights = np.asarray(np.random.randn(*self.weights.shape), dtype=np.float32)
 
-    def z(self, x, freqs, sds, lengthscales):
+    def z(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
         return None
 
-    def prior(self, x, freqs, sds, lengthscales):
-        return np.sum((self.z(x, freqs, sds, lengthscales) @ self.weights[:, :, None])[:, :, 0], axis=0)
+    def prior(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
+        return np.sum((self.z(x, freqs, sds, lengthscales, sds_squared, lengthscales_squared) @ self.weights[:, :, None])[:, :, 0], axis=0)
 
-    def covariance_matrix(self, x1, x2, freqs, sds, lengthscales):
+    def covariance_matrix(self, x1, x2, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
         x = x1[:, None] - x2
         temp = np.zeros((len(freqs), len(x1), len(x2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
-            temp[i] = self.kernel(x, freq, sds[i], lengthscales[i])
+            temp[i] = self.kernel(x, freq, sds[i], lengthscales[i], sds_squared[i], lengthscales_squared[i])
         return np.exp(-0.5 * temp)
 
-    def kernel(self, x, freq, sd, l):
+    def kernel(self, x, freq, sd, l, sd_squared, l_squared):
         return None
 
 
@@ -47,11 +47,11 @@ class SquaredExpPrior(Prior):
         self.w = np.asarray(np.random.randn(self.d), dtype=np.float32)
         self.b = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
 
-    def z(self, x, freqs, sds, lengthscales):
+    def z(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
         return sds[:, None, None] * np.sqrt(2 / len(self.w)) * np.cos(
             ((1 / lengthscales)[:, None, None] * (x[:, None] @ self.w[None, :])[None, :, :]) + self.b)
 
-    def kernel(self, x, _, sd, l):
+    def kernel(self, x, _, sd, l, a, b):
         return squared_exponential(x, sd, l)
 
 
@@ -72,14 +72,14 @@ class PeriodicPrior(Prior):
             self.calc[:, 0, k] = sd * np.sqrt(num * ive(k, l))
         self.calc[:, :, self.d // 2:] = self.calc[:, :, :self.d // 2]
 
-    def z(self, x, freqs, sds, lengthscales):
+    def z(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
         vals = freqs[:, None, None] * (x[:, None] @ self.ds[None, :])
         residue = np.empty((freqs.size, x.size, self.d), dtype=np.float32)
         residue[:, :, :self.d // 2] = np.cos(vals)
         residue[:, :, self.d // 2:] = np.sin(vals)
         return residue * self.calc
 
-    def kernel(self, x, freq, sd, l):
+    def kernel(self, x, freq, sd, l, _, a):
         return squared_exponential(2 * np.sin(np.pi * x * freq), sd, l)
 
 
@@ -97,11 +97,11 @@ class MultPrior(Prior):
     def update(self, lengthscale, sd):
         self.periodic.update(lengthscale, sd)
 
-    def z(self, x, freqs, sds, lengthscales):
-        return self.periodic.z(x, freqs, sds, lengthscales) * self.squared.z(x, freqs, sds, lengthscales)
+    def z(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
+        return self.periodic.z(x, freqs, sds, lengthscales, 0, 0) * self.squared.z(x, freqs, sds_squared, lengthscales_squared, 0, 0)
 
-    def kernel(self, x, freq, sd, l):
-        return self.periodic.kernel(x, freq, sd, l) * self.squared.kernel(x, freq, sd, l)
+    def kernel(self, x, freq, sd, l, sd_squared, l_squared):
+        return self.periodic.kernel(x, freq, sd, l, 0, 0) * self.squared.kernel(x, freq, sd_squared, l_squared, 0, 0)
 
 
 def squared_exponential(x, sd, l):

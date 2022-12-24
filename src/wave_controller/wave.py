@@ -194,10 +194,7 @@ class RootWave(MDBoxLayout):
             values = self.initial_harmonic_values
             values[0] = min(freqs[i], self.mean.max)
             self.harmonic_list[i] = values
-            harmonic_samples = self.max_samples_per_harmonic // 2
-            self.sound_model.update_power_spectrum(i, min(freqs[i], self.mean.max), 1,
-                                                   harmonic_samples, int(1),
-                                                   self.decay_function.text)
+            self.sound_model.update_power_spectrum(i, min(freqs[i], self.mean.max), 1, 1, 1, 1, 1)
         self.update_sliders()
         self.update_waveform()
         self.update_power_spectrum()

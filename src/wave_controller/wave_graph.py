@@ -35,8 +35,7 @@ class WaveformGraph(Graph):
         # Private Class initialization
         self._update_waveform_func = update_waveform
         self._update_waveform_graph_func = update_waveform_graph
-        self._current_point = None
-        self._old_pos = None
+        self._last_touched_point = None
         self._zoom_scale = 1
         self._period = 500
         self.x_ticks_major = self.__initial_x_ticks_major
@@ -70,9 +69,9 @@ class WaveformGraph(Graph):
                 if self._eraser_mode:
                     self.__remove_point(ellipse)
                     touch.grab(self)
+                    self._last_touched_point = None
                     return True
-                self._current_point = ellipse
-                self._old_pos = self.__convert_point(self._current_point.pos)
+                self._last_touched_point = ellipse
                 touch.grab(self)
                 return True
 
@@ -85,7 +84,8 @@ class WaveformGraph(Graph):
                     Color(*color, mode='hsv')
                     Ellipse(color=style.blue_violet, pos=pos, size=(self.__point_size, self.__point_size))
 
-                self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
+                self._last_touched_point = self._graph_canvas.canvas.children[-1]
+                self.__selected_points.append(tuple(self.to_data(a_x, a_y)))
                 self._update_waveform_func()
 
         return super().on_touch_down(touch)
@@ -93,22 +93,21 @@ class WaveformGraph(Graph):
     def on_touch_move(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
         if self.collide_plot(a_x, a_y):
-
             if self._eraser_mode:
                 ellipse = self.__touching_point((touch.x, touch.y))
                 if ellipse:
                     self.__remove_point(ellipse)
+                    self._last_touched_point = None
                     return True
                 return False
             if touch.grab_current is self:
                 radius = self.__point_size / 2
-                for point in self.__selected_points:
-                    if math.isclose(point[0], self._old_pos[0], abs_tol=0.001) and point[1] == self._old_pos[1]:
-                        self.__selected_points.remove(point)
-                        break
-                self._current_point.pos = (touch.x - radius, touch.y - radius)
-                self._old_pos = self.__convert_point(self._current_point.pos)
-                self.__selected_points.append(self.__convert_point(self._current_point.pos))
+                ellipse = self._last_touched_point
+                if ellipse is None:
+                    ellipse = self.__touching_point((touch.x, touch.y))
+                index = self._graph_canvas.canvas.children.index(ellipse)
+                ellipse.pos = touch.x - radius, touch.y - radius
+                self.__selected_points[index//3] = self.__convert_point(ellipse.pos)
                 self._update_waveform_func()
                 return True
         return False
@@ -133,11 +132,8 @@ class WaveformGraph(Graph):
         self._graph_canvas.canvas.children.pop(to_remove)
         self._graph_canvas.canvas.children.pop(to_remove - 1)
         self._graph_canvas.canvas.children.pop(to_remove - 2)
-        x, y = self.__convert_point(ellipse.pos)
-        for point in self.__selected_points:
-            if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
-                self.__selected_points.remove(point)
-                break
+        self.__selected_points.pop(to_remove//3)
+
         self._update_waveform_func()
 
     @staticmethod
@@ -151,7 +147,7 @@ class WaveformGraph(Graph):
         radius = self.__point_size / 2
         e_x, e_y = (point[0] + radius, point[1] + radius)
         a_x, a_y = self.to_widget(e_x, e_y, relative=True)
-        return tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y)))
+        return tuple(self.to_data(a_x, a_y))
 
     def get_selected_points(self) -> typing.List[typing.Tuple[float, float]]:
         return self.__selected_points

@@ -182,15 +182,14 @@ class RootWave(MDBoxLayout):
             return
         num_spectrums = self.num_power_spectrums
         for i in range(num_spectrums, len(freqs), -1):
-            self.current_harmonic_index = i - 1
+            self.current_power_spectrum_index = i - 1
             self.double_tap = True
             self.remove_power_spectrum(None)
         self.double_tap = False
-        for i in range(num_spectrums, len(freqs), 1):
-            self.press_button_add(None)
         self.num_power_spectrums = len(freqs)
         self.sound_model.clear_all_power_spectrums()
         for i in range(0, min(self.max_harmonics, len(freqs))):
+            self.press_button_add(None)
             values = self.initial_harmonic_values
             values[0] = min(freqs[i], self.mean.max)
             self.harmonic_list[i] = values

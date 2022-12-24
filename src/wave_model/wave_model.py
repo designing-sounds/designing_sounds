@@ -98,8 +98,8 @@ class SoundModel:
             samples = k.size
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]
-            yf = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
-        return list(zip(freqs, yf))
+            fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
+        return list(zip(freqs, fft))
 
     def model_sound(self, sample_rate: int, chunk_duration: float, start_time: float) -> np.ndarray:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
@@ -129,6 +129,7 @@ class SoundModel:
 
     def matrix_covariance(self, x_1, x_2):
         return np.sum(
-            self.prior.covariance_matrix(x_1[:, None] - x_2, self.__power_spectrum.freqs, self.__power_spectrum.periodic_sds,
+            self.prior.covariance_matrix(x_1[:, None] - x_2, self.__power_spectrum.freqs,
+                                         self.__power_spectrum.periodic_sds,
                                          self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.squared_sds,
                                          self.__power_spectrum.squared_lengthscales), axis=0)

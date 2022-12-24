@@ -47,7 +47,7 @@ class SquaredExpPrior(Prior):
         self.squared_w = np.asarray(np.random.randn(self.approx_dim), dtype=np.float32)
         self.bias = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
 
-    def phi(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
+    def phi(self, x, _, sds, lengthscales, __, ___):
         return sds[:, None, None] * np.sqrt(2 / len(self.squared_w)) * np.cos(
             ((1 / lengthscales)[:, None, None] * (x[:, None] @ self.squared_w[None, :])[None, :, :]) + self.bias)
 
@@ -72,7 +72,7 @@ class PeriodicPrior(Prior):
             self.calc[:, 0, k] = sd * np.sqrt(num * ive(k, lengthscale))
         self.calc[:, :, self.approx_dim // 2:] = self.calc[:, :, :self.approx_dim // 2]
 
-    def phi(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
+    def phi(self, x, freqs, _, __, ___, ____):
         vals = freqs[:, None, None] * (x[:, None] @ self.nums[None, :])
         residue = np.empty((freqs.size, x.size, self.approx_dim), dtype=np.float32)
         residue[:, :, :self.approx_dim // 2] = np.cos(vals)

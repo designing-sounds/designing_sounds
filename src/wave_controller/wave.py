@@ -181,7 +181,6 @@ class RootWave(MDBoxLayout):
         if len(freqs) > 10:
             return
         for i in range(self.num_power_spectrums, 0, -1):
-            self.current_power_spectrum_index = i - 1
             self.double_tap = True
             self.remove_power_spectrum(None)
         self.double_tap = False

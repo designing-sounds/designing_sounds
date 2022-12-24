@@ -128,8 +128,8 @@ class SoundModel:
                                  self.__power_spectrum.squared_sds, self.__power_spectrum.squared_lengthscales)
         return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.noise - prior)
 
-    def matrix_covariance(self, x1, x2):
+    def matrix_covariance(self, x_1, x_2):
         return np.sum(
-            self.prior.covariance_matrix(x1, x2, self.__power_spectrum.freqs, self.__power_spectrum.periodic_sds,
+            self.prior.covariance_matrix(x_1[:, None] - x_2, self.__power_spectrum.freqs, self.__power_spectrum.periodic_sds,
                                          self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.squared_sds,
                                          self.__power_spectrum.squared_lengthscales), axis=0)

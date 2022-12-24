@@ -215,8 +215,8 @@ class WaveformGraph(Graph):
                 self.xmax = x_pos + proportion * right_dist
                 self.xmin = x_pos - proportion * left_dist
             if self.xmin < 0:
-                    self.xmax -= self.xmin
-                    self.xmin = 0
+                self.xmax -= self.xmin
+                self.xmin = 0
             self.__update_graph_points()
 
     def __update_panning(self, is_left: bool) -> None:
@@ -269,4 +269,3 @@ class WaveformGraph(Graph):
             self._period = 1 / frequency
             self._zoom_scale = self._zoom_scale * old_period / self._period
             self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), True)
-

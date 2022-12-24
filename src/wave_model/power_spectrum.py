@@ -22,6 +22,7 @@ class PowerSpectrum:
         self.squared_lengthscales = np.empty(0, dtype=np.float32)
         self.squared_sds = np.empty(0, dtype=np.float32)
         self.num_kernels_per_spectrum = np.zeros(self.max_power_spectrum, dtype=int)
+        self.prior.weights = None
 
     def update_harmonic(self, harmonic_index, mean: float, periodic_sd: float, periodic_lengthscale: float,
                         squared_sd: float, squared_lengthscale: float,

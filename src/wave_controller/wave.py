@@ -178,19 +178,19 @@ class RootWave(MDBoxLayout):
             self.waveform_graph.set_period(self.mean.value)
 
     def power_spectrum_from_freqs(self, freqs: [float]):
-        if len(freqs) > 10:
-            return
-        for i in range(self.num_power_spectrums, -1, -1):
+        for i in range(self.num_power_spectrums, 0, -1):
             self.double_tap = True
             self.remove_power_spectrum(None)
         self.double_tap = False
+        self.sound_model.clear_all_power_spectrums()
         for i in range(0, min(self.max_harmonics, len(freqs))):
-            self.press_button_add(None)
-            values = self.initial_harmonic_values
+            if i != 0:
+                self.press_button_add(None)
+            values = list(self.initial_harmonic_values)
             values[0] = min(freqs[i], self.mean.max)
             self.harmonic_list[i] = values
             self.sound_model.update_power_spectrum(i, *values, 1)
-        self.update_sliders()
+            self.update_sliders()
         self.update_waveform()
         self.update_power_spectrum()
 

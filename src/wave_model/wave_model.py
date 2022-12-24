@@ -25,8 +25,8 @@ class SoundModel:
         self.noise = 0
         self.variance = 0
 
-    def get_power_spectrum_histogram(self, idx: int, samples: int) -> Tuple[
-        List[Tuple[Any, Any]], Union[ndarray, int, float, complex]]:
+    def get_power_spectrum_histogram(self, idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
+                                                                            Union[ndarray, int, float, complex]]:
         with self.lock:
             x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
@@ -51,8 +51,8 @@ class SoundModel:
         self.__power_spectrum.num_kernels_per_spectrum[index] = 0
         self.prior.update(self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
 
-    def get_sum_all_power_spectrum_histogram(self, samples: int) -> Tuple[
-        List[Tuple[Any, Any]], Union[ndarray, int, float, complex]]:
+    def get_sum_all_power_spectrum_histogram(self, samples: int) -> Tuple[List[Tuple[Any, Any]],
+                                                                          Union[ndarray, int, float, complex]]:
         with self.lock:
             x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
@@ -92,7 +92,7 @@ class SoundModel:
         with self.lock:
             self.__power_spectrum.clear_all()
 
-    def get_power_spectrum(self, sound, samples: int):
+    def get_power_spectrum(self, sound):
         with self.lock:
             k = sound
             samples = k.size
@@ -123,13 +123,10 @@ class SoundModel:
         self.noise = np.random.normal(0, np.sqrt(self.variance))
 
     def update(self, x_test):
-        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.noise
-                                                                          - self.prior.prior(self.x_train,
-                                                                                             self.__power_spectrum.freqs,
-                                                                                             self.__power_spectrum.periodic_sds,
-                                                                                             self.__power_spectrum.periodic_lengthscales,
-                                                                                             self.__power_spectrum.squared_sds,
-                                                                                             self.__power_spectrum.squared_lengthscales))
+        prior = self.prior.prior(self.x_train, self.__power_spectrum.freqs,
+                                 self.__power_spectrum.periodic_sds, self.__power_spectrum.periodic_lengthscales,
+                                 self.__power_spectrum.squared_sds, self.__power_spectrum.squared_lengthscales)
+        return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.noise - prior)
 
     def matrix_covariance(self, x1, x2):
         return np.sum(

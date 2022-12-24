@@ -17,10 +17,11 @@ class Prior:
         self.weights = np.asarray(np.random.randn(*self.weights.shape), dtype=np.float32)
 
     def z(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
-        return None
+        return np.array([])
 
     def prior(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
-        return np.sum((self.z(x, freqs, sds, lengthscales, sds_squared, lengthscales_squared) @ self.weights[:, :, None])[:, :, 0], axis=0)
+        temp = self.z(x, freqs, sds, lengthscales, sds_squared, lengthscales_squared) @ self.weights[:, :, None]
+        return np.sum(temp[:, :, 0], axis=0)
 
     def covariance_matrix(self, x1, x2, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
         x = x1[:, None] - x2
@@ -98,7 +99,8 @@ class MultPrior(Prior):
         self.periodic.update(lengthscale, sd)
 
     def z(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
-        return self.periodic.z(x, freqs, sds, lengthscales, 0, 0) * self.squared.z(x, freqs, sds_squared, lengthscales_squared, 0, 0)
+        return self.periodic.z(x, freqs, sds, lengthscales, 0, 0) * self.squared.z(x, freqs, sds_squared,
+                                                                                   lengthscales_squared, 0, 0)
 
     def kernel(self, x, freq, sd, l, sd_squared, l_squared):
         return self.periodic.kernel(x, freq, sd, l, 0, 0) * self.squared.kernel(x, freq, sd_squared, l_squared, 0, 0)

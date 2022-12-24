@@ -245,7 +245,7 @@ class RootWave(MDBoxLayout):
             self.single_period.icon = "arrow-collapse-horizontal"
             self.single_period.md_bg_color = style.dark_sky_blue
 
-    def press_button_connect(self, _:typing.Any) -> None:
+    def press_button_connect(self, _: typing.Any) -> None:
         if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
             self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
             self.connect_button.md_bg_color = style.dark_sky_blue

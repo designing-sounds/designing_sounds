@@ -1,4 +1,4 @@
-from src.wave_model.wave_model import PowerSpectrum, SoundModel
+from src.wave_model.wave_model import SoundModel
 import numpy as np
 import unittest
 

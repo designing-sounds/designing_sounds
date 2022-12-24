@@ -8,7 +8,7 @@ from numpy import ndarray
 from numpy.linalg import inv
 
 from src.wave_model.power_spectrum import PowerSpectrum
-from src.wave_model.priors import PeriodicPrior, SquaredExpPrior, MultPrior
+from src.wave_model.priors import MultPrior
 
 
 class SoundModel:
@@ -17,7 +17,7 @@ class SoundModel:
         self.max_freq = max_freq
         self.max_power_spectrum = max_power_spectrums
         self.max_harmonics = max_harmonics
-        self.prior = PeriodicPrior(50)
+        self.prior = MultPrior(50)
         self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics, self.prior)
         self.lock = threading.Lock()
         self.x_train = None
@@ -26,7 +26,7 @@ class SoundModel:
         self.variance = 0
 
     def get_power_spectrum_histogram(self, idx: int, samples: int) -> Tuple[
-        List[Tuple[Any, Any]], Union[ndarray, int, float, complex], Union[ndarray, int, float, complex]]:
+        List[Tuple[Any, Any]], Union[ndarray, int, float, complex]]:
         with self.lock:
             x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
@@ -51,13 +51,15 @@ class SoundModel:
         self.__power_spectrum.num_kernels_per_spectrum[index] = 0
         self.prior.update(self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
 
-    def get_sum_all_power_spectrum_histogram(self, samples: int) -> typing.List[typing.Tuple[float, float]]:
+    def get_sum_all_power_spectrum_histogram(self, samples: int) -> Tuple[
+        List[Tuple[Any, Any]], Union[ndarray, int, float, complex]]:
         with self.lock:
             x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
             for i in range(len(self.__power_spectrum.freqs)):
                 k += self.prior.kernel(x, self.__power_spectrum.freqs[i], self.__power_spectrum.periodic_sds[i],
-                                       self.__power_spectrum.periodic_lengthscales[i], self.__power_spectrum.squared_sds[i],
+                                       self.__power_spectrum.periodic_lengthscales[i],
+                                       self.__power_spectrum.squared_sds[i],
                                        self.__power_spectrum.squared_lengthscales[i])
 
             freqs = np.fft.fftfreq(samples, 1 / samples)

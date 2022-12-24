@@ -184,7 +184,6 @@ class RootWave(MDBoxLayout):
             self.double_tap = True
             self.remove_power_spectrum(None)
         self.double_tap = False
-        self.num_power_spectrums = len(freqs)
         for i in range(0, min(self.max_harmonics, len(freqs))):
             self.press_button_add(None)
             values = self.initial_harmonic_values

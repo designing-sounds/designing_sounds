@@ -365,7 +365,7 @@ class RootWave(MDBoxLayout):
     def update_sliders(self):
         self.change_power_spectrum = False
         harmonic = self.harmonic_list[self.current_power_spectrum_index]
-        self.mean.value, self.periodic_sd.value, self.periodic.lengthscale.value, self.squared_sd.value = harmonic[:-2]
+        self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value = harmonic[:-1]
         self.squared_lengthscale.value = harmonic[-1]
         self.change_power_spectrum = True
 

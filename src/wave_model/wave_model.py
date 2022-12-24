@@ -57,7 +57,8 @@ class SoundModel:
             k = np.zeros(len(x))
             for i in range(len(self.__power_spectrum.freqs)):
                 k += self.prior.kernel(x, self.__power_spectrum.freqs[i], self.__power_spectrum.periodic_sds[i],
-                                       self.__power_spectrum.periodic_lengthscales[i])
+                                       self.__power_spectrum.periodic_lengthscales[i], self.__power_spectrum.squared_sds[i],
+                                       self.__power_spectrum.squared_lengthscales[i])
 
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]

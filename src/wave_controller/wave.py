@@ -74,8 +74,8 @@ class RootWave(MDBoxLayout):
         self.show_loaded.bind(on_press=self.press_button_show_loaded_sound)
 
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
-        # TODO: Update this with sqaured_sd and sqaured_lengthscale
-        self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics]
+        self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics,
+                                       self.squared_sd, self.squared_lengthscale]
 
         border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
@@ -323,7 +323,6 @@ class RootWave(MDBoxLayout):
         self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
     def update_display_power_spectrum(self, harmonic_index: int):
-        # TODO: Update this
         for slider in self.power_spectrum_sliders:
             slider.disabled = False
         self.all_power_spectrums.md_bg_color = self.unselected_button_color

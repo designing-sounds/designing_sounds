@@ -15,7 +15,6 @@ class PowerSpectrum:
         self.num_kernels_per_spectrum = np.zeros(max_power_spectrum, dtype=int)
         self.prior = prior
 
-
     def clear_all(self):
         self.freqs = np.empty(0, dtype=np.float32)
         self.periodic_lengthscales = np.empty(0, dtype=np.float32)

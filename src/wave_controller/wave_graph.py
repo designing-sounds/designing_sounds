@@ -40,7 +40,7 @@ class WaveformGraph(Graph):
         self._current_point = None
         self._old_pos = None
         self._zoom_scale = 1
-        self._period = 500
+        self._period = 0.002
         self.x_ticks_major = self.__initial_x_ticks_major
         self._eraser_mode = False
         self._single_period = False
@@ -56,11 +56,11 @@ class WaveformGraph(Graph):
         if self.collide_plot(a_x, a_y):
             if touch.is_mouse_scrolling:
                 if touch.button == SCROLL_DOWN:
-                    self._zoom_scale = min(self._zoom_scale + 1, self.__max_zoom)
-                    self.__update_zoom((a_x, a_y))
+                    self._zoom_scale = min(self._zoom_scale + 7, (1/self._period) / 5)
+                    self.__update_zoom((a_x, a_y), True)
                 elif touch.button == SCROLL_UP:
-                    self._zoom_scale = max(self._zoom_scale - 1, self.__min_zoom)
-                    self.__update_zoom((a_x, a_y))
+                    self._zoom_scale = max(self._zoom_scale - 7, self.__min_zoom)
+                    self.__update_zoom((a_x, a_y), False)
                 elif touch.button == SCROLL_LEFT:
                     self.__update_panning(False)
                 elif touch.button == SCROLL_RIGHT:
@@ -185,8 +185,8 @@ class WaveformGraph(Graph):
                     Color(*color, mode='hsv')
                     Ellipse(source=POINT_IMAGE, pos=pos,
                             size=(self.__point_size, self.__point_size))
-        if self.xmax - self.xmin < self._period * 15:
-            self.x_grid = self._single_period
+        if self._period * 2 < self.xmax - self.xmin < self._period * 15:
+            self.x_grid = False
             color_line = (202, 0.30, 0.85)
             current_x = self.xmin + self._period - self.xmin % self._period
             while current_x < self.xmax:
@@ -199,19 +199,24 @@ class WaveformGraph(Graph):
             self.x_grid = True
         self._update_waveform_graph_func()
 
-    def __update_zoom(self, pos: typing.Tuple[float, float]) -> None:
+    def __update_zoom(self, pos: typing.Tuple[float, float], zoom_in: bool) -> None:
         if not self._single_period:
             x_pos, _ = self.__convert_point(pos)
-            self.x_ticks_major = self.__initial_x_ticks_major / self._zoom_scale
-            left_dist = x_pos - self.xmin
-            right_dist = self.xmax - x_pos
-            proportion = self.__initial_duration / (left_dist + right_dist) / self._zoom_scale
+            if zoom_in and self.xmax - self.xmin < self._period * 6:
+                self.xmin = (x_pos // self._period) * self._period
+                self.xmax = self.xmin + self._period
+                self.x_ticks_major = self._period / 4
+            else:
+                self.x_ticks_major = self.__initial_x_ticks_major / self._zoom_scale
+                left_dist = x_pos - self.xmin
+                right_dist = self.xmax - x_pos
+                proportion = self.__initial_duration / (left_dist + right_dist) / self._zoom_scale
 
-            self.xmax = x_pos + proportion * right_dist
-            self.xmin = x_pos - proportion * left_dist
+                self.xmax = x_pos + proportion * right_dist
+                self.xmin = x_pos - proportion * left_dist
             if self.xmin < 0:
-                self.xmax -= self.xmin
-                self.xmin = 0
+                    self.xmax -= self.xmin
+                    self.xmin = 0
             self.__update_graph_points()
 
     def __update_panning(self, is_left: bool) -> None:
@@ -260,5 +265,8 @@ class WaveformGraph(Graph):
 
     def set_period(self, frequency) -> None:
         if frequency != 0:
+            old_period = self._period
             self._period = 1 / frequency
-            self.__change_period_view()
+            self._zoom_scale = self._zoom_scale * old_period / self._period
+            self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), True)
+

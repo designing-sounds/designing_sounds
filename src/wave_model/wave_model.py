@@ -41,9 +41,9 @@ class SoundModel:
 
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]
-            yf = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
+            fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
 
-        return list(zip(freqs, yf)), np.max(yf)
+        return list(zip(freqs, fft)), np.max(fft)
 
     def remove_power_spectrum(self, index):
         num_kernels = self.__power_spectrum.num_kernels_per_spectrum[index]
@@ -56,17 +56,17 @@ class SoundModel:
         with self.lock:
             x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
-            for i in range(len(self.__power_spectrum.freqs)):
-                k += self.prior.kernel(x, self.__power_spectrum.freqs[i], self.__power_spectrum.periodic_sds[i],
+            for i, freq in enumerate(self.__power_spectrum.freqs):
+                k += self.prior.kernel(x, freq, self.__power_spectrum.periodic_sds[i],
                                        self.__power_spectrum.periodic_lengthscales[i],
                                        self.__power_spectrum.squared_sds[i],
                                        self.__power_spectrum.squared_lengthscales[i])
 
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]
-            yf = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
+            fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
 
-        return list(zip(freqs, yf)), np.max(yf)
+        return list(zip(freqs, fft)), np.max(fft)
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         with self.lock:
@@ -105,13 +105,12 @@ class SoundModel:
         x = np.linspace(start_time, start_time + chunk_duration, int(chunk_duration * sample_rate), endpoint=False,
                         dtype=np.float32)
 
-        self.lock.acquire()
-        sound = self.prior.prior(x, self.__power_spectrum.freqs, self.__power_spectrum.periodic_sds,
-                                 self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.squared_sds,
-                                 self.__power_spectrum.squared_lengthscales)
-        if not (self.inv is None or self.x_train is None or self.y_train is None):
-            sound += self.update(x)
-        self.lock.release()
+        with self.lock:
+            sound = self.prior.prior(x, self.__power_spectrum.freqs, self.__power_spectrum.periodic_sds,
+                                     self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.squared_sds,
+                                     self.__power_spectrum.squared_lengthscales)
+            if not (self.inv is None or self.x_train is None or self.y_train is None):
+                sound += self.update(x)
 
         return sound
 

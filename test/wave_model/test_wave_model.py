@@ -12,7 +12,7 @@ class TestSoundModel(unittest.TestCase):
         self.max_harmonics = 1000
         self.max_samples_per_harmonic = 4
         self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, self.max_samples_per_harmonic)
-        self.tolerance = 1e-9
+        self.tolerance = 1e-6
 
     def test_model_chunk_sound(self):
         samples = self.max_samples_per_harmonic

@@ -29,7 +29,7 @@ class PowerSpectrum:
                         num_harmonics: int) -> None:
         idx = np.sum(self.num_kernels_per_spectrum[:harmonic_index])
         cur_num_harmonics = self.num_kernels_per_spectrum[harmonic_index]
-        d = self.prior.d
+        approx_dim = self.prior.approx_dim
         for i in range(cur_num_harmonics, num_harmonics):
             self.freqs = np.insert(self.freqs, idx + i, np.float32(mean * (i + 1)))
             self.periodic_sds = np.insert(self.periodic_sds, idx + i, np.float32(periodic_sd))
@@ -37,9 +37,9 @@ class PowerSpectrum:
             self.squared_sds = np.insert(self.squared_sds, idx + i, np.float32(squared_sd))
             self.squared_lengthscales = np.insert(self.squared_lengthscales, idx + i, np.float32(squared_lengthscale))
             if self.prior.weights is None:
-                self.prior.weights = np.asarray(np.random.randn(1, d), dtype=np.float32)
+                self.prior.weights = np.asarray(np.random.randn(1, approx_dim), dtype=np.float32)
             else:
-                self.prior.weights = np.insert(self.prior.weights, idx + i, np.random.randn(d), axis=0)
+                self.prior.weights = np.insert(self.prior.weights, idx + i, np.random.randn(approx_dim), axis=0)
 
         self.delete_harmonics(harmonic_index, num_harmonics, cur_num_harmonics)
 

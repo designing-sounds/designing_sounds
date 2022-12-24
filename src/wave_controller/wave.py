@@ -326,10 +326,9 @@ class RootWave(MDBoxLayout):
             scale_factor = scale / 4
             if 0 <= x < period / 4:
                 return slope * x
-            elif period / 4 <= x < 3 * period / 4:
+            if period / 4 <= x < 3 * period / 4:
                 return scale_factor * 2 - slope * x
-            else:
-                return slope * x - scale_factor * 4
+            return slope * x - scale_factor * 4
 
         def sawtooth_wave(x, period):
             return 3 / 2 / period * x - 3 / 4
@@ -452,7 +451,7 @@ class RootWave(MDBoxLayout):
         except ValueError:
             toast("Not a valid file")
 
-    def exit_manager(self, *args: typing.Any) -> None:
+    def exit_manager(self, *_: typing.Any) -> None:
         self.file_manager.close()
 
 

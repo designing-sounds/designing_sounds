@@ -1,12 +1,10 @@
 import typing
 from typing import Tuple, Any
 
-import math
 from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.uix.boxlayout import BoxLayout
 from kivy.input.motionevent import MotionEvent
 from kivy_garden.graph import Graph
-from src.wave_view import style
 import numpy as np
 
 SCROLL_RIGHT = 'scrollright'
@@ -177,7 +175,7 @@ class WaveformGraph(Graph):
             if self.xmin <= x <= self.xmax:
                 self.__create_point(self.__to_pixels((x, y)))
         if self.xmax - self.xmin < self._period * 15:
-            self.x_grid = False
+            self.x_grid = self._single_period
             color_line = (202, 0.30, 0.85)
             current_x = self.xmin + self._period - self.xmin % self._period
             while current_x < self.xmax:
@@ -221,9 +219,11 @@ class WaveformGraph(Graph):
         if self._single_period:
             self.xmin = 0
             self.xmax = self._period
+            self.x_ticks_major = self._period / 2
         else:
             self.xmin = 0
             self.xmax = self.__initial_duration / self._zoom_scale
+            self.x_ticks_major = self.__initial_x_ticks_major / self._zoom_scale
         self.__update_graph_points()
 
     # Get/Set Methods for class
@@ -250,7 +250,7 @@ class WaveformGraph(Graph):
     def set_period(self, frequency) -> None:
         if frequency != 0:
             self._period = 1 / frequency
-            self.__update_graph_points()
+            self.__change_period_view()
 
     def get_preset_points(self, preset_func: typing.Callable, amount: int) -> typing.List[typing.Tuple[float, float]]:
         preset_wave = [(float(i), preset_func(i, self._period)) for i in np.linspace(0, self._period, amount)]

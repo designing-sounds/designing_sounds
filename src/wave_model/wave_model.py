@@ -86,6 +86,10 @@ class SoundModel:
                                                   periodic_lengthscale, squared_sd, squared_lengthscale, num_harmonics)
             self.prior.update(self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
 
+    def clear_all_power_spectrums(self) -> None:
+        with self.lock:
+            self.__power_spectrum.clear_all()
+
     def get_power_spectrum(self, sound, samples: int):
         with self.lock:
             k = sound

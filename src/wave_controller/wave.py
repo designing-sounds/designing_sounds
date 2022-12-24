@@ -74,9 +74,11 @@ class RootWave(MDBoxLayout):
         self.show_loaded.bind(on_press=self.press_button_show_loaded_sound)
 
         self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
+        self.connect_button.bind(on_press=self.press_button_connect)
         self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics,
                                        self.squared_sd, self.squared_lengthscale]
 
+        # Wave Graphs
         border_color = [0, 0, 0, 1]
         self.waveform_graph = WaveformGraph(update_waveform=self.update_waveform,
                                             update_waveform_graph=self.update_waveform_graph, size_hint=(1, 1),
@@ -110,7 +112,9 @@ class RootWave(MDBoxLayout):
         self.power_buttons = []
         self.selected_button_color = style.dark_sky_blue
         self.unselected_button_color = style.blue_violet
-        self.harmonic_list = [[0, 0, 0, 1]] * self.max_power_spectrums
+        self.initial_harmonic_values = [self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value,
+                                        self.squared_sd.value, self.squared_lengthscale.value]
+        self.harmonic_list = [self.initial_harmonic_values] * self.max_power_spectrums
         self.press_button_add(None)
         self.double_tap = False
         self.change_power_spectrum = True
@@ -165,7 +169,6 @@ class RootWave(MDBoxLayout):
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
-            # TODO: Update this - first function that gets called when a slider is changed
             self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value,
                                                    self.periodic_sd.value, self.periodic_lengthscale.value,
                                                    self.squared_sd.value, self.squared_lengthscale.value,
@@ -173,6 +176,31 @@ class RootWave(MDBoxLayout):
             self.update_power_spectrum_graph()
             self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
+
+    def power_spectrum_from_freqs(self, freqs: [float]):
+        if len(freqs) > 10:
+            return
+        num_spectrums = self.num_power_spectrums
+        for i in range(num_spectrums, len(freqs), -1):
+            self.current_harmonic_index = i - 1
+            self.double_tap = True
+            self.remove_power_spectrum(None)
+        self.double_tap = False
+        for i in range(num_spectrums, len(freqs), 1):
+            self.press_button_add(None)
+        self.num_power_spectrums = len(freqs)
+        self.sound_model.clear_all_power_spectrums()
+        for i in range(0, min(self.max_harmonics, len(freqs))):
+            values = self.initial_harmonic_values
+            values[0] = min(freqs[i], self.mean.max)
+            self.harmonic_list[i] = values
+            harmonic_samples = self.max_samples_per_harmonic // 2
+            self.sound_model.update_power_spectrum(i, min(freqs[i], self.mean.max), 1,
+                                                   harmonic_samples, int(1),
+                                                   self.decay_function.text)
+        self.update_sliders()
+        self.update_waveform()
+        self.update_power_spectrum()
 
     def update_power_spectrum_graph(self):
         self.power_plot.points, ymax = self.sound_model.get_power_spectrum_histogram(
@@ -224,6 +252,14 @@ class RootWave(MDBoxLayout):
             self.waveform_graph.set_single_period()
             self.single_period.icon = "arrow-collapse-horizontal"
             self.single_period.md_bg_color = style.dark_sky_blue
+
+    def press_button_connect(self, _:typing.Any) -> None:
+        if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
+            self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
+            self.connect_button.md_bg_color = style.dark_sky_blue
+        else:  # Was already running so disconnected
+            self.connect_button.text = 'Connect MIDI Piano Power Spectrum'
+            self.connect_button.md_bg_color = style.blue_violet
 
     def press_button_show_loaded_sound(self, _: typing.Any) -> None:
         if self.loaded_file:
@@ -277,7 +313,7 @@ class RootWave(MDBoxLayout):
             self.power_buttons.append(button)
             self.ids.power_spectrum_buttons.add_widget(button)
             self.update_display_power_spectrum(self.num_power_spectrums - 1)
-            self.harmonic_list[self.current_power_spectrum_index] = [self.mean.max // 2, 1, 1, 1]
+            self.harmonic_list[self.current_power_spectrum_index] = self.initial_harmonic_values
             self.update_sliders()
             self.update_power_spectrum()
 
@@ -331,16 +367,14 @@ class RootWave(MDBoxLayout):
 
         self.harmonic_list[self.current_power_spectrum_index] = [self.mean.value, self.periodic_sd.value,
                                                                  self.periodic_lengthscale.value,
-                                                                 int(self.num_harmonics.value)]
+                                                                 self.squared_sd.value, self.squared_lengthscale.value]
         self.current_power_spectrum_index = harmonic_index
         self.update_sliders()
 
     def update_sliders(self):
         self.change_power_spectrum = False
-        # TODO: Update with squared_sd and squared_lengthscale
-        mean, periodic_sd, periodic_lengthscale, num_harmonics = self.harmonic_list[self.current_power_spectrum_index]
+        mean, periodic_sd, periodic_lengthscale, self.squared_sd.value, self.squared_lengthscale.value = self.harmonic_list[self.current_power_spectrum_index]
         self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value = mean, periodic_sd, periodic_lengthscale
-        self.num_harmonics.value = num_harmonics
         self.change_power_spectrum = True
 
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
@@ -377,7 +411,7 @@ class RootWave(MDBoxLayout):
             self.harmonic_list[i] = self.harmonic_list[i + 1]
 
         # zero fill end of harmonic list to account for removal
-        self.harmonic_list[self.num_power_spectrums - 1] = [0, 0, 0, 1]
+        self.harmonic_list[self.num_power_spectrums - 1] = self.initial_harmonic_values
 
         self.sound_model.remove_power_spectrum(self.current_power_spectrum_index)
 

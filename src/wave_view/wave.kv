@@ -29,6 +29,7 @@
     play: play_button
     back: back_button
     eraser_mode: eraser_mode
+    connect_button: connect_button
     add: add_button
     all_power_spectrums: all_power_spectrum_button
     periodic_sd: periodic_sd
@@ -204,13 +205,14 @@
         BoxLayout:
             size_hint: 1, 0.8
             orientation: 'horizontal'
+            padding: 20
 
             BoxLayout:
-                size_hint: 0.7, 1
+                size_hint: 1, 1
                 orientation: 'horizontal'
 
                 BoxLayout:
-                    size_hint: 0.2, 1
+                    size_hint: 0.05, 1
 
                 BoxLayout:
                     size_hint: 0.7, 1
@@ -468,7 +470,23 @@
                             size_hint: 0.5, 0.2
 
                 BoxLayout:
-                    size_hint: 0.2, 1
+                    size_hint: 0.35, 1
+
+                    BoxLayout:
+                        size_hint: 0.2, 1
+
+                    MDRectangleFlatIconButton:
+                        md_bg_color: style.blue_violet
+                        id: connect_button
+                        icon: 'piano'
+                        text: 'MIDI Piano Power Spectrum'
+                        icon_color: 'white'
+                        text_color: 'white'
+                        line_color: (0, 0, 0, 0)
+                        pos_hint: {"center_x": .5, "center_y": .5}
+
+                    BoxLayout:
+                        size_hint: 0.2, 1
 
         BoxLayout:
             size_hint: 1, 0.05

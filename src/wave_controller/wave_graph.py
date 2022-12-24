@@ -17,6 +17,8 @@ SCROLL_UP = 'scrollup'
 
 SCROLL_DOWN = 'scrolldown'
 
+POINT_IMAGE = 'media/black.png'
+
 
 class WaveformGraph(Graph):
     __selected_points = []
@@ -76,14 +78,7 @@ class WaveformGraph(Graph):
                 return True
 
             if not self._eraser_mode:
-                color = (1, 0, 0)
-
-                pos = (touch.x - self.__point_size / 2, touch.y - self.__point_size / 2)
-
-                with self._graph_canvas.canvas:
-                    Color(*color, mode='hsv')
-                    Ellipse(color=style.blue_violet, pos=pos, size=(self.__point_size, self.__point_size))
-
+                self.__create_point(touch.pos)
                 self._last_touched_point = self._graph_canvas.canvas.children[-1]
                 self.__selected_points.append(tuple(self.to_data(a_x, a_y)))
                 self._update_waveform_func()
@@ -117,6 +112,13 @@ class WaveformGraph(Graph):
             touch.ungrab(self)
 
         return super().on_touch_up(touch)
+
+    def __create_point(self, touch_pos: typing.Tuple[float, float]) -> None:
+        color = (0, 0, 1)
+        pos = (touch_pos[0] - self.__point_size / 2, touch_pos[1] - self.__point_size / 2)
+        with self._graph_canvas.canvas:
+            Color(*color, mode="hsv")
+            Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
 
     def __touching_point(self, pos: typing.Tuple[float, float]) -> typing.Optional[Ellipse]:
         points = self._graph_canvas.canvas.children[2::3]
@@ -173,13 +175,7 @@ class WaveformGraph(Graph):
         self._graph_canvas.canvas.clear()
         for x, y in self.__selected_points:
             if self.xmin <= x <= self.xmax:
-                new_x, new_y = self.__to_pixels((x, y))
-                color = (1, 0, 0)
-                pos = (new_x - self.__point_size / 2, new_y - self.__point_size / 2)
-                with self._graph_canvas.canvas:
-                    Color(*color, mode='hsv')
-                    Ellipse(color=style.blue_violet, pos=pos,
-                            size=(self.__point_size, self.__point_size))
+                self.__create_point(self.__to_pixels((x, y)))
         if self.xmax - self.xmin < self._period * 15:
             self.x_grid = False
             color_line = (202, 0.30, 0.85)
@@ -257,26 +253,14 @@ class WaveformGraph(Graph):
             self.__update_graph_points()
 
     def get_preset_points(self, preset_func: typing.Callable, amount: int) -> typing.List[typing.Tuple[float, float]]:
-
         preset_wave = [(float(i), preset_func(i, self._period)) for i in np.linspace(0, self._period, amount)]
         for (i, j) in preset_wave:
-            pos = (i - self.__point_size / 2, j - self.__point_size / 2)
-            color = (1, 0, 0)
-            with self._graph_canvas.canvas:
-                Color(*color, mode='hsv')
-                Ellipse(pos=pos, size=(self.__point_size, self.__point_size))
-
+            self.__create_point((i, j))
         self.__selected_points = preset_wave
         return self.__selected_points
 
     def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
-
         for (i, j) in points:
-            pos = (i - self.__point_size / 2, j - self.__point_size / 2)
-            color = (1, 0, 0)
-            with self._graph_canvas.canvas:
-                Color(*color, mode='hsv')
-                Ellipse(pos=pos, size=(self.__point_size, self.__point_size))
-
+            self.__create_point((i, j))
         self.__selected_points = points
         return self.__selected_points

@@ -8,7 +8,7 @@ class Prior:
         self.weights = None
         self.approx_dim = approx_dim
 
-    def update(self, _, __):
+    def update(self, _, __, ___):
         pass
 
     def resample(self):
@@ -39,7 +39,7 @@ class SquaredExpPrior(Prior):
         self.squared_w = np.asarray(np.random.randn(self.approx_dim), dtype=np.float32)
         self.bias = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
 
-    def update(self, _, __):
+    def update(self, _, __, ___):
         pass
 
     def resample(self):
@@ -58,10 +58,11 @@ class SquaredExpPrior(Prior):
 class PeriodicPrior(Prior):
     def __init__(self, approx_dim):
         Prior.__init__(self, approx_dim)
+        self.temp = None
         self.calc = None
         self.nums = 2 * np.pi * np.arange(self.approx_dim // 2, dtype=np.float32)
 
-    def update(self, lengthscale, sd):
+    def update(self, freqs, lengthscale, sd):
         self.calc = np.zeros((sd.size, 1, self.approx_dim), dtype=np.float32)
         lengthscale = np.power(lengthscale, -2)
         for k in range(self.approx_dim // 2):
@@ -71,9 +72,10 @@ class PeriodicPrior(Prior):
                 num = 2
             self.calc[:, 0, k] = sd * np.sqrt(num * ive(k, lengthscale))
         self.calc[:, :, self.approx_dim // 2:] = self.calc[:, :, :self.approx_dim // 2]
+        self.temp = freqs[:, None, None] * self.nums[None, :]
 
     def phi(self, x, freqs, _, __, ___, ____):
-        vals = freqs[:, None, None] * (x[:, None] @ self.nums[None, :])
+        vals = x[:, None] @ self.temp
         residue = np.empty((freqs.size, x.size, self.approx_dim), dtype=np.float32)
         residue[:, :, :self.approx_dim // 2] = np.cos(vals)
         residue[:, :, self.approx_dim // 2:] = np.sin(vals)
@@ -94,8 +96,8 @@ class MultPrior(Prior):
         self.squared.resample()
         self.periodic.resample()
 
-    def update(self, lengthscale, sd):
-        self.periodic.update(lengthscale, sd)
+    def update(self, freqs, lengthscale, sd):
+        self.periodic.update(freqs, lengthscale, sd)
 
     def phi(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
         return self.periodic.phi(x, freqs, sds, lengthscales, 0, 0) * self.squared.phi(x, freqs, sds_squared,

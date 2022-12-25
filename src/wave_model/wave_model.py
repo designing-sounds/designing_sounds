@@ -49,7 +49,7 @@ class SoundModel:
         num_kernels = self.__power_spectrum.num_kernels_per_spectrum[index]
         self.__power_spectrum.delete_harmonics(index, 0, num_kernels)
         self.__power_spectrum.num_kernels_per_spectrum[index] = 0
-        self.prior.update(self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
+        self.prior.update(self.__power_spectrum.freqs, self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
 
     def get_sum_all_power_spectrum_histogram(self, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                           Union[ndarray, int, float, complex]]:
@@ -86,7 +86,7 @@ class SoundModel:
         with self.lock:
             self.__power_spectrum.update_harmonic(harmonic_index, mean, periodic_sd,
                                                   periodic_lengthscale, squared_sd, squared_lengthscale, num_harmonics)
-            self.prior.update(self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
+            self.prior.update(self.__power_spectrum.freqs, self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
 
     def clear_all_power_spectrums(self) -> None:
         with self.lock:

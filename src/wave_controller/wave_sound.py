@@ -18,7 +18,7 @@ class WaveSound:
         self._stream.stop_stream()
 
     def callback(self, _in_data, _frame_count, _time_info, _flag):
-        sound: np.ndarray = self.sound_model.model_sound(self.sample_rate, self._chunk_duration,
+        sound = self.sound_model.model_sound(self.sample_rate, self._chunk_duration,
                                                          start_time=self._chunk_index * self._chunk_duration)
         self._chunk_index = self._chunk_index + 1
         return sound, pyaudio.paContinue

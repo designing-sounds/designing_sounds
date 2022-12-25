@@ -41,10 +41,10 @@ class Item(OneLineAvatarIconListItem):
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 44100
+    sample_rate = 16000
     graph_sample_rate = 2500
     waveform_duration = 1
-    chunk_duration = 0.1
+    chunk_duration = 0.01
 
     max_harmonics = 5
     max_power_spectrums = 5

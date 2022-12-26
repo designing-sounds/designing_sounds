@@ -113,7 +113,7 @@ class RootWave(MDBoxLayout):
         self.selected_button_color = style.dark_sky_blue
         self.unselected_button_color = style.blue_violet
         self.initial_harmonic_values = [self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value,
-                                        self.squared_sd.value, self.squared_lengthscale.value]
+                                        self.squared_sd.value, self.squared_lengthscale.value, 1]
         self.harmonic_list = [self.initial_harmonic_values] * self.max_power_spectrums
         self.press_button_add(None)
         self.double_tap = False
@@ -357,15 +357,16 @@ class RootWave(MDBoxLayout):
 
         self.harmonic_list[self.current_power_spectrum_index] = [self.mean.value, self.periodic_sd.value,
                                                                  self.periodic_lengthscale.value,
-                                                                 self.squared_sd.value, self.squared_lengthscale.value]
+                                                                 self.squared_sd.value, self.squared_lengthscale.value,
+                                                                 self.num_harmonics.value]
         self.current_power_spectrum_index = harmonic_index
         self.update_sliders()
 
     def update_sliders(self):
         self.change_power_spectrum = False
         harmonic = self.harmonic_list[self.current_power_spectrum_index]
-        self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value = harmonic[:-1]
-        self.squared_lengthscale.value = harmonic[-1]
+        self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value = harmonic[:-2]
+        self.squared_lengthscale.value, self.num_harmonics.value = harmonic[-2:]
         self.change_power_spectrum = True
 
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):

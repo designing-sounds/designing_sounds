@@ -155,7 +155,7 @@ class WaveformGraph(Graph):
         return tuple(self.to_data(a_x, a_y))
 
     def get_selected_points(self) -> typing.List[typing.Tuple[float, float]]:
-        return [x for (x, _) in self.__selected_points]
+        return [x for x, _ in self.__selected_points]
 
     def clear_selected_points(self) -> None:
         self._graph_canvas.canvas.clear()
@@ -259,16 +259,11 @@ class WaveformGraph(Graph):
             self.__change_period_view()
 
     def get_preset_points(self, preset_func: typing.Callable, amount: int) -> typing.List[typing.Tuple[float, float]]:
-        preset_wave = []
-        for i in np.linspace(0, self._period, amount):
-            preset = preset_func(i, self._period)
-            preset_wave.append(((float(i), preset),  self.__create_point((i, preset))))
-        self.__selected_points = preset_wave
-        return self.__selected_points
+        return self.get_preset_points_from_y([(float(i), (preset_func(i, self._period))) for i in np.linspace(0, self._period, amount)])
 
     def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
+        self.__selected_points = []
         for point in points:
-            x, y = point[0]
-            point[1] = self.__create_point((x, y))
-        self.__selected_points = points
-        return self.__selected_points
+            self.__selected_points.append([point, self.__create_point(point)])
+
+        return self.get_selected_points()

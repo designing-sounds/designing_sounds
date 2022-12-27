@@ -122,6 +122,7 @@ class WaveformGraph(Graph):
         with self._graph_canvas.canvas:
             Color(*color, mode="hsv")
             Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
+
         return self._graph_canvas.canvas.children[-1]
 
     def __touching_point(self, pos: typing.Tuple[float, float]) -> typing.Optional[Ellipse]:
@@ -264,6 +265,6 @@ class WaveformGraph(Graph):
     def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
         self.__selected_points = []
         for point in points:
-            self.__selected_points.append([point, self.__create_point(point)])
+            self.__selected_points.append([point, self.__create_point(self.__to_pixels(point))])
 
         return self.get_selected_points()

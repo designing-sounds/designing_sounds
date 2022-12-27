@@ -254,7 +254,7 @@
                         orientation: 'vertical'
 
                         MDLabel:
-                            text: 'Interpolation Variance: ' + str(round(float(variance.value), 2))
+                            text: 'Interpolation Variance: ' + str(round(float(variance.value), 3))
                             halign: 'center'
                             theme_text_color: 'Primary'
                         MDSlider:
@@ -269,7 +269,7 @@
                             value: 0
                             min: 0
                             max: 10
-                            step: 0.01
+                            step: 0.001
                             on_value: root.update_variance()
                             show_off: False
 

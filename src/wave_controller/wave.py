@@ -359,6 +359,7 @@ class RootWave(MDBoxLayout):
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
         self.update_display_power_spectrum(int(button.text) - 1)
         self.update_power_spectrum_graph()
+        self.waveform_graph.set_period(self.mean.value)
 
     def set_double_tap(self, _button, touch):
         self.double_tap = False

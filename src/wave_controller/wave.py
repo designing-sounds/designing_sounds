@@ -41,7 +41,7 @@ class Item(OneLineAvatarIconListItem):
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 16000
+    sample_rate = 14700
     graph_sample_rate = 2500
     waveform_duration = 1
     chunk_duration = 0.01
@@ -65,7 +65,6 @@ class RootWave(MDBoxLayout):
 
         # Button bindings
         self.play.bind(on_press=self.press_button_play)
-        self.single_period.bind(on_press=self.press_single_period)
         self.back.bind(on_press=self.press_button_back)
         self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
@@ -210,8 +209,8 @@ class RootWave(MDBoxLayout):
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         sample_rate, data = self.loaded_file
-        start_index = int(sample_rate * x_min)
-        finish_index = int(sample_rate * x_max)
+        start_index = int(self.sample_rate * x_min)
+        finish_index = int(self.sample_rate * x_max)
         self.load_sound_plot.points = list(
             zip(np.linspace(x_min, x_max, finish_index - start_index), data[start_index:finish_index]))
 
@@ -232,18 +231,6 @@ class RootWave(MDBoxLayout):
             self.wave_sound.play_audio()
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
-
-    def press_single_period(self, _: typing.Any) -> None:
-        if self.waveform_graph.is_single_period():
-            # Single Period -> Multiple Periods
-            self.waveform_graph.set_multiple_period()
-            self.single_period.icon = "arrow-expand-horizontal"
-            self.single_period.md_bg_color = style.blue_violet
-        else:
-            # Multiple Periods -> Single Period
-            self.waveform_graph.set_single_period()
-            self.single_period.icon = "arrow-collapse-horizontal"
-            self.single_period.md_bg_color = style.dark_sky_blue
 
     def press_button_connect(self, _: typing.Any) -> None:
         if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
@@ -269,7 +256,7 @@ class RootWave(MDBoxLayout):
                 self.show_loaded.text = "Hide Loaded Sound"
                 _, data = self.loaded_file
                 self.update_loaded_sound_graph()
-                self.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
+                self.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.power_spectrum_graph_samples])
                 self.show_loaded.md_bg_color = style.dark_sky_blue
 
     def press_button_back(self, _: typing.Any) -> None:
@@ -372,6 +359,7 @@ class RootWave(MDBoxLayout):
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
         self.update_display_power_spectrum(int(button.text) - 1)
         self.update_power_spectrum_graph()
+        self.waveform_graph.set_period(self.mean.value)
 
     def set_double_tap(self, _button, touch):
         self.double_tap = False
@@ -433,15 +421,16 @@ class RootWave(MDBoxLayout):
     def select_path(self, path: str) -> None:
         try:
             self.loaded_file = wavfile.read(path)
-            data = np.sum(self.loaded_file[1], axis=1)
+            data = np.sum(self.loaded_file[1], axis=1)[::self.loaded_file[0]//self.sample_rate]
             data = data / max(data.max(), data.min(), key=abs)
             self.is_showing = True
             self.show_loaded.disabled = False
             self.loaded_file = (self.loaded_file[0], data)
-            self.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.sample_rate])
-            step = 100
+            self.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.power_spectrum_graph_samples])
+            step = 25
             y = data[:self.sample_rate:step]
             points = [(float(i) * step / self.sample_rate, y[i]) for i in range(len(y))]
+            print(points)
             self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
             self.wave_sound.sound_changed()
             self.update_power_spectrum()

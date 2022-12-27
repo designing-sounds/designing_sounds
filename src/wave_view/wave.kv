@@ -25,7 +25,6 @@
     #:import style src.wave_view.style
     resample: resample_button
     clear: clear_button
-    single_period: single_period
     play: play_button
     back: back_button
     eraser_mode: eraser_mode
@@ -134,14 +133,6 @@
 
                 BoxLayout:
                     size_hint: 1, 0.6
-
-                MDIconButton:
-                    md_bg_color: style.blue_violet
-                    id: single_period
-                    icon: 'arrow-expand-horizontal'
-                    theme_text_color: 'Custom'
-                    text_color: style.white
-                    pos_hint: {"center_x": .5, "center_y": .5}
 
                 BoxLayout:
                     size_hint: 0.5, 0.2
@@ -326,9 +317,9 @@
                                     thumb_color_inactive: style.palatinate_purple
                                     id: mean
                                     value: 500
-                                    min: 0
+                                    min: 10
                                     max: 2000
-                                    step: 0.01
+                                    step: 0.1
                                     on_value: root.update_power_spectrum()
                                     show_off: False
                             BoxLayout:

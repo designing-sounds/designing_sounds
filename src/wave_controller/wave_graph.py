@@ -1,15 +1,11 @@
 import typing
 from typing import Tuple, Any
 
-import math
 from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.uix.boxlayout import BoxLayout
 from kivy.input.motionevent import MotionEvent
 from kivy_garden.graph import Graph
-
 import numpy as np
-
-POINT_IMAGE = 'media/dc1020.jpg'
 
 SCROLL_RIGHT = 'scrollright'
 
@@ -18,6 +14,8 @@ SCROLL_LEFT = 'scrollleft'
 SCROLL_UP = 'scrollup'
 
 SCROLL_DOWN = 'scrolldown'
+
+POINT_IMAGE = 'media/black.png'
 
 
 class WaveformGraph(Graph):
@@ -37,8 +35,7 @@ class WaveformGraph(Graph):
         # Private Class initialization
         self._update_waveform_func = update_waveform
         self._update_waveform_graph_func = update_waveform_graph
-        self._current_point = None
-        self._old_pos = None
+        self._last_touched_point = None
         self._zoom_scale = 1
         self._period = 0.002
         self.x_ticks_major = self.__initial_x_ticks_major
@@ -71,22 +68,17 @@ class WaveformGraph(Graph):
             if ellipse:
                 if self._eraser_mode:
                     self.__remove_point(ellipse)
+                    touch.grab(self)
+                    self._last_touched_point = None
                     return True
-                self._current_point = ellipse
-                self._old_pos = self.__convert_point(self._current_point.pos)
+                self._last_touched_point = ellipse
                 touch.grab(self)
                 return True
 
             if not self._eraser_mode:
-                color = (0, 0, 1)
-
-                pos = (touch.x - self.__point_size / 2, touch.y - self.__point_size / 2)
-
-                with self._graph_canvas.canvas:
-                    Color(*color, mode='hsv')
-                    Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
-
-                self.__selected_points.append(tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y))))
+                self.__create_point(touch.pos)
+                self._last_touched_point = self._graph_canvas.canvas.children[-1]
+                self.__selected_points.append(tuple(self.to_data(a_x, a_y)))
                 self._update_waveform_func()
 
         return super().on_touch_down(touch)
@@ -94,22 +86,21 @@ class WaveformGraph(Graph):
     def on_touch_move(self, touch: MotionEvent) -> bool:
         a_x, a_y = self.to_widget(touch.x, touch.y, relative=True)
         if self.collide_plot(a_x, a_y):
-
             if self._eraser_mode:
                 ellipse = self.__touching_point((touch.x, touch.y))
                 if ellipse:
                     self.__remove_point(ellipse)
+                    self._last_touched_point = None
                     return True
-
+                return False
             if touch.grab_current is self:
                 radius = self.__point_size / 2
-                for point in self.__selected_points:
-                    if math.isclose(point[0], self._old_pos[0], abs_tol=0.001) and point[1] == self._old_pos[1]:
-                        self.__selected_points.remove(point)
-                        break
-                self._current_point.pos = (touch.x - radius, touch.y - radius)
-                self._old_pos = self.__convert_point(self._current_point.pos)
-                self.__selected_points.append(self.__convert_point(self._current_point.pos))
+                ellipse = self._last_touched_point
+                if ellipse is None:
+                    ellipse = self.__touching_point((touch.x, touch.y))
+                index = self._graph_canvas.canvas.children.index(ellipse)
+                ellipse.pos = touch.x - radius, touch.y - radius
+                self.__selected_points[index//3] = self.__convert_point(ellipse.pos)
                 self._update_waveform_func()
                 return True
         return False
@@ -119,6 +110,13 @@ class WaveformGraph(Graph):
             touch.ungrab(self)
 
         return super().on_touch_up(touch)
+
+    def __create_point(self, touch_pos: typing.Tuple[float, float]) -> None:
+        color = (0, 0, 1)
+        pos = (touch_pos[0] - self.__point_size / 2, touch_pos[1] - self.__point_size / 2)
+        with self._graph_canvas.canvas:
+            Color(*color, mode="hsv")
+            Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
 
     def __touching_point(self, pos: typing.Tuple[float, float]) -> typing.Optional[Ellipse]:
         points = self._graph_canvas.canvas.children[2::3]
@@ -134,11 +132,8 @@ class WaveformGraph(Graph):
         self._graph_canvas.canvas.children.pop(to_remove)
         self._graph_canvas.canvas.children.pop(to_remove - 1)
         self._graph_canvas.canvas.children.pop(to_remove - 2)
-        x, y = self.__convert_point(ellipse.pos)
-        for point in self.__selected_points:
-            if math.isclose(point[0], x, abs_tol=0.001) and point[1] == y:
-                self.__selected_points.remove(point)
-                break
+        self.__selected_points.pop(to_remove//3)
+
         self._update_waveform_func()
 
     @staticmethod
@@ -152,9 +147,9 @@ class WaveformGraph(Graph):
         radius = self.__point_size / 2
         e_x, e_y = (point[0] + radius, point[1] + radius)
         a_x, a_y = self.to_widget(e_x, e_y, relative=True)
-        return tuple(map(lambda x: round(x, 5), self.to_data(a_x, a_y)))
+        return tuple(self.to_data(a_x, a_y))
 
-    def get_selected_points(self) -> typing.List[typing.Tuple[int, int]]:
+    def get_selected_points(self) -> typing.List[typing.Tuple[float, float]]:
         return self.__selected_points
 
     def clear_selected_points(self) -> None:
@@ -178,13 +173,7 @@ class WaveformGraph(Graph):
         self._graph_canvas.canvas.clear()
         for x, y in self.__selected_points:
             if self.xmin <= x <= self.xmax:
-                new_x, new_y = self.__to_pixels((x, y))
-                color = (0, 0, 1)
-                pos = (new_x - self.__point_size / 2, new_y - self.__point_size / 2)
-                with self._graph_canvas.canvas:
-                    Color(*color, mode='hsv')
-                    Ellipse(source=POINT_IMAGE, pos=pos,
-                            size=(self.__point_size, self.__point_size))
+                self.__create_point(self.__to_pixels((x, y)))
         if self._period * 2 < self.xmax - self.xmin < self._period * 15:
             self.x_grid = False
             color_line = (202, 0.30, 0.85)
@@ -269,3 +258,16 @@ class WaveformGraph(Graph):
             self._period = 1 / frequency
             self._zoom_scale = self._zoom_scale * old_period / self._period
             self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), True)
+
+    def get_preset_points(self, preset_func: typing.Callable, amount: int) -> typing.List[typing.Tuple[float, float]]:
+        preset_wave = [(float(i), preset_func(i, self._period)) for i in np.linspace(0, self._period, amount)]
+        for (i, j) in preset_wave:
+            self.__create_point((i, j))
+        self.__selected_points = preset_wave
+        return self.__selected_points
+
+    def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
+        for (i, j) in points:
+            self.__create_point((i, j))
+        self.__selected_points = points
+        return self.__selected_points

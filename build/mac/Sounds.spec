@@ -22,7 +22,7 @@ a = Analysis(
 )
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-a.datas +=[('src/wave_view/wave.kv', '../../src/wave_view/wave.kv', 'DATA'), ('media/20221028_144310.jpg', '../../media/20221028_144310.jpg', 'media')]
+a.datas +=[('src/wave_view/wave.kv', '../../src/wave_view/wave.kv', 'DATA'), ('media/black.png', '../../media/black.png', 'media')]
 
 exe = EXE(
     pyz,

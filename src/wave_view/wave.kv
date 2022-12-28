@@ -161,7 +161,22 @@
                     pos_hint: {'center_x': .5, 'center_y': .6}
                     id: preset_mode
                     text: "Choose Wave"
-                    on_release: root.open_centred()
+                    on_release: root.open_choose_wave_menu()
+
+                BoxLayout:
+                    size_hint: 1, 1
+                    orientation: 'vertical'
+
+                MDRectangleFlatIconButton:
+                    md_bg_color: style.blue_violet
+                    icon_color: 'white'
+                    text_color: 'white'
+                    icon: 'menu-down'
+                    line_color: (0, 0, 0, 0)
+                    pos_hint: {'center_x': .5, 'center_y': .6}
+                    id: preset_mode
+                    text: "Choose Kernel"
+                    on_release: root.open_choose_kernel_menu()
 
                 BoxLayout:
                     size_hint: 1, 1

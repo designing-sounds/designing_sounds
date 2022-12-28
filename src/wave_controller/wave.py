@@ -161,11 +161,17 @@ class RootWave(MDBoxLayout):
         choose_kernel_menu_items = [
             {
                 "text": "Periodic Kernel",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "sine-wave",
                 "viewclass": "Item",
                 "on_release": lambda x=True: self.set_periodic_prior(),
             },
             {
                 "text": "Gaussian Periodic Kernel",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "waveform",
                 "viewclass": "Item",
                 "on_release": lambda x=True: self.set_mult_prior(),
             }

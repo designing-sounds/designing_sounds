@@ -426,10 +426,10 @@ class RootWave(MDBoxLayout):
             self.show_loaded.disabled = False
             self.loaded_file = (self.loaded_file[0], data)
             self.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.power_spectrum_graph_samples])
-            step = 25
-            y = data[:self.sample_rate:step]
-            points = [(float(i) * step / self.sample_rate, y[i]) for i in range(len(y))]
-            self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
+            # step = 25
+            # y = data[:self.sample_rate:step]
+            # points = [(float(i) * step / self.sample_rate, y[i]) for i in range(len(y))]
+            # self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
             self.wave_sound.sound_changed()
             self.update_power_spectrum()
 

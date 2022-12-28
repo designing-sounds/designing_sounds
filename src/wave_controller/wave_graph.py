@@ -114,6 +114,7 @@ class WaveformGraph(Graph):
         for i, point in enumerate(self.__selected_points):
             if ellipse == point[1]:
                 return point, i
+        return None, None
 
     def __create_point(self, touch_pos: typing.Tuple[float, float]) -> Ellipse:
         color = (0, 0, 1)
@@ -179,7 +180,7 @@ class WaveformGraph(Graph):
         for point in self.__selected_points:
             x, y = point[0]
             if self.xmin <= x <= self.xmax:
-                self.__create_point(self.__to_pixels((x, y)))
+                point[1] = self.__create_point(self.__to_pixels((x, y)))
         if self.xmax - self.xmin < self._period * 15:
             color_line = (202, 0.30, 0.85)
             current_x = self.xmin + self._period - self.xmin % self._period
@@ -247,6 +248,5 @@ class WaveformGraph(Graph):
         self.__selected_points = []
         for point in points:
             self.__selected_points.append([point, self.__create_point(self.__to_pixels(point))])
-            print(point, self.__to_pixels(point))
 
         return self.get_selected_points()

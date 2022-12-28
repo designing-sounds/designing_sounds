@@ -119,7 +119,7 @@ class RootWave(MDBoxLayout):
         self.change_power_spectrum = True
         self.piano = PianoMIDI()
 
-        menu_items = [
+        choose_wave_menu_items = [
             {
                 "text": "Sine Wave",
                 "right_text": "",
@@ -153,10 +153,33 @@ class RootWave(MDBoxLayout):
                 "on_release": lambda x=True: self.preset_waves(SAWTOOTH_WAVE),
             }
         ]
-        self.menu = MDDropdownMenu(
+        self.choose_wave_menu = MDDropdownMenu(
             caller=self.preset,
-            items=menu_items,
+            items=choose_wave_menu_items,
             width_mult=4,
+        )
+        choose_kernel_menu_items = [
+            {
+                "text": "Periodic Kernel",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "sine-wave",
+                "viewclass": "Item",
+                "on_release": lambda x=True: self.set_periodic_prior(),
+            },
+            {
+                "text": "Gaussian Periodic Kernel",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "waveform",
+                "viewclass": "Item",
+                "on_release": lambda x=True: self.set_mult_prior(),
+            }
+        ]
+        self.choose_kernel_menu = MDDropdownMenu(
+            caller=self.kernel,
+            items=choose_kernel_menu_items,
+            width_mult=5,
         )
 
         Window.bind(on_request_close=self.shutdown_audio)
@@ -325,6 +348,18 @@ class RootWave(MDBoxLayout):
         self.wave_sound.sound_changed()
         self.update_power_spectrum()
 
+    def set_periodic_prior(self):
+        self.squared_sd.disabled = True
+        self.squared_lengthscale.disabled = True
+        self.sound_model.set_periodic_prior()
+        self.update_waveform()
+
+    def set_mult_prior(self):
+        self.squared_sd.disabled = False
+        self.squared_lengthscale.disabled = False
+        self.sound_model.set_mult_prior()
+        self.update_waveform()
+
     def press_button_all_power_spectrum(self, _: typing.Any) -> None:
         for slider in self.power_spectrum_sliders:
             slider.disabled = True
@@ -409,8 +444,12 @@ class RootWave(MDBoxLayout):
         self.piano.shutdown()
         return False
 
-    def open_centred(self) -> None:
-        self.menu.open()
+    def open_choose_wave_menu(self) -> None:
+        self.choose_wave_menu.open()
+
+    def open_choose_kernel_menu(self) -> None:
+        self.choose_kernel_menu.open()
+
 
     def file_manager_open(self) -> None:
         if not self.file_manager:

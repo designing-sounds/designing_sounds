@@ -171,7 +171,7 @@ class RootWave(MDBoxLayout):
             }
         ]
         self.choose_kernel_menu = MDDropdownMenu(
-            caller=self.preset,
+            caller=self.kernel,
             items=choose_kernel_menu_items,
             width_mult=5,
         )

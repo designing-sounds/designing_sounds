@@ -39,6 +39,7 @@
     squared_lengthscale: squared_lengthscale
     num_harmonics: num_harmonics
     preset: preset_mode
+    kernel: kernel_mode
     show_loaded: show_loaded
 
 
@@ -174,7 +175,7 @@
                     icon: 'menu-down'
                     line_color: (0, 0, 0, 0)
                     pos_hint: {'center_x': .5, 'center_y': .6}
-                    id: preset_mode
+                    id: kernel_mode
                     text: "Choose Kernel"
                     on_release: root.open_choose_kernel_menu()
 

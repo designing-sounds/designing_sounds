@@ -276,7 +276,6 @@ class RootWave(MDBoxLayout):
 
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
-        self.sound_model.update_prior()
         self.update_waveform()
 
     def press_button_resample(self, _: typing.Any) -> None:
@@ -430,7 +429,6 @@ class RootWave(MDBoxLayout):
             step = 25
             y = data[:self.sample_rate:step]
             points = [(float(i) * step / self.sample_rate, y[i]) for i in range(len(y))]
-            print(points)
             self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
             self.wave_sound.sound_changed()
             self.update_power_spectrum()

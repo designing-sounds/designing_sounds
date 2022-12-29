@@ -257,10 +257,10 @@ class RootWave(MDBoxLayout):
 
     def press_button_connect(self, _: typing.Any) -> None:
         if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
-            self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
+            self.connect_button.text = 'Disconnect MIDI Piano '
             self.connect_button.md_bg_color = style.dark_sky_blue
         else:  # Was already running so disconnected
-            self.connect_button.text = 'Connect MIDI Piano Power Spectrum'
+            self.connect_button.text = '  Connect MIDI Piano  '
             self.connect_button.md_bg_color = style.blue_violet
 
     def press_button_show_loaded_sound(self, _: typing.Any) -> None:

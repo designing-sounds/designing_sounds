@@ -42,9 +42,9 @@ class Item(OneLineAvatarIconListItem):
 
 class RootWave(MDBoxLayout):
     sample_rate = 16000
-    graph_sample_rate = 2500
+    graph_sample_rate = 1500
     waveform_duration = 1
-    chunk_duration = 0.01
+    chunk_duration = 0.05
 
     max_harmonics = 5
     max_power_spectrums = 5
@@ -225,8 +225,8 @@ class RootWave(MDBoxLayout):
 
     def update_waveform(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
-        self.wave_sound.sound_changed()
         self.update_waveform_graph()
+        self.wave_sound.sound_changed()
 
     def update_loaded_sound_graph(self) -> None:
         x_min = self.waveform_graph.xmin
@@ -251,9 +251,9 @@ class RootWave(MDBoxLayout):
             self.play.icon = "play"
             self.play.md_bg_color = style.blue_violet
         else:
-            self.wave_sound.play_audio()
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
+            self.wave_sound.play_audio()
 
     def press_button_connect(self, _: typing.Any) -> None:
         if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
@@ -345,8 +345,8 @@ class RootWave(MDBoxLayout):
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points))
-        self.wave_sound.sound_changed()
         self.update_power_spectrum()
+        self.wave_sound.sound_changed()
 
     def set_periodic_prior(self):
         self.squared_sd.disabled = True

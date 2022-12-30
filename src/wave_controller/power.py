@@ -4,6 +4,7 @@ from kivy.clock import mainthread
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import Graph, LinePlot
 from kivymd.uix.button import MDRectangleFlatButton
+from kivymd.uix.menu import MDDropdownMenu
 
 from src.wave_controller.instruments import PianoMIDI
 from src.wave_view import style
@@ -21,7 +22,7 @@ class PowerSpectrumController(BoxLayout):
         super(PowerSpectrumController, self).__init__(**kwargs)
 
         @mainthread
-        def delayed():
+        def delayed() -> None:
             # Button Bindings
             self.add.bind(on_press=self.press_button_add)
             self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
@@ -59,6 +60,30 @@ class PowerSpectrumController(BoxLayout):
             self.change_power_spectrum = True
             self.piano = PianoMIDI()
 
+            choose_kernel_menu_items = [
+                {
+                    "text": "Periodic Kernel",
+                    "right_text": "",
+                    "right_icon": "",
+                    "left_icon": "sine-wave",
+                    "viewclass": "Item",
+                    "on_release": lambda x=True: self.set_periodic_prior(),
+                },
+                {
+                    "text": "Gaussian Periodic Kernel",
+                    "right_text": "",
+                    "right_icon": "",
+                    "left_icon": "waveform",
+                    "viewclass": "Item",
+                    "on_release": lambda x=True: self.set_mult_prior(),
+                }
+            ]
+            self.choose_kernel_menu = MDDropdownMenu(
+                caller=self.kernel,
+                items=choose_kernel_menu_items,
+                width_mult=5,
+            )
+
         delayed()
 
     def press_button_connect(self, _: typing.Any) -> None:
@@ -91,9 +116,21 @@ class PowerSpectrumController(BoxLayout):
         self.power_spectrum_graph.ymax = max(int(y_max), 1)
         self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
 
-    def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
+    def press_button_display_power_spectrum(self, button: MDRectangleFlatButton) -> None:
         self.update_display_power_spectrum(int(button.text) - 1)
         self.update_power_spectrum_graph()
+
+    def set_periodic_prior(self) -> None:
+        self.squared_sd.disabled = True
+        self.squared_lengthscale.disabled = True
+        self.sound_model.set_periodic_prior()
+        self.update_waveform()
+
+    def set_mult_prior(self) -> None:
+        self.squared_sd.disabled = False
+        self.squared_lengthscale.disabled = False
+        self.sound_model.set_mult_prior()
+        self.update_waveform()
 
     def update_power_spectrum(self) -> None:
         if self.change_power_spectrum:
@@ -105,7 +142,7 @@ class PowerSpectrumController(BoxLayout):
             self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
 
-    def power_spectrum_from_freqs(self, freqs: [float]):
+    def power_spectrum_from_freqs(self, freqs: [float]) -> None:
         for i in range(self.num_power_spectrums, 0, -1):
             self.double_tap = True
             self.remove_power_spectrum(None)
@@ -122,7 +159,7 @@ class PowerSpectrumController(BoxLayout):
         self.update_waveform()
         self.update_power_spectrum()
 
-    def update_display_power_spectrum(self, harmonic_index: int):
+    def update_display_power_spectrum(self, harmonic_index: int) -> None:
         for slider in self.power_spectrum_sliders:
             slider.disabled = False
         self.all_power_spectrums.md_bg_color = self.unselected_button_color
@@ -136,14 +173,14 @@ class PowerSpectrumController(BoxLayout):
         self.current_power_spectrum_index = harmonic_index
         self.update_sliders()
 
-    def update_sliders(self):
+    def update_sliders(self) -> None:
         self.change_power_spectrum = False
         harmonic = self.harmonic_list[self.current_power_spectrum_index]
         self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value = harmonic[:-2]
         self.squared_lengthscale.value, self.num_harmonics.value = harmonic[-2:]
         self.change_power_spectrum = True
 
-    def set_double_tap(self, _button, touch):
+    def set_double_tap(self, _button, touch) -> None:
         self.double_tap = False
         if touch.is_double_tap:
             self.double_tap = True
@@ -160,7 +197,7 @@ class PowerSpectrumController(BoxLayout):
             line_color=(0, 0, 0, 0),
         )
 
-    def remove_power_spectrum(self, _):
+    def remove_power_spectrum(self, _) -> None:
         if not self.double_tap or len(self.power_buttons) == 1:
             return
 
@@ -186,15 +223,19 @@ class PowerSpectrumController(BoxLayout):
         self.update_sliders()
         self.update_power_spectrum()
 
-    def update_variance(self):
+    def update_variance(self) -> None:
         self.sound_model.variance = self.variance.value
         self.sound_model.update_noise()
         self.update_waveform()
 
-    def update_power_spectrum_graph(self):
+    def update_power_spectrum_graph(self) -> None:
         self.power_plot.points, ymax = self.sound_model.get_power_spectrum_histogram(
             self.current_power_spectrum_index,
             self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = float(ymax)
         self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
+
+    def open_choose_kernel_menu(self) -> None:
+        self.choose_kernel_menu.open()
+
 

@@ -39,12 +39,11 @@
     ps_controller: power_spectrum_controller
     resample: resample_button
     clear: clear_button
-    single_period: single_period
     play: play_button
     back: back_button
     eraser_mode: eraser_mode
     preset: preset_mode
-    kernel: kernel_mode
+
     show_loaded: show_loaded
 
 
@@ -127,12 +126,7 @@
                 BoxLayout:
                     size_hint: 1, 0.6
 
-                StandardIconButton:
-                    id: single_period
-                    icon: 'arrow-expand-horizontal'
 
-                BoxLayout:
-                    size_hint: 0.5, 0.2
 
                 StandardRectangleFlatIconButton:
                     id: resample_button
@@ -155,15 +149,6 @@
                     size_hint: 1, 1
                     orientation: 'vertical'
 
-                StandardRectangleFlatIconButton:
-                    icon: 'menu-down'
-                    id: kernel_mode
-                    text: "Choose Kernel"
-                    on_release: root.open_choose_kernel_menu()
-
-                BoxLayout:
-                    size_hint: 1, 1
-                    orientation: 'vertical'
 
                 StandardRectangleFlatIconButton:
                     text: "Load Sound"

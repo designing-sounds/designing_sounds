@@ -30,6 +30,7 @@
     squared_lengthscale: squared_lengthscale
     num_harmonics: num_harmonics
     connect_button: connect_button
+    kernel: kernel_mode
 
     BoxLayout:
         size_hint: 1, 1
@@ -212,9 +213,7 @@
 
         BoxLayout:
             size_hint: 0.35, 1
-
-            BoxLayout:
-                size_hint: 0.2, 1
+            orientation: 'vertical'
 
             StandardPowerRectangleFlatIconButton:
                 id: connect_button
@@ -222,4 +221,11 @@
                 text: 'MIDI Piano Power Spectrum'
 
             BoxLayout:
-                size_hint: 0.2, 1
+                size_hint: 1, 1
+
+            StandardPowerRectangleFlatIconButton:
+                icon: 'menu-down'
+                id: kernel_mode
+                text: "Choose Kernel"
+                on_release: root.open_choose_kernel_menu()
+

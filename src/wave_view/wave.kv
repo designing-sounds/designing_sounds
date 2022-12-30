@@ -10,6 +10,18 @@
         text: root.text
         pos_hint: {"center_y": .5}
 
+<StandardIconButton@MDIconButton>:
+    md_bg_color: style.blue_violet
+    theme_text_color: 'Custom'
+    text_color: style.white
+    pos_hint: {"center_x": .5, "center_y": .5}
+
+<StandardRectangleFlatIconButton@MDRectangleFlatIconButton>:
+    md_bg_color: style.blue_violet
+    icon_color: 'white'
+    text_color: 'white'
+    line_color: (0, 0, 0, 0)
+    pos_hint: {"center_x": .5, "center_y": .6}
 
 <Item>
     IconLeftWidget:
@@ -74,13 +86,10 @@
                     BoxLayout:
                         size_hint: 1, 0.2
 
-                    MDIconButton:
-                        md_bg_color: style.blue_violet
+                    StandardIconButton:
                         id: eraser_mode
                         icon: 'eraser'
-                        theme_text_color: 'Custom'
-                        text_color: style.white
-                        pos_hint: {"center_x": .5, "center_y": .5}
+
 
                     BoxLayout:
                         size_hint: 0.5, 0.2
@@ -92,24 +101,16 @@
                         BoxLayout:
                             size_hint: 0.2, 1
 
-                        MDIconButton:
-                            md_bg_color: style.blue_violet
+                        StandardIconButton:
                             id: play_button
                             icon: 'play'
-                            theme_text_color: 'Custom'
-                            text_color: style.white
-                            pos_hint: {"center_x": .5, "center_y": .5}
 
                         BoxLayout:
                             size_hint: 0.2, 1
 
-                        MDIconButton:
-                            md_bg_color: style.blue_violet
+                        StandardIconButton:
                             id: back_button
                             icon: 'skip-backward'
-                            theme_text_color: 'Custom'
-                            text_color: style.white
-                            pos_hint: {"center_x": .5, "center_y": .5}
 
                         BoxLayout:
                             size_hint: 0.2, 1
@@ -117,50 +118,34 @@
                     BoxLayout:
                         size_hint: 1, 0.15
 
-                    MDIconButton:
-                        md_bg_color: style.blue_violet
+                    StandardIconButton:
                         id: clear_button
                         icon: 'vector-polyline-remove'
-                        theme_text_color: 'Custom'
-                        text_color: style.white
-                        pos_hint: {"center_x": .5, "center_y": .5}
+
 
                 BoxLayout:
                     size_hint: 1, 0.6
 
-                MDIconButton:
-                    md_bg_color: style.blue_violet
+                StandardIconButton:
                     id: single_period
                     icon: 'arrow-expand-horizontal'
-                    theme_text_color: 'Custom'
-                    text_color: style.white
-                    pos_hint: {"center_x": .5, "center_y": .5}
 
                 BoxLayout:
                     size_hint: 0.5, 0.2
 
-                MDRectangleFlatIconButton:
-                    md_bg_color: style.blue_violet
+                StandardRectangleFlatIconButton:
                     id: resample_button
                     icon: 'selection-ellipse-remove'
                     text: 'Resample'
-                    icon_color: 'white'
-                    text_color: 'white'
-                    line_color: (0, 0, 0, 0)
-                    pos_hint: {"center_x": .5, "center_y": .5}
+
                 BoxLayout:
                     size_hint: 1, 1
                     orientation: 'vertical'
 
 
 
-                MDRectangleFlatIconButton:
-                    md_bg_color: style.blue_violet
-                    icon_color: 'white'
-                    text_color: 'white'
+                StandardRectangleFlatIconButton:
                     icon: 'menu-down'
-                    line_color: (0, 0, 0, 0)
-                    pos_hint: {'center_x': .5, 'center_y': .6}
                     id: preset_mode
                     text: "Choose Wave"
                     on_release: root.open_centred()
@@ -169,30 +154,22 @@
                     size_hint: 1, 1
                     orientation: 'vertical'
 
-                MDRectangleFlatIconButton:
+                StandardRectangleFlatIconButton:
                     text: "Load Sound"
                     icon: "folder"
                     md_bg_color: style.blue_violet
-                    pos_hint: {'center_x': .5, 'center_y': .6}
                     on_release: root.file_manager_open()
-                    icon_color: 'white'
-                    text_color: 'white'
-                    line_color: (0, 0, 0, 0)
 
                 BoxLayout:
                     size_hint: 1, 1
                     orientation: 'vertical'
 
-                MDRectangleFlatIconButton:
+                StandardRectangleFlatIconButton:
                     md_bg_color: style.dark_sky_blue
                     id: show_loaded
                     icon: 'file-hidden'
                     text: 'Hide Loaded Sound'
                     disabled: True
-                    icon_color: 'white'
-                    text_color: 'white'
-                    pos_hint: {'center_x': .5, 'center_y': .6}
-                    line_color: (0, 0, 0, 0)
 
         PowerSpectrumController:
             size_hint: 1, 0.8

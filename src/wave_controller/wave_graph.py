@@ -40,7 +40,6 @@ class WaveformGraph(Graph):
         self._period = 0.002
         self.x_ticks_major = self.__initial_x_ticks_major
         self._eraser_mode = False
-        self._plot_area.size = (1143, 325.8)
 
         # Public Class initialization
         self.xmin = 0

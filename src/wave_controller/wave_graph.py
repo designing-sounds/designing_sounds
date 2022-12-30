@@ -23,7 +23,7 @@ class WaveformGraph(Graph):
     __initial_x_ticks_major = 0.1
     __point_size = 15
     __max_zoom = 100
-    __min_zoom = 0.2
+    __min_zoom = 1
     __initial_duration = 1
 
     def __init__(self, update_waveform, update_waveform_graph, **kwargs):
@@ -36,7 +36,7 @@ class WaveformGraph(Graph):
         self._update_waveform_func = update_waveform
         self._update_waveform_graph_func = update_waveform_graph
         self._last_touched_point = None
-        self._zoom_scale = 0.2
+        self._zoom_scale = 1
         self._period = 0.002
         self.x_ticks_major = self.__initial_x_ticks_major
         self._eraser_mode = False
@@ -170,6 +170,7 @@ class WaveformGraph(Graph):
 
     def __update_graph_points(self):
         self._graph_canvas.canvas.clear()
+        self._redraw_all()
         for x, y in self.__selected_points:
             if self.xmin <= x <= self.xmax:
                 self.__create_point(self.__to_pixels((x, y)))
@@ -198,9 +199,9 @@ class WaveformGraph(Graph):
             left_dist = x_pos - self.xmin
             right_dist = self.xmax - x_pos
             proportion = self.__initial_duration / (left_dist + right_dist) / self._zoom_scale
-
             self.xmax = x_pos + proportion * right_dist
             self.xmin = x_pos - proportion * left_dist
+
         if self.xmin < 0:
             self.xmax -= self.xmin
             self.xmin = 0
@@ -229,9 +230,7 @@ class WaveformGraph(Graph):
 
     def set_period(self, frequency) -> None:
         if frequency != 0:
-            # old_period = self._period
             self._period = 1 / frequency
-            # self._zoom_scale = self._zoom_scale * old_period / self._period
             self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), False)
 
     def get_preset_points(self, preset_func: typing.Callable, amount: int) -> typing.List[typing.Tuple[float, float]]:

@@ -16,6 +16,7 @@ from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
 from kivymd.uix.menu import MDDropdownMenu
 from scipy.io import wavfile
 
+
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
 from src.wave_model.wave_model import SoundModel
@@ -93,7 +94,7 @@ class RootWave(MDBoxLayout):
         self.ps_controller.update_waveform = self.update_waveform
         self.ps_controller.waveform_graph = self.waveform_graph
 
-        menu_items = [
+        choose_wave_menu_items = [
             {
                 "text": "Sine Wave",
                 "right_text": "",
@@ -127,10 +128,33 @@ class RootWave(MDBoxLayout):
                 "on_release": lambda x=True: self.preset_waves(SAWTOOTH_WAVE),
             }
         ]
-        self.menu = MDDropdownMenu(
+        self.choose_wave_menu = MDDropdownMenu(
             caller=self.preset,
-            items=menu_items,
+            items=choose_wave_menu_items,
             width_mult=4,
+        )
+        choose_kernel_menu_items = [
+            {
+                "text": "Periodic Kernel",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "sine-wave",
+                "viewclass": "Item",
+                "on_release": lambda x=True: self.set_periodic_prior(),
+            },
+            {
+                "text": "Gaussian Periodic Kernel",
+                "right_text": "",
+                "right_icon": "",
+                "left_icon": "waveform",
+                "viewclass": "Item",
+                "on_release": lambda x=True: self.set_mult_prior(),
+            }
+        ]
+        self.choose_kernel_menu = MDDropdownMenu(
+            caller=self.kernel,
+            items=choose_kernel_menu_items,
+            width_mult=5,
         )
 
         Window.bind(on_request_close=self.shutdown_audio)
@@ -166,6 +190,14 @@ class RootWave(MDBoxLayout):
             self.wave_sound.play_audio()
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
+
+    def press_button_connect(self, _: typing.Any) -> None:
+        if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
+            self.connect_button.text = 'Disconnect MIDI Piano '
+            self.connect_button.md_bg_color = style.dark_sky_blue
+        else:  # Was already running so disconnected
+            self.connect_button.text = '  Connect MIDI Piano  '
+            self.connect_button.md_bg_color = style.blue_violet
 
     def press_single_period(self, _: typing.Any) -> None:
         if self.waveform_graph.is_single_period():
@@ -252,13 +284,29 @@ class RootWave(MDBoxLayout):
         self.wave_sound.sound_changed()
         self.ps_controller.update_power_spectrum()
 
+    def set_periodic_prior(self):
+        self.squared_sd.disabled = True
+        self.squared_lengthscale.disabled = True
+        self.sound_model.set_periodic_prior()
+        self.update_waveform()
+
+    def set_mult_prior(self):
+        self.squared_sd.disabled = False
+        self.squared_lengthscale.disabled = False
+        self.sound_model.set_mult_prior()
+        self.update_waveform()
+
     def shutdown_audio(self, _) -> bool:
         self.wave_sound.shutdown()
         self.ps_controller.piano.shutdown()
         return False
 
-    def open_centred(self) -> None:
-        self.menu.open()
+    def open_choose_wave_menu(self) -> None:
+        self.choose_wave_menu.open()
+
+    def open_choose_kernel_menu(self) -> None:
+        self.choose_kernel_menu.open()
+
 
     def file_manager_open(self) -> None:
         if not self.file_manager:

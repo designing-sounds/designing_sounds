@@ -44,6 +44,7 @@
     back: back_button
     eraser_mode: eraser_mode
     preset: preset_mode
+    kernel: kernel_mode
     show_loaded: show_loaded
 
 
@@ -148,7 +149,17 @@
                     icon: 'menu-down'
                     id: preset_mode
                     text: "Choose Wave"
-                    on_release: root.open_centred()
+                    on_release: root.open_choose_wave_menu()
+
+                BoxLayout:
+                    size_hint: 1, 1
+                    orientation: 'vertical'
+
+                StandardRectangleFlatIconButton:
+                    icon: 'menu-down'
+                    id: kernel_mode
+                    text: "Choose Kernel"
+                    on_release: root.open_choose_kernel_menu()
 
                 BoxLayout:
                     size_hint: 1, 1

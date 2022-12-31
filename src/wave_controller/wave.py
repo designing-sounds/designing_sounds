@@ -58,7 +58,7 @@ class RootWave(MDBoxLayout):
         self.sound_model = SoundModel(self.ps_controller.max_power_spectrums, int(self.ps_controller.mean.max),
                                       self.ps_controller.max_harmonics)
 
-        self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
+        self.wave_sound = WaveSound(self.sample_rate, self.chunk_duration, self.sound_model)
 
         # Button bindings
         self.play.bind(on_press=self.press_button_play)

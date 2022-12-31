@@ -9,6 +9,7 @@ from numpy.linalg import inv
 
 from src.wave_model.power_spectrum import PowerSpectrum
 from src.wave_model.priors import MultPrior
+from src.wave_model.priors import PeriodicPrior
 
 
 class SoundModel:
@@ -24,6 +25,20 @@ class SoundModel:
         self.y_train = None
         self.noise = 0
         self.variance = 0
+
+    def set_periodic_prior(self):
+        old_weights = self.prior.weights
+        self.prior = PeriodicPrior(50)
+        self.prior.weights = old_weights
+        self.prior.update(self.__power_spectrum.freqs, self.__power_spectrum.periodic_lengthscales,
+                          self.__power_spectrum.periodic_sds)
+
+    def set_mult_prior(self):
+        old_weights = self.prior.weights
+        self.prior = MultPrior(50)
+        self.prior.weights = old_weights
+        self.prior.update(self.__power_spectrum.freqs, self.__power_spectrum.periodic_lengthscales,
+                          self.__power_spectrum.periodic_sds)
 
     def get_power_spectrum_histogram(self, idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                             Union[ndarray, int, float, complex]]:

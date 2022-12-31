@@ -1,26 +1,28 @@
 import typing
 
 import numpy as np
+
 from kivy.core.window import Window
 from kivy.lang import Builder
 
-from kivy.properties import StringProperty
-from kivy_garden.graph import LinePlot, Graph
+from kivy.properties import (StringProperty, ObjectProperty)
+
+from kivy_garden.graph import LinePlot
 from kivymd.app import MDApp
 from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
 from kivymd.uix.menu import MDDropdownMenu
 from scipy.io import wavfile
 
-from src.wave_controller.instruments import PianoMIDI
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
 from src.wave_model.wave_model import SoundModel
 from src.wave_view import style
+import src.wave_controller.power
 
+Builder.load_file('src/wave_view/power.kv')
 Builder.load_file('src/wave_view/wave.kv')
 
 SINE_WAVE = 0
@@ -41,27 +43,22 @@ class Item(OneLineAvatarIconListItem):
 
 
 class RootWave(MDBoxLayout):
-    sample_rate = 14700
-    graph_sample_rate = 2500
+    ps_controller = ObjectProperty(None)
+    sample_rate = 16000
+    graph_sample_rate = 8000
     waveform_duration = 1
-    chunk_duration = 0.01
-
-    max_harmonics = 5
-    max_power_spectrums = 5
-    num_power_spectrums = 0
-    current_power_spectrum_index = 0
-    max_samples_per_harmonic = 500
+    chunk_duration = 0.1
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
         self.is_showing = False
         self.file_manager = None
         self.loaded_file = None
-        self.power_spectrum_graph_samples = 2 * (self.mean.max * self.max_harmonics + 1000)
-        self.num_harmonics.max = self.max_harmonics
-        self.max_harmonics = self.num_harmonics.max
-        self.sound_model = SoundModel(self.max_power_spectrums, int(self.mean.max), self.max_harmonics)
-        self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
+
+        self.sound_model = SoundModel(self.ps_controller.max_power_spectrums, int(self.ps_controller.mean.max),
+                                      self.ps_controller.max_harmonics)
+
+        self.wave_sound = WaveSound(self.sample_rate, self.chunk_duration, self.sound_model)
 
         # Button bindings
         self.play.bind(on_press=self.press_button_play)
@@ -69,13 +66,7 @@ class RootWave(MDBoxLayout):
         self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
         self.resample.bind(on_press=self.press_button_resample)
-        self.add.bind(on_press=self.press_button_add)
         self.show_loaded.bind(on_press=self.press_button_show_loaded_sound)
-
-        self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
-        self.connect_button.bind(on_press=self.press_button_connect)
-        self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics,
-                                       self.squared_sd, self.squared_lengthscale]
 
         # Wave Graphs
         border_color = [0, 0, 0, 1]
@@ -86,40 +77,22 @@ class RootWave(MDBoxLayout):
                                             draw_border=True, x_grid_label=True, y_grid_label=True, xlabel='Time',
                                             ylabel='Amplitude', precision="%.5g", x_grid=True, y_grid=True,
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
-        self.power_spectrum_graph = Graph(border_color=border_color,
-                                          xmin=0, xmax=self.power_spectrum_graph_samples // 2, ymin=0, ymax=20,
-                                          padding=10, x_grid_label=True, y_grid_label=True, xlabel='Frequency (Hz)',
-                                          ylabel='Samples', x_ticks_major=self.power_spectrum_graph_samples // 20,
-                                          y_ticks_major=10, y_ticks_minor=5, tick_color=(1, 0, 0, 0),
-                                          label_options=dict(color=(0, 0, 0, 1)))
 
         self.ids.modulation.add_widget(self.waveform_graph)
-        self.ids.power_spectrum.add_widget(self.power_spectrum_graph)
 
         plot_color = style.cyber_grape
 
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
-        self.power_plot = LinePlot(color=plot_color)
         self.load_sound_plot = LinePlot(color=style.red, line_width=1)
-        self.sound_power_plot = LinePlot(color=style.red)
 
         self.waveform_graph.add_plot(self.wave_plot)
-        self.power_spectrum_graph.add_plot(self.power_plot)
         self.waveform_graph.add_plot(self.load_sound_plot)
-        self.power_spectrum_graph.add_plot(self.sound_power_plot)
 
-        self.power_buttons = []
-        self.selected_button_color = style.dark_sky_blue
-        self.unselected_button_color = style.blue_violet
-        self.initial_harmonic_values = [self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value,
-                                        self.squared_sd.value, self.squared_lengthscale.value, 1]
-        self.harmonic_list = [self.initial_harmonic_values] * self.max_power_spectrums
-        self.press_button_add(None)
-        self.double_tap = False
-        self.change_power_spectrum = True
-        self.piano = PianoMIDI()
+        self.ps_controller.sound_model = self.sound_model
+        self.ps_controller.update_waveform = self.update_waveform
+        self.ps_controller.waveform_graph = self.waveform_graph
 
-        menu_items = [
+        choose_wave_menu_items = [
             {
                 "text": "Sine Wave",
                 "right_text": "",
@@ -153,57 +126,18 @@ class RootWave(MDBoxLayout):
                 "on_release": lambda x=True: self.preset_waves(SAWTOOTH_WAVE),
             }
         ]
-        self.menu = MDDropdownMenu(
+        self.choose_wave_menu = MDDropdownMenu(
             caller=self.preset,
-            items=menu_items,
+            items=choose_wave_menu_items,
             width_mult=4,
         )
 
         Window.bind(on_request_close=self.shutdown_audio)
 
-    def update_variance(self):
-        self.sound_model.variance = self.variance.value
-        self.sound_model.update_noise()
-        self.update_waveform()
-
-    def update_power_spectrum(self) -> None:
-        if self.change_power_spectrum:
-            self.sound_model.update_power_spectrum(self.current_power_spectrum_index, self.mean.value,
-                                                   self.periodic_sd.value, self.periodic_lengthscale.value,
-                                                   self.squared_sd.value, self.squared_lengthscale.value,
-                                                   int(self.num_harmonics.value))
-            self.update_power_spectrum_graph()
-            self.update_waveform()
-            self.waveform_graph.set_period(self.mean.value)
-
-    def power_spectrum_from_freqs(self, freqs: [float]):
-        for i in range(self.num_power_spectrums, 0, -1):
-            self.double_tap = True
-            self.remove_power_spectrum(None)
-        self.double_tap = False
-        self.sound_model.clear_all_power_spectrums()
-        for i in range(0, min(self.max_harmonics, len(freqs))):
-            if i != 0:
-                self.press_button_add(None)
-            values = list(self.initial_harmonic_values)
-            values[0] = min(freqs[i], self.mean.max)
-            self.harmonic_list[i] = values
-            self.sound_model.update_power_spectrum(i, *values, 1)
-            self.update_sliders()
-        self.update_waveform()
-        self.update_power_spectrum()
-
-    def update_power_spectrum_graph(self):
-        self.power_plot.points, ymax = self.sound_model.get_power_spectrum_histogram(
-            self.current_power_spectrum_index,
-            self.power_spectrum_graph_samples)
-        self.power_spectrum_graph.ymax = float(ymax)
-        self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
-
     def update_waveform(self) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
-        self.wave_sound.sound_changed()
         self.update_waveform_graph()
+        self.wave_sound.sound_changed()
 
     def update_loaded_sound_graph(self) -> None:
         x_min = self.waveform_graph.xmin
@@ -228,16 +162,16 @@ class RootWave(MDBoxLayout):
             self.play.icon = "play"
             self.play.md_bg_color = style.blue_violet
         else:
-            self.wave_sound.play_audio()
             self.play.icon = "pause"
             self.play.md_bg_color = style.dark_sky_blue
+            self.wave_sound.play_audio()
 
     def press_button_connect(self, _: typing.Any) -> None:
         if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
-            self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
+            self.connect_button.text = 'Disconnect MIDI Piano '
             self.connect_button.md_bg_color = style.dark_sky_blue
         else:  # Was already running so disconnected
-            self.connect_button.text = 'Connect MIDI Piano Power Spectrum'
+            self.connect_button.text = '  Connect MIDI Piano  '
             self.connect_button.md_bg_color = style.blue_violet
 
     def press_button_show_loaded_sound(self, _: typing.Any) -> None:
@@ -248,7 +182,7 @@ class RootWave(MDBoxLayout):
                 self.show_loaded.icon = "cellphone-sound"
                 self.show_loaded.text = "Show Loaded Sound"
                 self.load_sound_plot.points = []
-                self.sound_power_plot.points = []
+                self.ps_controller.sound_power_plot.points = []
                 self.show_loaded.md_bg_color = style.blue_violet
             else:
                 self.is_showing = True
@@ -256,7 +190,7 @@ class RootWave(MDBoxLayout):
                 self.show_loaded.text = "Hide Loaded Sound"
                 _, data = self.loaded_file
                 self.update_loaded_sound_graph()
-                self.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.power_spectrum_graph_samples])
+                self.ps_controller.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
                 self.show_loaded.md_bg_color = style.dark_sky_blue
 
     def press_button_back(self, _: typing.Any) -> None:
@@ -281,18 +215,6 @@ class RootWave(MDBoxLayout):
     def press_button_resample(self, _: typing.Any) -> None:
         self.sound_model.update_prior()
         self.update_waveform()
-
-    def press_button_add(self, _: typing.Any) -> None:
-        if self.num_power_spectrums < self.max_power_spectrums:
-            self.num_power_spectrums += 1
-            button = self.create_button(self.num_power_spectrums)
-            button.root_wave = self
-            self.power_buttons.append(button)
-            self.ids.power_spectrum_buttons.add_widget(button)
-            self.update_display_power_spectrum(self.num_power_spectrums - 1)
-            self.harmonic_list[self.current_power_spectrum_index] = self.initial_harmonic_values
-            self.update_sliders()
-            self.update_power_spectrum()
 
     def preset_waves(self, x: int):
         num_points = 100
@@ -321,95 +243,16 @@ class RootWave(MDBoxLayout):
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points))
+        self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
-        self.update_power_spectrum()
-
-    def press_button_all_power_spectrum(self, _: typing.Any) -> None:
-        for slider in self.power_spectrum_sliders:
-            slider.disabled = True
-        self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.unselected_button_color
-        self.all_power_spectrums.md_bg_color = self.selected_button_color
-        self.power_plot.points, y_max = self.sound_model.get_sum_all_power_spectrum_histogram(
-            self.power_spectrum_graph_samples)
-        self.power_spectrum_graph.ymax = max(int(y_max), 1)
-        self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
-
-    def update_display_power_spectrum(self, harmonic_index: int):
-        for slider in self.power_spectrum_sliders:
-            slider.disabled = False
-        self.all_power_spectrums.md_bg_color = self.unselected_button_color
-        self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.unselected_button_color
-        self.power_buttons[harmonic_index].md_bg_color = self.selected_button_color
-
-        self.harmonic_list[self.current_power_spectrum_index] = [self.mean.value, self.periodic_sd.value,
-                                                                 self.periodic_lengthscale.value,
-                                                                 self.squared_sd.value, self.squared_lengthscale.value,
-                                                                 self.num_harmonics.value]
-        self.current_power_spectrum_index = harmonic_index
-        self.update_sliders()
-
-    def update_sliders(self):
-        self.change_power_spectrum = False
-        harmonic = self.harmonic_list[self.current_power_spectrum_index]
-        self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value = harmonic[:-2]
-        self.squared_lengthscale.value, self.num_harmonics.value = harmonic[-2:]
-        self.change_power_spectrum = True
-
-    def press_button_display_power_spectrum(self, button: MDRectangleFlatButton):
-        self.update_display_power_spectrum(int(button.text) - 1)
-        self.update_power_spectrum_graph()
-        self.waveform_graph.set_period(self.mean.value)
-
-    def set_double_tap(self, _button, touch):
-        self.double_tap = False
-        if touch.is_double_tap:
-            self.double_tap = True
-
-    def create_button(self, button_num: int) -> MDRectangleFlatButton:
-        return MDRectangleFlatButton(
-            text=str(button_num),
-            size_hint=(0.1, 1),
-            md_bg_color=self.selected_button_color,
-            on_press=self.press_button_display_power_spectrum,
-            on_touch_down=self.set_double_tap,
-            on_release=self.remove_power_spectrum,
-            text_color="white",
-            line_color=(0, 0, 0, 0),
-        )
-
-    def remove_power_spectrum(self, _):
-        if not self.double_tap or len(self.power_buttons) == 1:
-            return
-
-        button = self.power_buttons[self.current_power_spectrum_index]
-        self.power_buttons.remove(button)
-        self.ids.power_spectrum_buttons.remove_widget(button)
-
-        for i in range(self.current_power_spectrum_index, len(self.power_buttons)):
-            self.power_buttons[i].text = f"{i + 1}"
-            self.harmonic_list[i] = self.harmonic_list[i + 1]
-
-        # zero fill end of harmonic list to account for removal
-        self.harmonic_list[self.num_power_spectrums - 1] = self.initial_harmonic_values
-
-        self.sound_model.remove_power_spectrum(self.current_power_spectrum_index)
-
-        self.num_power_spectrums -= 1
-        # update current index selection
-        self.current_power_spectrum_index -= 1 if self.current_power_spectrum_index == len(self.power_buttons) else 0
-
-        self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
-
-        self.update_sliders()
-        self.update_power_spectrum()
 
     def shutdown_audio(self, _) -> bool:
         self.wave_sound.shutdown()
-        self.piano.shutdown()
+        self.ps_controller.piano.shutdown()
         return False
 
-    def open_centred(self) -> None:
-        self.menu.open()
+    def open_choose_wave_menu(self) -> None:
+        self.choose_wave_menu.open()
 
     def file_manager_open(self) -> None:
         if not self.file_manager:
@@ -425,13 +268,13 @@ class RootWave(MDBoxLayout):
             self.is_showing = True
             self.show_loaded.disabled = False
             self.loaded_file = (self.loaded_file[0], data)
-            self.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.power_spectrum_graph_samples])
+            self.ps_controller.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.power_spectrum_graph_samples])
             # step = 25
             # y = data[:self.sample_rate:step]
             # points = [(float(i) * step / self.sample_rate, y[i]) for i in range(len(y))]
             # self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
             self.wave_sound.sound_changed()
-            self.update_power_spectrum()
+            self.ps_controller.update_power_spectrum()
 
             self.update_loaded_sound_graph()
             self.exit_manager()

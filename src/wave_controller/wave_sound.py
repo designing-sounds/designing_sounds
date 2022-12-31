@@ -4,8 +4,7 @@ from src.wave_model.wave_model import SoundModel
 
 
 class WaveSound:
-    def __init__(self, sample_rate: int, waveform_duration: float, chunk_duration: float, sound_model: SoundModel):
-        self.waveform_duration = waveform_duration
+    def __init__(self, sample_rate: int, chunk_duration: float, sound_model: SoundModel):
         self._chunk_index = 0
         self._chunk_duration = chunk_duration
         self.sound_model = sound_model

@@ -42,9 +42,9 @@ class Item(OneLineAvatarIconListItem):
 
 class RootWave(MDBoxLayout):
     sample_rate = 16000
-    graph_sample_rate = 1500
+    graph_sample_rate = 8000
     waveform_duration = 1
-    chunk_duration = 0.05
+    chunk_duration = 0.1
 
     max_harmonics = 5
     max_power_spectrums = 5
@@ -61,7 +61,7 @@ class RootWave(MDBoxLayout):
         self.num_harmonics.max = self.max_harmonics
         self.max_harmonics = self.num_harmonics.max
         self.sound_model = SoundModel(self.max_power_spectrums, int(self.mean.max), self.max_harmonics)
-        self.wave_sound = WaveSound(self.sample_rate, self.waveform_duration, self.chunk_duration, self.sound_model)
+        self.wave_sound = WaveSound(self.sample_rate, self.chunk_duration, self.sound_model)
 
         # Button bindings
         self.play.bind(on_press=self.press_button_play)

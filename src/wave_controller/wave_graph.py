@@ -177,6 +177,7 @@ class WaveformGraph(Graph):
 
     def __update_graph_points(self):
         self._graph_canvas.canvas.clear()
+        self._redraw_all()
         for point in self.__selected_points:
             x, y = point[0]
             if self.xmin <= x <= self.xmax:

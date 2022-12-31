@@ -10,9 +10,20 @@
         text: root.text
         pos_hint: {"center_y": .5}
 
+<StandardIconButton@MDIconButton>:
+    md_bg_color: style.blue_violet
+    theme_text_color: 'Custom'
+    text_color: style.white
+    pos_hint: {"center_x": .5, "center_y": .5}
+
+<StandardRectangleFlatIconButton@MDRectangleFlatIconButton>:
+    md_bg_color: style.blue_violet
+    icon_color: 'white'
+    text_color: 'white'
+    line_color: (0, 0, 0, 0)
+    pos_hint: {"center_x": .5, "center_y": .6}
 
 <Item>
-
     IconLeftWidget:
         icon: root.left_icon
 
@@ -21,26 +32,20 @@
         icon: root.right_icon
         text: root.right_text
 
+
 <RootWave>:
     #:import style src.wave_view.style
+
+    ps_controller: power_spectrum_controller
     resample: resample_button
     clear: clear_button
     play: play_button
     back: back_button
     eraser_mode: eraser_mode
-    connect_button: connect_button
-    add: add_button
-    all_power_spectrums: all_power_spectrum_button
-    periodic_sd: periodic_sd
-    squared_sd: squared_sd
-    variance: variance
-    mean: mean
-    periodic_lengthscale: periodic_lengthscale
-    squared_lengthscale: squared_lengthscale
-    num_harmonics: num_harmonics
     preset: preset_mode
-    kernel: kernel_mode
+
     show_loaded: show_loaded
+
 
 
 
@@ -81,13 +86,10 @@
                     BoxLayout:
                         size_hint: 1, 0.2
 
-                    MDIconButton:
-                        md_bg_color: style.blue_violet
+                    StandardIconButton:
                         id: eraser_mode
                         icon: 'eraser'
-                        theme_text_color: 'Custom'
-                        text_color: style.white
-                        pos_hint: {"center_x": .5, "center_y": .5}
+
 
                     BoxLayout:
                         size_hint: 0.5, 0.2
@@ -99,24 +101,16 @@
                         BoxLayout:
                             size_hint: 0.2, 1
 
-                        MDIconButton:
-                            md_bg_color: style.blue_violet
+                        StandardIconButton:
                             id: play_button
                             icon: 'play'
-                            theme_text_color: 'Custom'
-                            text_color: style.white
-                            pos_hint: {"center_x": .5, "center_y": .5}
 
                         BoxLayout:
                             size_hint: 0.2, 1
 
-                        MDIconButton:
-                            md_bg_color: style.blue_violet
+                        StandardIconButton:
                             id: back_button
                             icon: 'skip-backward'
-                            theme_text_color: 'Custom'
-                            text_color: style.white
-                            pos_hint: {"center_x": .5, "center_y": .5}
 
                         BoxLayout:
                             size_hint: 0.2, 1
@@ -124,42 +118,29 @@
                     BoxLayout:
                         size_hint: 1, 0.15
 
-                    MDIconButton:
-                        md_bg_color: style.blue_violet
+                    StandardIconButton:
                         id: clear_button
                         icon: 'vector-polyline-remove'
-                        theme_text_color: 'Custom'
-                        text_color: style.white
-                        pos_hint: {"center_x": .5, "center_y": .5}
+
 
                 BoxLayout:
                     size_hint: 1, 0.6
 
-                BoxLayout:
-                    size_hint: 0.5, 0.2
 
-                MDRectangleFlatIconButton:
-                    md_bg_color: style.blue_violet
+
+                StandardRectangleFlatIconButton:
                     id: resample_button
                     icon: 'selection-ellipse-remove'
                     text: 'Resample'
-                    icon_color: 'white'
-                    text_color: 'white'
-                    line_color: (0, 0, 0, 0)
-                    pos_hint: {"center_x": .5, "center_y": .5}
+
                 BoxLayout:
                     size_hint: 1, 1
                     orientation: 'vertical'
 
 
 
-                MDRectangleFlatIconButton:
-                    md_bg_color: style.blue_violet
-                    icon_color: 'white'
-                    text_color: 'white'
+                StandardRectangleFlatIconButton:
                     icon: 'menu-down'
-                    line_color: (0, 0, 0, 0)
-                    pos_hint: {'center_x': .5, 'center_y': .6}
                     id: preset_mode
                     text: "Choose Wave"
                     on_release: root.open_choose_wave_menu()
@@ -168,335 +149,33 @@
                     size_hint: 1, 1
                     orientation: 'vertical'
 
-                MDRectangleFlatIconButton:
-                    md_bg_color: style.blue_violet
-                    icon_color: 'white'
-                    text_color: 'white'
-                    icon: 'menu-down'
-                    line_color: (0, 0, 0, 0)
-                    pos_hint: {'center_x': .5, 'center_y': .6}
-                    id: kernel_mode
-                    text: "Choose Kernel"
-                    on_release: root.open_choose_kernel_menu()
 
-                BoxLayout:
-                    size_hint: 1, 1
-                    orientation: 'vertical'
-
-                MDRectangleFlatIconButton:
+                StandardRectangleFlatIconButton:
                     text: "Load Sound"
                     icon: "folder"
                     md_bg_color: style.blue_violet
-                    pos_hint: {'center_x': .5, 'center_y': .6}
                     on_release: root.file_manager_open()
-                    icon_color: 'white'
-                    text_color: 'white'
-                    line_color: (0, 0, 0, 0)
 
                 BoxLayout:
                     size_hint: 1, 1
                     orientation: 'vertical'
 
-                MDRectangleFlatIconButton:
+                StandardRectangleFlatIconButton:
                     md_bg_color: style.dark_sky_blue
                     id: show_loaded
                     icon: 'file-hidden'
                     text: 'Hide Loaded Sound'
                     disabled: True
-                    icon_color: 'white'
-                    text_color: 'white'
-                    pos_hint: {'center_x': .5, 'center_y': .6}
-                    line_color: (0, 0, 0, 0)
 
-
-        BoxLayout:
+        PowerSpectrumController:
             size_hint: 1, 0.8
             orientation: 'horizontal'
             padding: 20
-
-            BoxLayout:
-                size_hint: 1, 1
-                orientation: 'horizontal'
-
-                BoxLayout:
-                    size_hint: 0.05, 1
-
-                BoxLayout:
-                    size_hint: 0.7, 1
-                    orientation: 'vertical'
-
-                    BoxLayout:
-                        size_hint: 1, None
-
-                        MDLabel:
-                            text: 'Power Spectrum'
-                            halign: 'center'
-                            theme_text_color: 'Primary'
-                            font_style: 'H6'
-
-                    BoxLayout:
-                        id: power_spectrum
-                        size_hint: 1, 0.9
-                        padding: [0, 20, 20, 20]
-
-                    BoxLayout:
-                        spacing: 10
-                        id: power_spectrum_buttons
-                        size_hint: 1, 0.1
-                        orientation: 'horizontal'
-
-
-
-                BoxLayout:
-                    orientation: 'vertical'
-                    size_hint: 0.4, 1
-                    border: 1
-
-                    BoxLayout:
-                        size_hint: 1, 0.05
-                        orientation: 'vertical'
-
-                    BoxLayout:
-                        size_hint: 1, 0.2
-                        orientation: 'vertical'
-
-                        MDLabel:
-                            text: 'Interpolation Variance: ' + str(round(float(variance.value), 2))
-                            halign: 'center'
-                            theme_text_color: 'Primary'
-                        MDSlider:
-                            color: style.cyber_grape
-                            hint: False
-                            hint_bg_color: style.dark_sky_blue
-                            hint_text_color: "white"
-                            hint_radius: [6, 0, 6, 0]
-                            thumb_color_active: style.dark_sky_blue
-                            thumb_color_inactive: style.palatinate_purple
-                            id: variance
-                            value: 0
-                            min: 0
-                            max: 10
-                            step: 0.01
-                            on_value: root.update_variance()
-                            show_off: False
-
-                    BoxLayout:
-                        size_hint: 1, 1
-                        orientation: 'horizontal'
-
-                        BoxLayout:
-                            size_hint: 0.5, 1
-                            orientation: 'vertical'
-
-                            MDLabel:
-                                text: 'Periodic'
-                                theme_text_color: 'Primary'
-                                halign: 'center'
-
-                            BoxLayout:
-                                size_hint: 1, 1
-                                orientation: 'vertical'
-
-                                MDLabel:
-                                    text: 'Standard Deviation: ' + str(round(float(periodic_sd.value), 2))
-                                    halign: 'center'
-                                    theme_text_color: 'Primary'
-                                MDSlider:
-                                    color: style.cyber_grape
-                                    hint: False
-                                    hint_bg_color: style.dark_sky_blue
-                                    hint_text_color: "white"
-                                    hint_radius: [6, 0, 6, 0]
-                                    thumb_color_active: style.dark_sky_blue
-                                    thumb_color_inactive: style.palatinate_purple
-                                    id: periodic_sd
-                                    value: 1
-                                    min: 0.01
-                                    max: 10
-                                    step: 0.01
-                                    on_value: root.update_power_spectrum()
-                                    show_off: False
-                            BoxLayout:
-                                size_hint: 1, 1
-                                orientation: 'vertical'
-                                MDLabel:
-                                    text: 'Frequency: ' + str(round(float(mean.value), 2)) + 'Hz'
-                                    halign: 'center'
-                                    theme_text_color: 'Primary'
-                                MDSlider:
-                                    color: style.cyber_grape
-                                    hint: False
-                                    hint_bg_color: style.dark_sky_blue
-                                    hint_text_color: "white"
-                                    hint_radius: [6, 0, 6, 0]
-                                    thumb_color_active: style.dark_sky_blue
-                                    thumb_color_inactive: style.palatinate_purple
-                                    id: mean
-                                    value: 500
-                                    min: 10
-                                    max: 2000
-                                    step: 0.01
-                                    on_value: root.update_power_spectrum()
-                                    show_off: False
-                            BoxLayout:
-                                size_hint: 1, 1
-                                orientation: 'vertical'
-                                MDLabel:
-                                    text: 'Lengthscale: ' + str(round(float(periodic_lengthscale.value), 2))
-                                    halign: 'center'
-                                    theme_text_color: 'Primary'
-
-                                MDSlider:
-                                    color: style.cyber_grape
-                                    hint: False
-                                    hint_bg_color: style.dark_sky_blue
-                                    hint_text_color: "white"
-                                    hint_radius: [6, 0, 6, 0]
-                                    thumb_color_active: style.dark_sky_blue
-                                    thumb_color_inactive: style.palatinate_purple
-                                    id: periodic_lengthscale
-                                    value: 1
-                                    min: 0.01
-                                    max: 10
-                                    step: 0.01
-                                    on_value: root.update_power_spectrum()
-                                    show_off: False
-
-                        BoxLayout:
-                            size_hint: 0.5,1
-                            orientation: 'vertical'
-
-                            MDLabel:
-                                text: 'Squared Exponential'
-                                theme_text_color: 'Primary'
-                                halign: 'center'
-
-                            BoxLayout:
-                                size_hint: 1, 1
-                                orientation: 'vertical'
-
-                                MDLabel:
-                                    text: 'Standard Deviation: ' + str(round(float(squared_sd.value), 2))
-                                    halign: 'center'
-                                    theme_text_color: 'Primary'
-                                MDSlider:
-                                    color: style.cyber_grape
-                                    hint: False
-                                    hint_bg_color: style.dark_sky_blue
-                                    hint_text_color: "white"
-                                    hint_radius: [6, 0, 6, 0]
-                                    thumb_color_active: style.dark_sky_blue
-                                    thumb_color_inactive: style.palatinate_purple
-                                    id: squared_sd
-                                    value: 1
-                                    min: 0.01
-                                    max: 10
-                                    step: 0.01
-                                    on_value: root.update_power_spectrum()
-                                    show_off: False
-                            BoxLayout:
-                                size_hint: 1, 1
-                            BoxLayout:
-                                size_hint: 1, 1
-                                orientation: 'vertical'
-                                MDLabel:
-                                    text: 'Lengthscale: ' + str(round(float(squared_lengthscale.value), 2))
-                                    halign: 'center'
-                                    theme_text_color: 'Primary'
-
-                                MDSlider:
-                                    color: style.cyber_grape
-                                    hint: False
-                                    hint_bg_color: style.dark_sky_blue
-                                    hint_text_color: "white"
-                                    hint_radius: [6, 0, 6, 0]
-                                    thumb_color_active: style.dark_sky_blue
-                                    thumb_color_inactive: style.palatinate_purple
-                                    id: squared_lengthscale
-                                    value: 1
-                                    min: 0.01
-                                    max: 10
-                                    step: 0.01
-                                    on_value: root.update_power_spectrum()
-                                    show_off: False
-
-
-                    BoxLayout:
-                        size_hint: 1, 0.2
-                        orientation: 'vertical'
-                        MDLabel:
-                            text: 'Num harmonics: ' + str(int(num_harmonics.value))
-                            halign: 'center'
-                            theme_text_color: 'Primary'
-
-                        MDSlider:
-                            color: style.cyber_grape
-                            hint: False
-                            hint_bg_color: style.dark_sky_blue
-                            hint_text_color: "white"
-                            hint_radius: [6, 0, 6, 0]
-                            thumb_color_active: style.dark_sky_blue
-                            thumb_color_inactive: style.palatinate_purple
-                            id: num_harmonics
-                            value: 1
-                            min: 1
-                            max: 5
-                            step: 1
-                            on_value: root.update_power_spectrum()
-                            show_off: False
-
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint: 1, 0.2
-
-                        BoxLayout:
-                            size_hint: 0.5, 0.2
-
-                        MDRectangleFlatIconButton:
-                            md_bg_color: style.blue_violet
-                            id: add_button
-                            icon: 'plus'
-                            text: 'Add Power Spectrum'
-                            icon_color: 'white'
-                            text_color: 'white'
-                            line_color: (0, 0, 0, 0)
-
-                        BoxLayout:
-                            size_hint: 0.5, 0.2
-
-                        MDRectangleFlatIconButton:
-                            md_bg_color: style.blue_violet
-                            id: all_power_spectrum_button
-                            icon: 'chart-bar'
-                            text: 'Display All'
-                            icon_color: 'white'
-                            text_color: 'white'
-                            line_color: (0, 0, 0, 0)
-
-                        BoxLayout:
-                            size_hint: 0.5, 0.2
-
-                BoxLayout:
-                    size_hint: 0.35, 1
-
-                    BoxLayout:
-                        size_hint: 0.2, 1
-
-                    MDRectangleFlatIconButton:
-                        md_bg_color: style.blue_violet
-                        id: connect_button
-                        icon: 'piano'
-                        text: '  Connect MIDI Piano  '
-                        icon_color: 'white'
-                        text_color: 'white'
-                        line_color: (0, 0, 0, 0)
-                        pos_hint: {"center_x": .5, "center_y": .5}
-
-                    BoxLayout:
-                        size_hint: 0.2, 1
+            id: power_spectrum_controller
 
         BoxLayout:
             size_hint: 1, 0.05
+
 
 
 

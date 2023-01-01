@@ -182,6 +182,7 @@ class RootWave(MDBoxLayout):
                 self.show_loaded.icon = "cellphone-sound"
                 self.show_loaded.text = "Show Loaded Sound"
                 self.load_sound_plot.points = []
+                self.old_sound_power_plot_points = self.ps_controller.sound_power_plot.points
                 self.ps_controller.sound_power_plot.points = []
                 self.show_loaded.md_bg_color = style.blue_violet
             else:
@@ -190,7 +191,8 @@ class RootWave(MDBoxLayout):
                 self.show_loaded.text = "Hide Loaded Sound"
                 _, data = self.loaded_file
                 self.update_loaded_sound_graph()
-                self.ps_controller.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
+
+                self.ps_controller.sound_power_plot.points = self.old_sound_power_plot_points
                 self.show_loaded.md_bg_color = style.dark_sky_blue
 
     def press_button_back(self, _: typing.Any) -> None:

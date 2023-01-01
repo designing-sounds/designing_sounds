@@ -11,12 +11,12 @@ class TestSoundModel(unittest.TestCase):
     def setUp(self):
         self.max_harmonics = 1000
         self.max_samples_per_harmonic = 4
-        self.sound_model = SoundModel(self.max_harmonics, self.max_samples_per_harmonic, self.max_samples_per_harmonic)
+        self.sound_model = SoundModel(self.max_samples_per_harmonic)
         self.tolerance = 3 * 1e-4
 
     def test_model_chunk_sound(self):
         samples = self.max_samples_per_harmonic
-        num_harmonics = self.max_harmonics
+        num_harmonics = self.max_harmonics_per_spectrum
         sample_rate = samples * num_harmonics
         test = np.zeros((num_harmonics, samples))
         self.sound_model.update_power_spectrum(0, 1000, 1, 1, 1, 1, 1)

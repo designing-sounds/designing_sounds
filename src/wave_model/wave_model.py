@@ -13,13 +13,11 @@ from src.wave_model.priors import PeriodicPrior
 
 
 class SoundModel:
-    def __init__(self, max_power_spectrums: int, max_freq: int, max_harmonics: int):
+    def __init__(self, max_harmonics_per_spectrum: int):
         self.inv = None
-        self.max_freq = max_freq
-        self.max_power_spectrum = max_power_spectrums
-        self.max_harmonics = max_harmonics
+        self.max_harmonics_per_spectrum = max_harmonics_per_spectrum
         self.prior = MultPrior(50)
-        self.__power_spectrum = PowerSpectrum(self.max_power_spectrum, self.max_harmonics, self.prior)
+        self.__power_spectrum = PowerSpectrum(self.max_harmonics_per_spectrum, self.prior)
         self.lock = threading.Lock()
         self.x_train = None
         self.y_train = None
@@ -30,29 +28,29 @@ class SoundModel:
         old_weights = self.prior.weights
         self.prior = PeriodicPrior(50)
         self.prior.weights = old_weights
-        self.prior.update(self.__power_spectrum.freqs, self.__power_spectrum.periodic_lengthscales,
-                          self.__power_spectrum.periodic_sds)
+        self.prior.update(self.__power_spectrum.get_freqs(), self.__power_spectrum.get_periodic_lengthscales(),
+                          self.__power_spectrum.get_periodic_sds())
 
     def set_mult_prior(self):
         old_weights = self.prior.weights
         self.prior = MultPrior(50)
         self.prior.weights = old_weights
-        self.prior.update(self.__power_spectrum.freqs, self.__power_spectrum.periodic_lengthscales,
-                          self.__power_spectrum.periodic_sds)
+        self.prior.update(self.__power_spectrum.get_freqs(), self.__power_spectrum.get_periodic_lengthscales(),
+                          self.__power_spectrum.get_periodic_sds())
 
     def get_power_spectrum_histogram(self, idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                             Union[ndarray, int, float, complex]]:
         with self.lock:
             x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
-            num_kernels = self.__power_spectrum.num_kernels_per_spectrum[idx]
-            idx = np.sum(self.__power_spectrum.num_kernels_per_spectrum[:idx])
-            for i in range(num_kernels):
-                k += self.prior.kernel(x, self.__power_spectrum.freqs[idx + i],
-                                       self.__power_spectrum.periodic_sds[idx + i],
-                                       self.__power_spectrum.periodic_lengthscales[idx + i],
-                                       self.__power_spectrum.squared_sds[idx + i],
-                                       self.__power_spectrum.squared_lengthscales[idx + i])
+            num_harmonics = self.__power_spectrum.num_harmonics_per_spectrum[idx]
+            idx = np.sum(self.__power_spectrum.num_harmonics_per_spectrum[:idx])
+            for i in range(num_harmonics):
+                k += self.prior.kernel(x, self.__power_spectrum.get_freqs()[idx + i],
+                                       self.__power_spectrum.get_periodic_sds()[idx + i],
+                                       self.__power_spectrum.get_periodic_lengthscales()[idx + i],
+                                       self.__power_spectrum.get_squared_sds()[idx + i],
+                                       self.__power_spectrum.get_squared_lengthscales()[idx + i])
 
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]
@@ -61,21 +59,22 @@ class SoundModel:
         return list(zip(freqs, fft)), np.max(fft)
 
     def remove_power_spectrum(self, index):
-        num_kernels = self.__power_spectrum.num_kernels_per_spectrum[index]
+        num_kernels = self.__power_spectrum.num_harmonics_per_spectrum[index]
         self.__power_spectrum.delete_harmonics(index, 0, num_kernels)
-        self.__power_spectrum.num_kernels_per_spectrum[index] = 0
-        self.prior.update(self.__power_spectrum.freqs, self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
+        self.__power_spectrum.num_harmonics_per_spectrum[index] = 0
+        self.prior.update(self.__power_spectrum.get_freqs(), self.__power_spectrum.get_periodic_lengthscales(),
+                          self.__power_spectrum.get_periodic_sds())
 
     def get_sum_all_power_spectrum_histogram(self, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                           Union[ndarray, int, float, complex]]:
         with self.lock:
             x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
-            for i, freq in enumerate(self.__power_spectrum.freqs):
-                k += self.prior.kernel(x, freq, self.__power_spectrum.periodic_sds[i],
-                                       self.__power_spectrum.periodic_lengthscales[i],
-                                       self.__power_spectrum.squared_sds[i],
-                                       self.__power_spectrum.squared_lengthscales[i])
+            for i, freq in enumerate(self.__power_spectrum.get_freqs()):
+                k += self.prior.kernel(x, freq, self.__power_spectrum.get_periodic_sds()[i],
+                                       self.__power_spectrum.get_periodic_lengthscales()[i],
+                                       self.__power_spectrum.get_squared_sds()[i],
+                                       self.__power_spectrum.get_squared_lengthscales()[i])
 
             freqs = np.fft.fftfreq(samples, 1 / samples)
             freqs = [0] + freqs[1:samples // 2]
@@ -95,13 +94,15 @@ class SoundModel:
                 except:
                     pass
 
-    def update_power_spectrum(self, harmonic_index: int, mean: int, periodic_sd: float,
+    def update_power_spectrum(self, power_spectrum_index: int, mean: int, periodic_sd: float,
                               periodic_lengthscale: float, squared_sd: float, squared_lengthscale: float,
-                              num_harmonics: int, ) -> None:
+                              curr_harmonic_index: int, ) -> None:
         with self.lock:
-            self.__power_spectrum.update_harmonic(harmonic_index, mean, periodic_sd,
-                                                  periodic_lengthscale, squared_sd, squared_lengthscale, num_harmonics)
-            self.prior.update(self.__power_spectrum.freqs, self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.periodic_sds)
+            self.__power_spectrum.update_harmonic(power_spectrum_index, mean, periodic_sd,
+                                                  periodic_lengthscale, squared_sd, squared_lengthscale,
+                                                  curr_harmonic_index)
+            self.prior.update(self.__power_spectrum.get_freqs(), self.__power_spectrum.get_periodic_lengthscales(),
+                              self.__power_spectrum.get_periodic_sds())
 
     def clear_all_power_spectrums(self) -> None:
         with self.lock:
@@ -121,9 +122,10 @@ class SoundModel:
                         dtype=np.float32)
 
         with self.lock:
-            sound = self.prior.prior(x, self.__power_spectrum.freqs, self.__power_spectrum.periodic_sds,
-                                     self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.squared_sds,
-                                     self.__power_spectrum.squared_lengthscales)
+            sound = self.prior.prior(x, self.__power_spectrum.get_freqs(), self.__power_spectrum.get_periodic_sds(),
+                                     self.__power_spectrum.get_periodic_lengthscales(),
+                                     self.__power_spectrum.get_squared_sds(),
+                                     self.__power_spectrum.get_squared_lengthscales())
             if not (self.inv is None or self.x_train is None or self.y_train is None):
                 sound += self.update(x)
 
@@ -137,14 +139,17 @@ class SoundModel:
         self.noise = np.random.normal(0, np.sqrt(self.variance))
 
     def update(self, x_test):
-        prior = self.prior.prior(self.x_train, self.__power_spectrum.freqs,
-                                 self.__power_spectrum.periodic_sds, self.__power_spectrum.periodic_lengthscales,
-                                 self.__power_spectrum.squared_sds, self.__power_spectrum.squared_lengthscales)
+        prior = self.prior.prior(self.x_train, self.__power_spectrum.get_freqs(),
+                                 self.__power_spectrum.get_periodic_sds(),
+                                 self.__power_spectrum.get_periodic_lengthscales(),
+                                 self.__power_spectrum.get_squared_sds(),
+                                 self.__power_spectrum.get_squared_lengthscales())
         return self.matrix_covariance(x_test, self.x_train) @ self.inv @ (self.y_train - self.noise - prior)
 
     def matrix_covariance(self, x_1, x_2):
         return np.sum(
-            self.prior.covariance_matrix(x_1[:, None] - x_2, self.__power_spectrum.freqs,
-                                         self.__power_spectrum.periodic_sds,
-                                         self.__power_spectrum.periodic_lengthscales, self.__power_spectrum.squared_sds,
-                                         self.__power_spectrum.squared_lengthscales), axis=0)
+            self.prior.covariance_matrix(x_1[:, None] - x_2, self.__power_spectrum.get_freqs(),
+                                         self.__power_spectrum.get_periodic_sds(),
+                                         self.__power_spectrum.get_periodic_lengthscales(),
+                                         self.__power_spectrum.get_squared_sds(),
+                                         self.__power_spectrum.get_squared_lengthscales()), axis=0)

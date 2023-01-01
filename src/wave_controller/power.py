@@ -11,7 +11,7 @@ from src.wave_view import style
 
 
 class PowerSpectrumController(BoxLayout):
-    max_harmonics = 5
+    max_harmonics_per_spectrum = 5
     max_power_spectrums = 5
     num_power_spectrums = 0
     current_power_spectrum_index = 0
@@ -29,9 +29,8 @@ class PowerSpectrumController(BoxLayout):
             self.connect_button.bind(on_press=self.press_button_connect)
             self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics,
                                            self.squared_sd, self.squared_lengthscale]
-            self.num_harmonics.max = self.max_harmonics
-            self.max_harmonics = self.num_harmonics.max
-            self.power_spectrum_graph_samples = 2 * (self.mean.max * self.max_harmonics + 1000)
+            self.num_harmonics.max = self.max_harmonics_per_spectrum
+            self.power_spectrum_graph_samples = 2 * (self.mean.max * self.max_harmonics_per_spectrum + 1000)
 
             # Power Spectrum Graph
             border_color = [0, 0, 0, 1]
@@ -148,7 +147,7 @@ class PowerSpectrumController(BoxLayout):
             self.remove_power_spectrum(None)
         self.double_tap = False
         self.sound_model.clear_all_power_spectrums()
-        for i in range(0, min(self.max_harmonics, len(freqs))):
+        for i in range(0, min(self.max_harmonics_per_spectrum, len(freqs))):
             if i != 0:
                 self.press_button_add(None)
             values = list(self.initial_harmonic_values)

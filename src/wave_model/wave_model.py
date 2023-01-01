@@ -127,7 +127,8 @@ class SoundModel:
                                      self.__power_spectrum.squared_lengthscales)
             if not (self.inv is None or self.x_train is None or self.y_train is None):
                 sound += self.update(x)
-
+        sound[sound > 1] = 1
+        sound[sound < -1] = -1
         return sound
 
     def update_prior(self):

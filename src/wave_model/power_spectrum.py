@@ -37,7 +37,7 @@ class PowerSpectrum:
         curr_num_harmonics = self.num_harmonics_per_spectrum[power_spectrum_index]
         approx_dim = self.prior.approx_dim
         for i in range(curr_num_harmonics, curr_harmonic_index):
-            self.stats = np.insert(self.stats, idx + 1,
+            self.stats = np.insert(self.stats, idx + i,
                                    np.array([mean * (i + 1), periodic_sd, periodic_lengthscale, squared_sd,
                                              squared_lengthscale]), axis=0)
             if self.prior.weights is None:

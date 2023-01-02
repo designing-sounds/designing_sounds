@@ -36,7 +36,7 @@ class WaveformGraph(Graph):
         self._update_waveform_func = update_waveform
         self._update_waveform_graph_func = update_waveform_graph
         self._last_touched_point = None
-        self._zoom_scale = 1
+        self._zoom_scale = self.__min_zoom
         self._period = 0.002
         self.x_ticks_major = self.__initial_x_ticks_major
         self._eraser_mode = False
@@ -75,9 +75,8 @@ class WaveformGraph(Graph):
                 return True
 
             if not self._eraser_mode:
-                self.__create_point(touch.pos)
-                self._last_touched_point = self._graph_canvas.canvas.children[-1]
-                self.__selected_points.append(tuple(self.to_data(a_x, a_y)))
+                self._last_touched_point = self.__create_point(touch.pos)
+                self.__selected_points.append([tuple(self.to_data(a_x, a_y)), self._last_touched_point])
                 self._update_waveform_func()
 
         return super().on_touch_down(touch)
@@ -97,9 +96,10 @@ class WaveformGraph(Graph):
                 ellipse = self._last_touched_point
                 if ellipse is None:
                     ellipse = self.__touching_point((touch.x, touch.y))
-                index = self._graph_canvas.canvas.children.index(ellipse)
+
                 ellipse.pos = touch.x - radius, touch.y - radius
-                self.__selected_points[index//3] = self.__convert_point(ellipse.pos)
+                point, _ = self.get_point_from_ellipse(ellipse)
+                point[0] = self.__convert_point(ellipse.pos)
                 self._update_waveform_func()
                 return True
         return False
@@ -110,28 +110,35 @@ class WaveformGraph(Graph):
 
         return super().on_touch_up(touch)
 
-    def __create_point(self, touch_pos: typing.Tuple[float, float]) -> None:
+    def get_point_from_ellipse(self, ellipse):
+        for i, point in enumerate(self.__selected_points):
+            if ellipse == point[1]:
+                return point, i
+        return None, None
+
+    def __create_point(self, touch_pos: typing.Tuple[float, float]) -> Ellipse:
         color = (0, 0, 1)
         pos = (touch_pos[0] - self.__point_size / 2, touch_pos[1] - self.__point_size / 2)
         with self._graph_canvas.canvas:
             Color(*color, mode="hsv")
             Ellipse(source=POINT_IMAGE, pos=pos, size=(self.__point_size, self.__point_size))
 
+        return self._graph_canvas.canvas.children[-1]
+
     def __touching_point(self, pos: typing.Tuple[float, float]) -> typing.Optional[Ellipse]:
         points = self._graph_canvas.canvas.children[2::3]
-        result = None
         for point in points:
             if self.__is_inside_ellipse(point, pos):
-                result = point
-                break
-        return result
+                return point
+        return None
 
     def __remove_point(self, ellipse):
         to_remove = self._graph_canvas.canvas.children.index(ellipse)
         self._graph_canvas.canvas.children.pop(to_remove)
         self._graph_canvas.canvas.children.pop(to_remove - 1)
         self._graph_canvas.canvas.children.pop(to_remove - 2)
-        self.__selected_points.pop(to_remove//3)
+        _, index = self.get_point_from_ellipse(ellipse)
+        self.__selected_points.pop(index)
 
         self._update_waveform_func()
 
@@ -149,11 +156,11 @@ class WaveformGraph(Graph):
         return tuple(self.to_data(a_x, a_y))
 
     def get_selected_points(self) -> typing.List[typing.Tuple[float, float]]:
-        return self.__selected_points
+        return [x for x, _ in self.__selected_points]
 
     def clear_selected_points(self) -> None:
-        self.__selected_points.clear()
         self._graph_canvas.canvas.clear()
+        self.__selected_points.clear()
         self.__update_graph_points()
 
     def __to_pixels(self, data_pos: (int, int)) -> (int, int):
@@ -171,11 +178,11 @@ class WaveformGraph(Graph):
     def __update_graph_points(self):
         self._graph_canvas.canvas.clear()
         self._redraw_all()
-        for x, y in self.__selected_points:
+        for point in self.__selected_points:
+            x, y = point[0]
             if self.xmin <= x <= self.xmax:
-                self.__create_point(self.__to_pixels((x, y)))
-        if self._period * 2 < self.xmax - self.xmin < self._period * 15:
-            self.x_grid = False
+                point[1] = self.__create_point(self.__to_pixels((x, y)))
+        if self.xmax - self.xmin < self._period * 15:
             color_line = (202, 0.30, 0.85)
             current_x = self.xmin + self._period - self.xmin % self._period
             while current_x < self.xmax:
@@ -199,9 +206,9 @@ class WaveformGraph(Graph):
             left_dist = x_pos - self.xmin
             right_dist = self.xmax - x_pos
             proportion = self.__initial_duration / (left_dist + right_dist) / self._zoom_scale
+
             self.xmax = x_pos + proportion * right_dist
             self.xmin = x_pos - proportion * left_dist
-
         if self.xmin < 0:
             self.xmax -= self.xmin
             self.xmin = 0
@@ -234,14 +241,11 @@ class WaveformGraph(Graph):
             self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), False)
 
     def get_preset_points(self, preset_func: typing.Callable, amount: int) -> typing.List[typing.Tuple[float, float]]:
-        preset_wave = [(float(i), preset_func(i, self._period)) for i in np.linspace(0, self._period, amount)]
-        for (i, j) in preset_wave:
-            self.__create_point((i, j))
-        self.__selected_points = preset_wave
-        return self.__selected_points
+        return self.get_preset_points_from_y([(float(i), (preset_func(i, self._period))) for i in np.linspace(0, self._period, amount)])
 
     def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
-        for (i, j) in points:
-            self.__create_point((i, j))
-        self.__selected_points = points
-        return self.__selected_points
+        self.__selected_points = []
+        for point in points:
+            self.__selected_points.append([point, self.__create_point(self.__to_pixels(point))])
+
+        return self.get_selected_points()

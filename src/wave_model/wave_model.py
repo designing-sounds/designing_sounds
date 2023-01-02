@@ -86,6 +86,7 @@ class SoundModel:
         with self.lock:
             self.x_train = np.array([x for (x, _) in points], dtype=np.float32)
             self.y_train = np.array([y for (_, y) in points], dtype=np.float32)
+            self.update_noise()
             self.inv = None
             if self.x_train.size != 0:
                 try:
@@ -136,7 +137,7 @@ class SoundModel:
         self.update_noise()
 
     def update_noise(self):
-        self.noise = np.random.normal(0, np.sqrt(self.variance))
+        self.noise = np.random.normal(0, np.sqrt(self.variance), size=self.y_train.shape)
 
     def update(self, x_test):
         prior = self.prior.prior(self.x_train, self.__power_spectrum.get_freqs(),

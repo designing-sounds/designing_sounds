@@ -142,8 +142,8 @@ class RootWave(MDBoxLayout):
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         sample_rate, data = self.loaded_file
-        start_index = int(sample_rate * x_min)
-        finish_index = int(sample_rate * x_max)
+        start_index = int(self.sample_rate * x_min)
+        finish_index = int(self.sample_rate * x_max)
         self.load_sound_plot.points = list(
             zip(np.linspace(x_min, x_max, finish_index - start_index), data[start_index:finish_index]))
 
@@ -209,7 +209,6 @@ class RootWave(MDBoxLayout):
 
     def press_button_clear(self, _: typing.Any) -> None:
         self.waveform_graph.clear_selected_points()
-        self.sound_model.update_prior()
         self.update_waveform()
 
     def press_button_resample(self, _: typing.Any) -> None:
@@ -243,7 +242,6 @@ class RootWave(MDBoxLayout):
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points))
-        self.update_power_spectrum()
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 
@@ -264,22 +262,21 @@ class RootWave(MDBoxLayout):
     def select_path(self, path: str) -> None:
         try:
             self.loaded_file = wavfile.read(path)
-            data = np.sum(self.loaded_file[1], axis=1)
+            data = np.sum(self.loaded_file[1], axis=1)[::self.loaded_file[0]//self.sample_rate]
             data = data / max(data.max(), data.min(), key=abs)
             self.is_showing = True
             self.show_loaded.disabled = False
             self.loaded_file = (self.loaded_file[0], data)
-            self.ps_controller.sound_power_plot.points = self.sound_model.get_power_spectrum(data)
-            step = data.size // 500
-            y = data[:self.sample_rate // 4:step]
-            points = [(float(i) * step / 44100, y[i]) for i in np.arange(y.size)]
-            self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
+            self.ps_controller.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.power_spectrum_graph_samples])
+            # step = 25
+            # y = data[:self.sample_rate:step]
+            # points = [(float(i) * step / self.sample_rate, y[i]) for i in range(len(y))]
+            # self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
             self.wave_sound.sound_changed()
             self.ps_controller.update_power_spectrum()
 
             self.update_loaded_sound_graph()
             self.exit_manager()
-            toast("File Loaded Successfully")
         except ValueError:
             toast("Not a valid file")
 

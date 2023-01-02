@@ -55,8 +55,7 @@ class RootWave(MDBoxLayout):
         self.file_manager = None
         self.loaded_file = None
 
-        self.sound_model = SoundModel(self.ps_controller.max_power_spectrums, int(self.ps_controller.mean.max),
-                                      self.ps_controller.max_harmonics)
+        self.sound_model = SoundModel(self.ps_controller.max_harmonics_per_spectrum)
 
         self.wave_sound = WaveSound(self.sample_rate, self.chunk_duration, self.sound_model)
 

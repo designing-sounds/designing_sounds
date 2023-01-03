@@ -49,7 +49,7 @@ class SoundModel:
     def get_power_spectrum_graph(self, power_spectrum_idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                         Union[ndarray, int, float, complex]]:
         with self.lock:
-            x = np.linspace(0, 10, samples)
+            x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
             idx = np.sum(self.__power_spectrum.num_harmonics_per_spectrum[:power_spectrum_idx])
             for i in range(self.__power_spectrum.num_harmonics_per_spectrum[power_spectrum_idx]):
@@ -63,7 +63,7 @@ class SoundModel:
     def get_sum_all_power_spectrums_graph(self, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                        Union[ndarray, int, float, complex]]:
         with self.lock:
-            x = np.linspace(0, 10, samples)
+            x = np.linspace(0, 1, samples)
             k = np.zeros(len(x))
             for i, freq in enumerate(self.__power_spectrum.get_freqs()):
                 k += self.__power_spectrum.prior.kernel(x, self.__power_spectrum.get_freqs()[i],

@@ -122,13 +122,13 @@ class PowerSpectrumController(BoxLayout):
     def set_periodic_prior(self) -> None:
         self.squared_sd.disabled = True
         self.squared_lengthscale.disabled = True
-        self.sound_model.set_periodic_prior()
+        self.sound_model.change_kernel(1)
         self.update_waveform()
 
     def set_mult_prior(self) -> None:
         self.squared_sd.disabled = False
         self.squared_lengthscale.disabled = False
-        self.sound_model.set_mult_prior()
+        self.sound_model.change_kernel(0)
         self.update_waveform()
 
     def update_power_spectrum(self) -> None:

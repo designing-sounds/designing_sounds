@@ -52,10 +52,10 @@ class WaveformGraph(Graph):
         if self.collide_plot(a_x, a_y):
             if touch.is_mouse_scrolling:
                 if touch.button == SCROLL_DOWN:
-                    self._zoom_scale = min(self._zoom_scale + 7, (1/self._period) / 5)
+                    self._zoom_scale = min(self._zoom_scale + (1/self._period) / 100, (1/self._period) / 2)
                     self.__update_zoom((a_x, a_y), True)
                 elif touch.button == SCROLL_UP:
-                    self._zoom_scale = max(self._zoom_scale - 7, self.__min_zoom)
+                    self._zoom_scale = max(self._zoom_scale - (1/self._period) / 100, self.__min_zoom)
                     self.__update_zoom((a_x, a_y), False)
                 elif touch.button == SCROLL_LEFT:
                     self.__update_panning(False)
@@ -197,7 +197,7 @@ class WaveformGraph(Graph):
 
     def __update_zoom(self, pos: typing.Tuple[float, float], zoom_in: bool) -> None:
         x_pos, _ = self.__convert_point(pos)
-        if zoom_in and self.xmax - self.xmin < self._period * 6:
+        if zoom_in and self.xmax - self.xmin < self._period * 3:
             self.xmin = (x_pos // self._period) * self._period
             self.xmax = self.xmin + self._period
             self.x_ticks_major = self._period / 4
@@ -239,8 +239,10 @@ class WaveformGraph(Graph):
 
     def set_period(self, frequency) -> None:
         if frequency != 0:
-            self._period = 1 / frequency
-            self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), False)
+            new_period = 1 / frequency
+            if new_period != self._period:
+                self._period = new_period
+                self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), False)
 
     def get_preset_points(self, preset_func: typing.Callable, amount: int) -> typing.List[typing.Tuple[float, float]]:
         return self.get_preset_points_from_y([(float(i), (preset_func(i, self._period))) for i in np.linspace(0, self._period, amount)])

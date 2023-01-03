@@ -72,7 +72,7 @@ class PowerSpectrumController(BoxLayout):
                     "on_release": lambda x=True: self.set_periodic_prior(),
                 },
                 {
-                    "text": "Gaussian Times Periodic Kernel",
+                    "text": "Squared Exponential Times Periodic Kernel",
                     "right_text": "",
                     "right_icon": "",
                     "left_icon": "waveform",
@@ -83,7 +83,7 @@ class PowerSpectrumController(BoxLayout):
             self.choose_kernel_menu = MDDropdownMenu(
                 caller=self.kernel,
                 items=choose_kernel_menu_items,
-                width_mult=6,
+                width_mult=7,
             )
 
         delayed()

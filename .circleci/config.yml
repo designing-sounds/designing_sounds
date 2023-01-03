@@ -70,17 +70,42 @@ jobs:
       - python/install-packages:
           pkg-manager: pip
       - run:
-          name: Build Mac CLI
+          name: Constants
+          command: |
+            # CONSTANTS - ADD YOUR INFO
+            DEVELOPER_EMAIL="thwoodley@gmail.com"
+            APP="Sounds"
+            SPEC='Sounds.spec'
+            PKG_IDENTIFIER="com.tommywoodley.sounds.pkg"
+            APP_VERSION=0.1
+            TMP_PKG_PATH=dist/pkg.pkg
+            SCRIPTS=./Scripts/
+            sudo chmod -R +x $SCRIPTS
+            SIGNED_PKG=dist/"$APP".pkg
+            
+            DEVELOPER_ID_APPLICATION="7D93DB6B20D79A98F052D3625615271C1FF03DEB"
+            DEVELOPER_ID_INSTALLER_HASH="011A5B4D256D2B4A85AB318F7899334EF605C657"
+            
+            APPFILE=./dist/"$APP".app           # location of the .app file after PyInstaller builds it
+            APP_NAME="$APP"                     # carrying different conventions
+            APP_PATH="$APPFILE"                 # carrying different conventions
+            PKG="$SIGNED_PKG"                   # carrying different conventions
+      - run:
+          name: CI Installs
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
             sudo pip3 install pyobjc
             cd build/mac
-            ./build_mac.sh
-            ls
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build/mac/sounds.dmg
+#            ./build_mac.sh
+#            ls
+      - run:
+          name: "STEP 1: build the .app file with PyInstaller"
+          command: |
+            pyinstaller --noconfirm --clean "$SPEC"
+#      - persist_to_workspace:
+#          root: .
+#          paths:
+#            - build/mac/sounds.dmg
 
   
   publish-github-release:
@@ -106,10 +131,10 @@ workflows:
       - create-cli-mac:
           requires:
             - test
-          filters:
-            branches:
-              only:
-                - main
+#          filters:
+#            branches:
+#              only:
+#                - main
       - create-cli-windows:
           requires:
             - test
@@ -134,5 +159,3 @@ workflows:
             branches:
               only:
                 - main
-
-       # filter on main

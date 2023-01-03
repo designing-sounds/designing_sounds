@@ -24,6 +24,16 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 a.datas +=[('src/wave_view/wave.kv', '../../src/wave_view/wave.kv', 'DATA'), ('media/black.png', '../../media/black.png', 'media')]
 
+a.binaries = a.binaries - TOC([
+    ('Ogg', None, None),
+    ('Vorbis', None, None),
+    ('Opus', None, None),
+    ('modplug', None, None),
+    ('mpg123', None, None),
+    ('webp', None, None),
+    ('FLAC', None, None),
+    ('OpusFile', None, None)])
+
 exe = EXE(
     pyz,
     a.scripts,
@@ -55,5 +65,5 @@ app = BUNDLE(
     coll,
     name='sounds.app',
     icon=None,
-    bundle_identifier=None,
+    bundle_identifier='com.tommywoodley.sounds',
 )

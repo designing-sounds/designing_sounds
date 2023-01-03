@@ -3,7 +3,7 @@ numpy~=1.23.3
 pytest
 pytest-cov
 kivy_garden.graph
-PyAudio~=0.2.12
+PyAudio~=0.2.13
 pyinstaller~=4.10
 kivymd~=1.1.1
 Cython

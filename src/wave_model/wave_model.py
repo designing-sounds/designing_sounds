@@ -10,6 +10,14 @@ from numpy.linalg import inv
 from src.wave_model.power_spectrum import PowerSpectrum
 
 
+def get_fft(k: np.array) -> Tuple[List[Tuple[Any, Any]], Union[ndarray, int, float, complex]]:
+    samples = len(k)
+    freqs = np.fft.fftfreq(samples, 1 / samples)
+    freqs = [0] + freqs[1:samples // 2]
+    fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
+    return list(zip(freqs, fft)), np.max(fft)
+
+
 class SoundModel:
     def __init__(self, max_harmonics_per_spectrum: int):
         self.inv = None
@@ -39,13 +47,6 @@ class SoundModel:
                                                self.__power_spectrum.get_periodic_sds())
             self.update_train_prior()
 
-    def get_fft(self, k: int) -> Tuple[List[Tuple[Any, Any]], Union[ndarray, int, float, complex]]:
-        samples = len(k)
-        freqs = np.fft.fftfreq(samples, 1 / samples)
-        freqs = [0] + freqs[1:samples // 2]
-        fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
-        return list(zip(freqs, fft)), np.max(fft)
-
     def get_power_spectrum_graph(self, power_spectrum_idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                         Union[ndarray, int, float, complex]]:
         with self.lock:
@@ -58,7 +59,7 @@ class SoundModel:
                                                         self.__power_spectrum.get_periodic_lengthscales()[idx + i],
                                                         self.__power_spectrum.get_squared_sds()[idx + i],
                                                         self.__power_spectrum.get_squared_lengthscales()[idx + i])
-        return self.get_fft(k)
+        return get_fft(k)
 
     def get_sum_all_power_spectrums_graph(self, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                        Union[ndarray, int, float, complex]]:
@@ -71,7 +72,7 @@ class SoundModel:
                                                         self.__power_spectrum.get_periodic_lengthscales()[i],
                                                         self.__power_spectrum.get_squared_sds()[i],
                                                         self.__power_spectrum.get_squared_lengthscales()[i])
-        return self.get_fft(k)
+        return get_fft(k)
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         with self.lock:

@@ -74,7 +74,7 @@ jobs:
       DEVELOPER_ID_INSTALLER_HASH: 011A5B4D256D2B4A85AB318F7899334EF605C657
       APPFILE: ./dist/Sounds.app
       APP_NAME: Sounds
-      APP_PATH: Sounds
+      APP_PATH: ./dist/Sounds.app
       PKG: dist/Sounds.pkg
       BUNDLE_ID: com.tommywoodley.sounds
 

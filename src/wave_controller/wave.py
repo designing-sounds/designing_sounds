@@ -44,8 +44,8 @@ class Item(OneLineAvatarIconListItem):
 
 class RootWave(MDBoxLayout):
     ps_controller = ObjectProperty(None)
-    sample_rate = 14700
-    graph_sample_rate = 2000
+    sample_rate = 16000
+    graph_sample_rate = 8000
     waveform_duration = 1
     chunk_duration = 0.1
 

@@ -70,6 +70,12 @@ jobs:
       - python/install-packages:
           pkg-manager: pip
       - run:
+          name: CI Installs
+          command: |
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
+            sudo pip3 install pyobjc
+            cd build/mac
+      - run:
           name: Constants
           command: |
             # CONSTANTS - ADD YOUR INFO
@@ -90,14 +96,6 @@ jobs:
             APP_NAME="$APP"                     # carrying different conventions
             APP_PATH="$APPFILE"                 # carrying different conventions
             PKG="$SIGNED_PKG"                   # carrying different conventions
-      - run:
-          name: CI Installs
-          command: |
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
-            sudo pip3 install pyobjc
-            cd build/mac
-#            ./build_mac.sh
-#            ls
       - run:
           name: "STEP 1: build the .app file with PyInstaller"
           command: |

@@ -78,7 +78,7 @@ jobs:
       - run:
           name: Constants
           command: |
-            # CONSTANTS - ADD YOUR INFO
+            pwd
             DEVELOPER_EMAIL="thwoodley@gmail.com"
             APP="Sounds"
             SPEC='Sounds.spec'

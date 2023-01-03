@@ -142,6 +142,9 @@ jobs:
           command: |
             cd build/mac
             productsign --sign "$DEVELOPER_ID_INSTALLER_HASH" "$TMP_PKG_PATH" "$SIGNED_PKG"
+            ls
+            cd dist
+            ls
       - run:
           name: "STEP 5: upload to notary service and wait for pass"
           command: |

@@ -108,6 +108,15 @@ class PowerSpectrumController(BoxLayout):
             self.update_sliders()
             self.update_power_spectrum()
 
+    def update_power_spectrum_graph_axis(self, ymax):
+        self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)
+        y_ticks_major = (ymax * self.yaxis_extra_padding) / 5
+        if y_ticks_major >= 1:
+            self.power_spectrum_graph.y_ticks_major = int(y_ticks_major)
+        else:
+            sig_figs = int(abs(floor(log(y_ticks_major, 10))))
+            self.power_spectrum_graph.y_ticks_major = round(y_ticks_major, sig_figs + self.yaxis_extra_sig_figs)
+
     def press_button_all_power_spectrum(self, _: typing.Any) -> None:
         for slider in self.power_spectrum_sliders:
             slider.disabled = True
@@ -115,8 +124,7 @@ class PowerSpectrumController(BoxLayout):
         self.all_power_spectrums.md_bg_color = self.selected_button_color
         self.power_plot.points, y_max = self.sound_model.get_sum_all_power_spectrums_graph(
             self.power_spectrum_graph_samples)
-        self.power_spectrum_graph.ymax = max(int(y_max), 1)
-        self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
+        self.update_power_spectrum_graph_axis(y_max)
 
     def press_button_display_power_spectrum(self, button: MDRectangleFlatButton) -> None:
         self.update_display_power_spectrum(int(button.text) - 1)
@@ -235,13 +243,7 @@ class PowerSpectrumController(BoxLayout):
         self.power_plot.points, ymax = self.sound_model.get_power_spectrum_graph(
             self.current_power_spectrum_index,
             self.power_spectrum_graph_samples)
-        self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)
-        y_ticks_major = (ymax * self.yaxis_extra_padding) / 5
-        if y_ticks_major >= 1:
-            self.power_spectrum_graph.y_ticks_major = int(y_ticks_major)
-        else:
-            sig_figs = int(abs(floor(log(y_ticks_major, 10))))
-            self.power_spectrum_graph.y_ticks_major = round(y_ticks_major, sig_figs + self.yaxis_extra_sig_figs)
+        self.update_power_spectrum_graph_axis(ymax)
 
     def open_choose_kernel_menu(self) -> None:
         self.choose_kernel_menu.open()

@@ -143,12 +143,33 @@ jobs:
             cd build/mac
             productsign --sign "$DEVELOPER_ID_INSTALLER_HASH" "$TMP_PKG_PATH" "$SIGNED_PKG"
       - run:
-          name: "STEP 5: upload to notary service"
+          name: "STEP 5: upload to notary service and wait for pass"
           command: |
             cd build/mac
-            xcrun altool --notarize-app --primary-bundle-id $BUNDLE_ID --username $DEVELOPER_EMAIL --password $ALT_PASS --file "$PKG"
+            string=$(xcrun altool --notarize-app --primary-bundle-id $BUNDLE_ID --username $DEVELOPER_EMAIL --password $ALT_PASS --file "$PKG")
+            remainder="$string"
+            remainder="${remainder#*"RequestUUID = "}"
+            echo $remainder
+
+            x=0
+            while [ $x -le 16 ]
+            do
+              sleep 10
+              echo $x
+              x=$(( $x + 1 ))
+              var=$(xcrun altool --username $DEVELOPER_EMAIL --password $ALT_PASS --notarization-info $remainder)
+              if [[ $var == *"Approved"* ]]; then
+                echo "Package Approved"
+                exit 0
+              elif [[ $var == *"progress"* ]]; then
+                echo "In Progress"
+              elif [[ $var == *"rejected"* ]]; then
+                echo "Package Rejected"
+                exit 1
+              fi
+            done
       - store_artifacts:
-          path: /build/mac/dist/Sounds.pkg
+          path: /build/mac/dist
           destination: Sounds.pkg
 
   

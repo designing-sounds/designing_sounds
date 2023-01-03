@@ -36,26 +36,25 @@ class SoundModel:
                                                self.__power_spectrum.get_periodic_lengthscales(),
                                                self.__power_spectrum.get_periodic_sds())
 
-    def get_fft(self, k: int) -> Tuple[List[Tuple[Any, Any]],
-                                                                          Union[ndarray, int, float, complex]]:
+    def get_fft(self, k: int) -> Tuple[List[Tuple[Any, Any]], Union[ndarray, int, float, complex]]:
         samples = len(k)
         freqs = np.fft.fftfreq(samples, 1 / samples)
         freqs = [0] + freqs[1:samples // 2]
         fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
         return list(zip(freqs, fft)), np.max(fft)
 
-    def get_power_spectrum_graph(self, idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
+    def get_power_spectrum_graph(self, power_spectrum_idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
                                                                         Union[ndarray, int, float, complex]]:
         with self.lock:
             x = np.linspace(0, 10, samples)
             k = np.zeros(len(x))
-            idx = np.sum(self.__power_spectrum.num_harmonics_per_spectrum[:idx])
-            for i in range(self.__power_spectrum.num_harmonics_per_spectrum[idx]):
+            idx = np.sum(self.__power_spectrum.num_harmonics_per_spectrum[:power_spectrum_idx])
+            for i in range(self.__power_spectrum.num_harmonics_per_spectrum[power_spectrum_idx]):
                 k += self.__power_spectrum.prior.kernel(x, self.__power_spectrum.get_freqs()[idx + i],
-                                       self.__power_spectrum.get_periodic_sds()[idx + i],
-                                       self.__power_spectrum.get_periodic_lengthscales()[idx + i],
-                                       self.__power_spectrum.get_squared_sds()[idx + i],
-                                       self.__power_spectrum.get_squared_lengthscales()[idx + i])
+                                                        self.__power_spectrum.get_periodic_sds()[idx + i],
+                                                        self.__power_spectrum.get_periodic_lengthscales()[idx + i],
+                                                        self.__power_spectrum.get_squared_sds()[idx + i],
+                                                        self.__power_spectrum.get_squared_lengthscales()[idx + i])
         return self.get_fft(k)
 
     def get_sum_all_power_spectrums_graph(self, samples: int) -> Tuple[List[Tuple[Any, Any]],

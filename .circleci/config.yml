@@ -157,7 +157,7 @@ jobs:
             x=0
             while [ $x -le 16 ]
             do
-              sleep 10
+              sleep 30
               echo $x
               x=$(( $x + 1 ))
               var=$(xcrun altool --username $DEVELOPER_EMAIL --password $ALT_PASS --notarization-info $remainder)
@@ -172,7 +172,7 @@ jobs:
               fi
             done
       - store_artifacts:
-          path: /build/mac/dist
+          path: ./build/mac/dist/Sounds.pkg
           destination: Sounds.pkg
 
   

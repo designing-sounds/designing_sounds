@@ -110,7 +110,7 @@ class PowerSpectrumController(BoxLayout):
             slider.disabled = True
         self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.unselected_button_color
         self.all_power_spectrums.md_bg_color = self.selected_button_color
-        self.power_plot.points, y_max = self.sound_model.get_sum_all_power_spectrum_histogram(
+        self.power_plot.points, y_max = self.sound_model.get_sum_all_power_spectrums_graph(
             self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = max(int(y_max), 1)
         self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
@@ -123,6 +123,7 @@ class PowerSpectrumController(BoxLayout):
         self.squared_sd.disabled = True
         self.squared_lengthscale.disabled = True
         self.sound_model.change_kernel(1)
+        self.update_power_spectrum()
         self.update_waveform()
 
     def set_mult_prior(self) -> None:
@@ -228,7 +229,7 @@ class PowerSpectrumController(BoxLayout):
         self.update_waveform()
 
     def update_power_spectrum_graph(self) -> None:
-        self.power_plot.points, ymax = self.sound_model.get_power_spectrum_histogram(
+        self.power_plot.points, ymax = self.sound_model.get_power_spectrum_graph(
             self.current_power_spectrum_index,
             self.power_spectrum_graph_samples)
         self.power_spectrum_graph.ymax = float(ymax)

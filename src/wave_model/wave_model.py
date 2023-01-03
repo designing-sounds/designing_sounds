@@ -21,52 +21,55 @@ class SoundModel:
         self.noise = 0
         self.variance = 0
 
-    def change_kernel(self, idx):
-        self.__power_spectrum.change_kernel(idx)
-
-    def get_power_spectrum_histogram(self, idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
-                                                                            Union[ndarray, int, float, complex]]:
+    def change_kernel(self, idx: int):
         with self.lock:
-            x = np.linspace(0, 1, samples)
+            self.__power_spectrum.change_kernel(idx)
+
+    def remove_power_spectrum(self, index: int):
+        with self.lock:
+            num_harmonics = self.__power_spectrum.num_harmonics_per_spectrum[index]
+            self.__power_spectrum.delete_harmonics(index, 0, num_harmonics)
+            for i in range(index, len(self.__power_spectrum.num_harmonics_per_spectrum) - 1):
+                self.__power_spectrum.num_harmonics_per_spectrum[i] = self.__power_spectrum.num_harmonics_per_spectrum[i + 1]
+            self.__power_spectrum.num_harmonics_per_spectrum[-1] = 0
+            self.__power_spectrum.prior.update(self.__power_spectrum.get_freqs(),
+                                               self.__power_spectrum.get_periodic_lengthscales(),
+                                               self.__power_spectrum.get_periodic_sds())
+
+    def get_fft(self, k: int) -> Tuple[List[Tuple[Any, Any]],
+                                                                          Union[ndarray, int, float, complex]]:
+        samples = len(k)
+        freqs = np.fft.fftfreq(samples, 1 / samples)
+        freqs = [0] + freqs[1:samples // 2]
+        fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
+        return list(zip(freqs, fft)), np.max(fft)
+
+    def get_power_spectrum_graph(self, idx: int, samples: int) -> Tuple[List[Tuple[Any, Any]],
+                                                                        Union[ndarray, int, float, complex]]:
+        with self.lock:
+            x = np.linspace(0, 10, samples)
             k = np.zeros(len(x))
-            num_harmonics = self.__power_spectrum.num_harmonics_per_spectrum[idx]
             idx = np.sum(self.__power_spectrum.num_harmonics_per_spectrum[:idx])
-            for i in range(num_harmonics):
+            for i in range(self.__power_spectrum.num_harmonics_per_spectrum[idx]):
                 k += self.__power_spectrum.prior.kernel(x, self.__power_spectrum.get_freqs()[idx + i],
                                        self.__power_spectrum.get_periodic_sds()[idx + i],
                                        self.__power_spectrum.get_periodic_lengthscales()[idx + i],
                                        self.__power_spectrum.get_squared_sds()[idx + i],
                                        self.__power_spectrum.get_squared_lengthscales()[idx + i])
+        return self.get_fft(k)
 
-            freqs = np.fft.fftfreq(samples, 1 / samples)
-            freqs = [0] + freqs[1:samples // 2]
-            fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
-
-        return list(zip(freqs, fft)), np.max(fft)
-
-    def remove_power_spectrum(self, index):
-        num_kernels = self.__power_spectrum.num_harmonics_per_spectrum[index]
-        self.__power_spectrum.delete_harmonics(index, 0, num_kernels)
-        self.__power_spectrum.num_harmonics_per_spectrum[index] = 0
-        self.__power_spectrum.prior.update(self.__power_spectrum.get_freqs(), self.__power_spectrum.get_periodic_lengthscales(),
-                          self.__power_spectrum.get_periodic_sds())
-
-    def get_sum_all_power_spectrum_histogram(self, samples: int) -> Tuple[List[Tuple[Any, Any]],
-                                                                          Union[ndarray, int, float, complex]]:
+    def get_sum_all_power_spectrums_graph(self, samples: int) -> Tuple[List[Tuple[Any, Any]],
+                                                                       Union[ndarray, int, float, complex]]:
         with self.lock:
-            x = np.linspace(0, 1, samples)
+            x = np.linspace(0, 10, samples)
             k = np.zeros(len(x))
             for i, freq in enumerate(self.__power_spectrum.get_freqs()):
-                k += self.__power_spectrum.prior.kernel(x, freq, self.__power_spectrum.get_periodic_sds()[i],
-                                       self.__power_spectrum.get_periodic_lengthscales()[i],
-                                       self.__power_spectrum.get_squared_sds()[i],
-                                       self.__power_spectrum.get_squared_lengthscales()[i])
-
-            freqs = np.fft.fftfreq(samples, 1 / samples)
-            freqs = [0] + freqs[1:samples // 2]
-            fft = [0] + np.abs(np.fft.fft(k)[1:samples // 2])
-
-        return list(zip(freqs, fft)), np.max(fft)
+                k += self.__power_spectrum.prior.kernel(x, self.__power_spectrum.get_freqs()[i],
+                                                        self.__power_spectrum.get_periodic_sds()[i],
+                                                        self.__power_spectrum.get_periodic_lengthscales()[i],
+                                                        self.__power_spectrum.get_squared_sds()[i],
+                                                        self.__power_spectrum.get_squared_lengthscales()[i])
+        return self.get_fft(k)
 
     def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
         with self.lock:

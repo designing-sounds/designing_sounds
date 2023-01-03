@@ -14,7 +14,7 @@ class PowerSpectrum:
         self.priors = [MultPrior(approx_num), PeriodicPrior(approx_num)]
         self.prior = self.priors[0]
 
-    def change_kernel(self, idx):
+    def change_kernel(self, idx: int):
         old_weights = self.prior.weights
         self.prior = self.priors[idx]
         self.prior.weights = old_weights

@@ -76,6 +76,7 @@ jobs:
       APP_NAME: Sounds
       APP_PATH: Sounds
       PKG: dist/Sounds.pkg
+      BUNDLE_ID: com.tommywoodley.sounds
 
     steps:
       - checkout
@@ -100,10 +101,40 @@ jobs:
           command: |
             cd build/mac
             pyinstaller --noconfirm --clean "$SPEC"
-#      - persist_to_workspace:
-#          root: .
-#          paths:
-#            - build/mac/sounds.dmg
+      - run:
+          name: "STEP 2: codesign the .app file"
+          command: |
+            cd build/mac
+            codesign --deep --force --timestamp --options runtime --entitlements ./entitlements.plist --sign "$DEVELOPER_ID_APPLICATION" "$APPFILE"
+      - run:
+          name: "STEP 2.1: verify the signature of the .app file"
+          command: |
+            cd build/mac
+            codesign --verify --verbose "$APPFILE"
+            codesign -dvvv "$APPFILE"
+      - run:
+          name: "STEP 3: build the .pkg file"
+          command: |
+            cd build/mac
+            pkgbuild --identifier "$PKG_IDENTIFIER" \
+                     --sign "$DEVELOPER_ID_INSTALLER_HASH" \
+                     --version "$APP_VERSION" \
+                     --root "$APP_PATH" \
+                     --scripts "$SCRIPTS" \
+                     --install-location /Applications/"$APP_NAME".app "$TMP_PKG_PATH"
+      - run:
+          name: "STEP 4: sign the .pkg file"
+          command: |
+            cd build/mac
+            productsign --sign "$DEVELOPER_ID_INSTALLER_HASH" "$TMP_PKG_PATH" "$SIGNED_PKG"
+      - run:
+          name: "STEP 5: upload to notary service"
+          command: |
+            cd build/mac
+            xcrun altool --notarize-app --primary-bundle-id $BUNDLE_ID --username $DEVELOPER_EMAIL --password $ALT_PASS --file "$PKG"
+      - store_artifacts:
+          path: /build/mac/dist/Sounds.pkg
+          destination: Sounds.pkg
 
   
   publish-github-release:

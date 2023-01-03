@@ -77,13 +77,13 @@
                 orientation: 'vertical'
 
                 StandardLabel:
-                    text: 'Interpolation Variance: ' + str(round(float(variance.value), 2))
+                    text: 'Interpolation Variance: ' + str(round(float(variance.value), 3))
                 StandardSlider:
                     id: variance
                     value: 0
                     min: 0
                     max: 10
-                    step: 0.01
+                    step: 0.001
                     on_value: root.update_variance()
 
             BoxLayout:
@@ -115,13 +115,13 @@
                         size_hint: 1, 1
                         orientation: 'vertical'
                         StandardLabel:
-                            text: 'Frequency: ' + str(round(float(mean.value), 2)) + 'Hz'
+                            text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
                         StandardSlider:
                             id: mean
                             value: 500
                             min: 0
                             max: 2000
-                            step: 0.01
+                            step: 0.1
                             on_value: root.update_power_spectrum()
                     BoxLayout:
                         size_hint: 1, 1

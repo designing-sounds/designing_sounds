@@ -216,8 +216,10 @@ class WaveformGraph(Graph):
 
     def __update_panning(self, is_left: bool) -> None:
         window_length = self.xmax - self.xmin
-        factor = 1 / (self._zoom_scale * 2)
+        factor = 1 / (self._zoom_scale * 5)
         panning_step = -factor if is_left else factor
+        if window_length < self._period * 2:
+            panning_step = -self._period if is_left else self._period
         self.xmin += panning_step
         self.xmax += panning_step
         if self.xmin < 0:

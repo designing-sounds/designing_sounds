@@ -8,6 +8,7 @@ from kivymd.uix.menu import MDDropdownMenu
 
 from src.wave_controller.instruments import PianoMIDI
 from src.wave_view import style
+from math import floor, log
 
 
 class PowerSpectrumController(BoxLayout):
@@ -16,6 +17,8 @@ class PowerSpectrumController(BoxLayout):
     num_power_spectrums = 0
     current_power_spectrum_index = 0
     max_samples_per_harmonic = 500
+    yaxis_extra_padding = 1.1
+    yaxis_extra_sig_figs = 2
     double_tap = False
 
     def __init__(self, **kwargs):
@@ -37,7 +40,7 @@ class PowerSpectrumController(BoxLayout):
             self.power_spectrum_graph = Graph(border_color=border_color,
                                               xmin=0, xmax=self.power_spectrum_graph_samples // 2, ymin=0, ymax=20,
                                               padding=10, x_grid_label=True, y_grid_label=True, xlabel='Frequency (Hz)',
-                                              ylabel='Samples', x_ticks_major=self.power_spectrum_graph_samples // 20,
+                                              ylabel='Power', x_ticks_major=self.power_spectrum_graph_samples // 20,
                                               y_ticks_major=10, y_ticks_minor=5, tick_color=(1, 0, 0, 0),
                                               label_options=dict(color=(0, 0, 0, 1)))
 
@@ -232,8 +235,13 @@ class PowerSpectrumController(BoxLayout):
         self.power_plot.points, ymax = self.sound_model.get_power_spectrum_graph(
             self.current_power_spectrum_index,
             self.power_spectrum_graph_samples)
-        self.power_spectrum_graph.ymax = float(ymax)
-        self.power_spectrum_graph.y_ticks_major = max(int(self.power_spectrum_graph.ymax / 5), 1)
+        self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)
+        y_ticks_major = (ymax * self.yaxis_extra_padding) / 5
+        if y_ticks_major >= 1:
+            self.power_spectrum_graph.y_ticks_major = int(y_ticks_major)
+        else:
+            sig_figs = int(abs(floor(log(y_ticks_major, 10))))
+            self.power_spectrum_graph.y_ticks_major = round(y_ticks_major, sig_figs + self.yaxis_extra_sig_figs)
 
     def open_choose_kernel_menu(self) -> None:
         self.choose_kernel_menu.open()

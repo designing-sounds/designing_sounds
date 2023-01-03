@@ -74,11 +74,10 @@ jobs:
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
             sudo pip3 install pyobjc
-            cd build/mac
       - run:
           name: Constants
           command: |
-            pwd
+            cd build/mac
             DEVELOPER_EMAIL="thwoodley@gmail.com"
             APP="Sounds"
             SPEC='Sounds.spec'
@@ -99,6 +98,7 @@ jobs:
       - run:
           name: "STEP 1: build the .app file with PyInstaller"
           command: |
+            cd build/mac
             pyinstaller --noconfirm --clean "$SPEC"
 #      - persist_to_workspace:
 #          root: .

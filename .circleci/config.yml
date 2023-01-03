@@ -61,6 +61,22 @@ jobs:
     macos:
       xcode: 13.4.1
     resource_class: medium
+    environment:
+      DEVELOPER_EMAIL: thwoodley@gmail.com
+      APP: Sounds
+      SPEC: Sounds.spec
+      PKG_IDENTIFIER: com.tommywoodley.sounds.pkg
+      APP_VERSION: 0.1
+      TMP_PKG_PATH: dist/pkg.pkg
+      SCRIPTS: ./Scripts/
+      SIGNED_PKG: dist/Sounds.pkg
+      DEVELOPER_ID_APPLICATION: 7D93DB6B20D79A98F052D3625615271C1FF03DEB
+      DEVELOPER_ID_INSTALLER_HASH: 011A5B4D256D2B4A85AB318F7899334EF605C657
+      APPFILE: ./dist/Sounds.app
+      APP_NAME: Sounds
+      APP_PATH: Sounds
+      PKG: dist/Sounds.pkg
+
     steps:
       - checkout
       - run:
@@ -78,23 +94,7 @@ jobs:
           name: Constants
           command: |
             cd build/mac
-            DEVELOPER_EMAIL="thwoodley@gmail.com"
-            APP="Sounds"
-            SPEC='Sounds.spec'
-            PKG_IDENTIFIER="com.tommywoodley.sounds.pkg"
-            APP_VERSION=0.1
-            TMP_PKG_PATH=dist/pkg.pkg
-            SCRIPTS=./Scripts/
             sudo chmod -R +x $SCRIPTS
-            SIGNED_PKG=dist/"$APP".pkg
-            
-            DEVELOPER_ID_APPLICATION="7D93DB6B20D79A98F052D3625615271C1FF03DEB"
-            DEVELOPER_ID_INSTALLER_HASH="011A5B4D256D2B4A85AB318F7899334EF605C657"
-            
-            APPFILE=./dist/"$APP".app           # location of the .app file after PyInstaller builds it
-            APP_NAME="$APP"                     # carrying different conventions
-            APP_PATH="$APPFILE"                 # carrying different conventions
-            PKG="$SIGNED_PKG"                   # carrying different conventions
       - run:
           name: "STEP 1: build the .app file with PyInstaller"
           command: |

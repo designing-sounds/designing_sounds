@@ -171,6 +171,7 @@ jobs:
                 exit 1
               fi
             done
+            exit 1
       - store_artifacts:
           path: ./build/mac/dist/Sounds.pkg
           destination: Sounds.pkg

@@ -8,5 +8,5 @@ pyinstaller~=4.10
 kivymd~=1.1.1
 Cython
 PyQt3D
-pygame~=2.1.2
+pygame~=2.1.3.dev8
 scipy~=1.9.3

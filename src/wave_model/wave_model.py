@@ -74,11 +74,13 @@ class SoundModel:
                                                         self.__power_spectrum.get_squared_lengthscales()[i])
         return get_fft(k)
 
-    def interpolate_points(self, points: typing.List[typing.Tuple[float, float]]):
+    def interpolate_points(self, points: typing.List[typing.Tuple[float, float]], update_noise=False):
         with self.lock:
             self.x_train = np.array([x for (x, _) in points], dtype=np.float32)
             self.y_train = np.array([y for (_, y) in points], dtype=np.float32)
             self.inv = None
+            if update_noise:
+                self.update_noise()
             if self.x_train.size != 0:
                 try:
                     self.inv = inv(

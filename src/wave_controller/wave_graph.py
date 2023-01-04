@@ -77,7 +77,7 @@ class WaveformGraph(Graph):
             if not self._eraser_mode:
                 self._last_touched_point = self.__create_point(touch.pos)
                 self.__selected_points.append([tuple(self.to_data(a_x, a_y)), self._last_touched_point])
-                self._update_waveform_func()
+                self._update_waveform_func(update_noise=True)
 
         return super().on_touch_down(touch)
 

@@ -133,8 +133,8 @@ class RootWave(MDBoxLayout):
 
         Window.bind(on_request_close=self.shutdown_audio)
 
-    def update_waveform(self) -> None:
-        self.sound_model.interpolate_points(self.waveform_graph.get_selected_points())
+    def update_waveform(self, update_noise=False) -> None:
+        self.sound_model.interpolate_points(self.waveform_graph.get_selected_points(), update_noise)
         self.update_waveform_graph()
         self.wave_sound.sound_changed()
 

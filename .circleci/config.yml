@@ -1,11 +1,7 @@
 version: 2.1
 orbs:
   python: circleci/python@2.1.1
-  win: circleci/windows@5.0
   macos: circleci/macos@2
-
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 
 jobs:
   test: # this can be any name you choose
@@ -30,39 +26,11 @@ jobs:
       - store_test_results:
           path: test-results
 
-  lint:
-    executor: python/default
-    steps:
-      - checkout
-      - run:
-          name: PyLint
-          command: |
-            pip install pylint
-            pylint ./src
-  
-  create-cli-windows:
-    executor:
-      name: win/default
-    steps:
-      - run:
-          name: Windows Test
-          command: echo "Nothing here but us chickens"
-          shell: bash.exe
-  
-  create-cli-linux:
-    executor: python/default
-    steps:
-      - run:
-          name: Build Linux CLI
-          command: |
-            echo "Nothing here but us chickens"
-
   create-cli-mac:
     macos:
       xcode: 13.4.1
     resource_class: medium
     environment:
-      DEVELOPER_EMAIL: thwoodley@gmail.com
       APP: Sounds
       SPEC: Sounds.spec
       PKG_IDENTIFIER: com.tommywoodley.sounds.pkg
@@ -70,8 +38,6 @@ jobs:
       TMP_PKG_PATH: dist/pkg.pkg
       SCRIPTS: ./Scripts/
       SIGNED_PKG: dist/Sounds.pkg
-      DEVELOPER_ID_APPLICATION: 7D93DB6B20D79A98F052D3625615271C1FF03DEB
-      DEVELOPER_ID_INSTALLER_HASH: 011A5B4D256D2B4A85AB318F7899334EF605C657
       APPFILE: ./dist/Sounds.app
       APP_NAME: Sounds
       APP_PATH: ./dist/Sounds.app
@@ -106,7 +72,6 @@ jobs:
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
             sudo pip3 install pyobjc
-#            sudo pip3 install msvcrt
       - run:
           name: Constants
           command: |
@@ -182,9 +147,10 @@ jobs:
               fi
             done
             exit 1
-      - store_artifacts:
-          path: ./build/mac/dist/Sounds.pkg
-          destination: Sounds.pkg
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build/mac/dist/Sounds.dmg
 
   
   publish-github-release:
@@ -198,8 +164,8 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             cd build/mac
-            let num=<< pipeline.number >>-88
-            VER=v2.$num.0
+            let num=<< pipeline.number >>-641
+            VER=v3.$num.0
             ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete $VER ./sounds.dmg
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -210,30 +176,13 @@ workflows:
       - create-cli-mac:
           requires:
             - test
-#          filters:
-#            branches:
-#              only:
-#                - main
-      - create-cli-windows:
-          requires:
-            - test
           filters:
             branches:
               only:
                 - main
-      - create-cli-linux:
-          requires:
-            - test
-          filters:
-            branches:
-              only:
-                - main
-
       - publish-github-release:
           requires:
             - create-cli-mac
-            - create-cli-windows
-            - create-cli-linux
           filters:
             branches:
               only:

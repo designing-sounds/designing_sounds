@@ -116,6 +116,14 @@ jobs:
           command: |
             cd build/mac
             pyinstaller --noconfirm --clean "$SPEC"
+            rm ./dist/Sounds.app/Contents/MacOS/Vorbis
+            rm ./dist/Sounds.app/Contents/MacOS/Opus
+            rm ./dist/Sounds.app/Contents/MacOS/modplug
+            rm ./dist/Sounds.app/Contents/MacOS/mpg123
+            rm ./dist/Sounds.app/Contents/MacOS/webp
+            rm ./dist/Sounds.app/Contents/MacOS/FLAC
+            rm ./dist/Sounds.app/Contents/MacOS/OpusFile
+
       - run:
           name: "STEP 2: codesign the .app file"
           command: |

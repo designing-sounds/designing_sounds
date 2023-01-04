@@ -77,13 +77,13 @@
                 orientation: 'vertical'
 
                 StandardLabel:
-                    text: 'Interpolation Variance: ' + str(round(float(variance.value), 3))
+                    text: 'Interpolation Variance: ' + str(round(float(variance.value), 5))
                 StandardSlider:
                     id: variance
                     value: 0
                     min: 0
                     max: 1
-                    step: 0.001
+                    step: 0.00001
                     on_value: root.update_variance()
 
             BoxLayout:

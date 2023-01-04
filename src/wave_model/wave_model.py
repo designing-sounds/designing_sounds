@@ -150,7 +150,7 @@ class SoundModel:
 
     def matrix_covariance(self, x_1, x_2):
         return np.sum(
-            self.__power_spectrum.prior.covariance_matrix(x_1[:, None] - x_2, self.__power_spectrum.get_freqs(),
+            self.__power_spectrum.prior.covariance_matrix(x_1, x_2, self.__power_spectrum.get_freqs(),
                                          self.__power_spectrum.get_periodic_sds(),
                                          self.__power_spectrum.get_periodic_lengthscales(),
                                          self.__power_spectrum.get_squared_sds(),

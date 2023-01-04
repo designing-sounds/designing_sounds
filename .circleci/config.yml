@@ -124,6 +124,7 @@ jobs:
             rm ./dist/Sounds.app/Contents/MacOS/webp
             rm ./dist/Sounds.app/Contents/MacOS/FLAC
             rm ./dist/Sounds.app/Contents/MacOS/OpusFile
+            rm ./dist/Sounds.app/Contents/MacOS/Ogg
 
       - run:
           name: "STEP 2: codesign the .app file"
@@ -177,7 +178,7 @@ jobs:
                 echo "In Progress"
               elif [[ $var == *"invalid"* ]]; then
                 echo "Package Rejected"
-                exit 0
+                exit 1
               fi
             done
             exit 1

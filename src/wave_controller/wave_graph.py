@@ -100,7 +100,7 @@ class WaveformGraph(Graph):
                 ellipse.pos = touch.x - radius, touch.y - radius
                 point, _ = self.get_point_from_ellipse(ellipse)
                 point[0] = self.__convert_point(ellipse.pos)
-                self._update_waveform_func()
+                self._update_waveform_func(update_noise=True)
                 return True
         return False
 
@@ -140,7 +140,7 @@ class WaveformGraph(Graph):
         _, index = self.get_point_from_ellipse(ellipse)
         self.__selected_points.pop(index)
 
-        self._update_waveform_func()
+        self._update_waveform_func(update_noise=True)
 
     @staticmethod
     def __is_inside_ellipse(ellipse: Ellipse, pos: typing.Tuple[float, float]) -> bool:

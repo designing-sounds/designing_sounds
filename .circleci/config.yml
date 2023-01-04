@@ -1,11 +1,7 @@
 version: 2.1
 orbs:
   python: circleci/python@2.1.1
-  win: circleci/windows@5.0
   macos: circleci/macos@2
-
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 
 jobs:
   test: # this can be any name you choose
@@ -30,39 +26,41 @@ jobs:
       - store_test_results:
           path: test-results
 
-  lint:
-    executor: python/default
-    steps:
-      - checkout
-      - run:
-          name: PyLint
-          command: |
-            pip install pylint
-            pylint ./src
-  
-  create-cli-windows:
-    executor:
-      name: win/default
-    steps:
-      - run:
-          name: Windows Test
-          command: echo "Nothing here but us chickens"
-          shell: bash.exe
-  
-  create-cli-linux:
-    executor: python/default
-    steps:
-      - run:
-          name: Build Linux CLI
-          command: |
-            echo "Nothing here but us chickens"
-
   create-cli-mac:
     macos:
       xcode: 13.4.1
     resource_class: medium
+    environment:
+      APP: Sounds
+      SPEC: Sounds.spec
+      PKG_IDENTIFIER: com.tommywoodley.sounds.pkg
+      APP_VERSION: 0.1
+      TMP_PKG_PATH: dist/pkg.pkg
+      SCRIPTS: ./Scripts/
+      SIGNED_PKG: dist/Sounds.pkg
+      APPFILE: ./dist/Sounds.app
+      APP_NAME: Sounds
+      APP_PATH: ./dist/Sounds.app
+      PKG: dist/Sounds.pkg
+      BUNDLE_ID: com.tommywoodley.sounds
+
     steps:
       - checkout
+      - run:
+          name: Security Setup
+          command: |
+            security create-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
+            security default-keychain -s ~/Library/Keychains/MyKeychain.keychain
+            security unlock-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
+            security set-keychain-settings -t 7200 -l ~/Library/Keychains/MyKeychain.keychain
+            security list-keychains -d user
+            echo $APPLE_CERT_DEV_ID_APP_BASE64 | base64 -D -o DevIdApplication.p12
+            security import ./DevIdApplication.p12 -k ~/Library/Keychains/MyKeychain.keychain -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/pkgbuild -T "/usr/bin/productsign"
+            echo $APPLE_CERT_INSTALL_BASE64 | base64 -D -o DevInstallApplication.p12
+            security import ./DevInstallApplication.p12 -k ~/Library/Keychains/MyKeychain.keychain -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/pkgbuild -T "/usr/bin/productsign"
+            security find-identity -p basic -v
+            security set-key-partition-list -S apple-tool:,apple: -s -k '' ~/Library/Keychains/MyKeychain.keychain
+
       - run:
           name: Installs
           command: |
@@ -70,17 +68,89 @@ jobs:
       - python/install-packages:
           pkg-manager: pip
       - run:
-          name: Build Mac CLI
+          name: CI Installs
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
             sudo pip3 install pyobjc
+      - run:
+          name: Constants
+          command: |
             cd build/mac
-            ./build_mac.sh
+            sudo chmod -R +x $SCRIPTS
+      - run:
+          name: "STEP 1: build the .app file with PyInstaller"
+          command: |
+            cd build/mac
+            pyinstaller --noconfirm --clean "$SPEC"
+            rm ./dist/Sounds.app/Contents/MacOS/Vorbis
+            rm ./dist/Sounds.app/Contents/MacOS/Opus
+            rm ./dist/Sounds.app/Contents/MacOS/modplug
+            rm ./dist/Sounds.app/Contents/MacOS/mpg123
+            rm ./dist/Sounds.app/Contents/MacOS/webp
+            rm ./dist/Sounds.app/Contents/MacOS/FLAC
+            rm ./dist/Sounds.app/Contents/MacOS/OpusFile
+            rm ./dist/Sounds.app/Contents/MacOS/Ogg
+
+      - run:
+          name: "STEP 2: codesign the .app file"
+          command: |
+            cd build/mac
+            codesign --deep --force --timestamp --options runtime --entitlements ./entitlements.plist --sign "$DEVELOPER_ID_APPLICATION" "$APPFILE"
+      - run:
+          name: "STEP 2.1: verify the signature of the .app file"
+          command: |
+            cd build/mac
+            codesign --verify --verbose "$APPFILE"
+            codesign -dvvv "$APPFILE"
+      - run:
+          name: "STEP 3: build the .pkg file"
+          command: |
+            cd build/mac
+            pkgbuild --identifier "$PKG_IDENTIFIER" \
+                     --sign "$DEVELOPER_ID_INSTALLER_HASH" \
+                     --version "$APP_VERSION" \
+                     --root "$APP_PATH" \
+                     --scripts "$SCRIPTS" \
+                     --install-location /Applications/"$APP_NAME".app "$TMP_PKG_PATH"
+      - run:
+          name: "STEP 4: sign the .pkg file"
+          command: |
+            cd build/mac
+            productsign --sign "$DEVELOPER_ID_INSTALLER_HASH" "$TMP_PKG_PATH" "$SIGNED_PKG"
             ls
+            cd dist
+            ls
+      - run:
+          name: "STEP 5: upload to notary service and wait for pass"
+          command: |
+            cd build/mac
+            string=$(xcrun altool --notarize-app --primary-bundle-id $BUNDLE_ID --username $DEVELOPER_EMAIL --password $ALT_PASS --file "$PKG")
+            remainder="$string"
+            remainder="${remainder#*"RequestUUID = "}"
+            echo $remainder
+
+            x=0
+            while [ $x -le 16 ]
+            do
+              sleep 30
+              echo $x
+              x=$(( $x + 1 ))
+              var=$(xcrun altool --username $DEVELOPER_EMAIL --password $ALT_PASS --notarization-info $remainder)
+              if [[ $var == *"Approved"* ]]; then
+                echo "Package Approved"
+                exit 0
+              elif [[ $var == *"progress"* ]]; then
+                echo "In Progress"
+              elif [[ $var == *"invalid"* ]]; then
+                echo "Package Rejected"
+                exit 1
+              fi
+            done
+            exit 1
       - persist_to_workspace:
           root: .
           paths:
-            - build/mac/sounds.dmg
+            - build/mac/dist/Sounds.dmg
 
   
   publish-github-release:
@@ -94,8 +164,8 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             cd build/mac
-            let num=<< pipeline.number >>-88
-            VER=v2.$num.0
+            let num=<< pipeline.number >>-641
+            VER=v3.$num.0
             ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete $VER ./sounds.dmg
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -110,29 +180,10 @@ workflows:
             branches:
               only:
                 - main
-      - create-cli-windows:
-          requires:
-            - test
-          filters:
-            branches:
-              only:
-                - main
-      - create-cli-linux:
-          requires:
-            - test
-          filters:
-            branches:
-              only:
-                - main
-
       - publish-github-release:
           requires:
             - create-cli-mac
-            - create-cli-windows
-            - create-cli-linux
           filters:
             branches:
               only:
                 - main
-
-       # filter on main

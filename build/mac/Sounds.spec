@@ -53,7 +53,7 @@ coll = COLLECT(
 )
 app = BUNDLE(
     coll,
-    name='sounds.app',
+    name='Sounds.app',
     icon=None,
-    bundle_identifier=None,
+    bundle_identifier='com.tommywoodley.sounds',
 )

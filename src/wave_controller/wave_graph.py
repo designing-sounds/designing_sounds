@@ -248,8 +248,9 @@ class WaveformGraph(Graph):
         return self.get_preset_points_from_y([(float(i), (preset_func(i, self._period))) for i in np.linspace(0, self._period, amount)])
 
     def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
-        self.__selected_points = []
+        self.clear_selected_points()
+
         for point in points:
             self.__selected_points.append([point, self.__create_point(self.__to_pixels(point))])
-
+        self._update_waveform_func(update_noise=True)
         return self.get_selected_points()

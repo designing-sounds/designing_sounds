@@ -106,7 +106,7 @@ jobs:
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew install python@3.10
             sudo pip3 install pyobjc
-            sudo pip3 install msvcrt
+#            sudo pip3 install msvcrt
       - run:
           name: Constants
           command: |

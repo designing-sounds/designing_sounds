@@ -23,9 +23,10 @@ class Prior:
         temp = self.phi(x, freqs, sds, lengthscales, sds_squared, lengthscales_squared) @ self.weights[:, :, None]
         return np.sum(temp[:, :, 0], axis=0)
 
-    def covariance_matrix(self, x, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
-        temp = np.zeros((len(freqs), x.shape[0], x.shape[1]), dtype=np.float32)
+    def covariance_matrix(self, x_1, x_2, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
+        temp = np.zeros((len(freqs), len(x_1), len(x_2)), dtype=np.float32)
         for i, freq in enumerate(freqs):
+            x = x_1[:, None] - x_2
             temp[i] = self.kernel(x, freq, sds[i], lengthscales[i], sds_squared[i], lengthscales_squared[i])
         return np.exp(-0.5 * temp)
 
@@ -38,9 +39,6 @@ class SquaredExpPrior(Prior):
         Prior.__init__(self, approx_dim)
         self.squared_w = np.asarray(np.random.randn(self.approx_dim), dtype=np.float32)
         self.bias = np.asarray(np.random.uniform(0, 2 * np.pi), dtype=np.float32)
-
-    def update(self, _, __, ___):
-        pass
 
     def resample(self):
         super().resample()
@@ -73,6 +71,17 @@ class PeriodicPrior(Prior):
             self.calc[:, 0, k] = sd * np.sqrt(num * ive(k, lengthscale))
         self.calc[:, :, self.approx_dim // 2:] = self.calc[:, :, :self.approx_dim // 2]
         self.temp = freqs[:, None, None] * self.nums[None, :]
+
+    def to_period(self, x, period):
+        return x - period * np.array(np.floor(x / period), int)
+
+    def covariance_matrix(self, x_1, x_2, freqs, sds, lengthscales, sds_squared, lengthscales_squared):
+        temp = np.zeros((len(freqs), len(x_1), len(x_2)), dtype=np.float32)
+        for i, freq in enumerate(freqs):
+            period = 1 / freq
+            x = self.to_period(x_1, period)[:, None] - self.to_period(x_2, period)
+            temp[i] = self.kernel(x, freq, sds[i], lengthscales[i], sds_squared[i], lengthscales_squared[i])
+        return np.exp(-0.5 * temp)
 
     def phi(self, x, freqs, _, __, ___, ____):
         vals = x[:, None] @ self.temp

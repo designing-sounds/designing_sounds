@@ -100,7 +100,7 @@ class WaveformGraph(Graph):
                 ellipse.pos = touch.x - radius, touch.y - radius
                 point, _ = self.get_point_from_ellipse(ellipse)
                 point[0] = self.__convert_point(ellipse.pos)
-                self._update_waveform_func()
+                self._update_waveform_func(update_noise=True)
                 return True
         return False
 
@@ -140,7 +140,7 @@ class WaveformGraph(Graph):
         _, index = self.get_point_from_ellipse(ellipse)
         self.__selected_points.pop(index)
 
-        self._update_waveform_func()
+        self._update_waveform_func(update_noise=True)
 
     @staticmethod
     def __is_inside_ellipse(ellipse: Ellipse, pos: typing.Tuple[float, float]) -> bool:
@@ -248,8 +248,9 @@ class WaveformGraph(Graph):
         return self.get_preset_points_from_y([(float(i), (preset_func(i, self._period))) for i in np.linspace(0, self._period, amount)])
 
     def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
-        self.__selected_points = []
+        self.clear_selected_points()
+
         for point in points:
             self.__selected_points.append([point, self.__create_point(self.__to_pixels(point))])
-
+        self._update_waveform_func(update_noise=True)
         return self.get_selected_points()

@@ -150,7 +150,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - build/mac/dist/Sounds.dmg
+            - build/mac/dist/Sounds.pkg
 
   
   publish-github-release:
@@ -163,10 +163,10 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            cd build/mac
+            cd build/mac/dist
             let num=<< pipeline.number >>-641
             VER=v3.$num.0
-            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete $VER ./sounds.dmg
+            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -delete $VER ./sounds.pkg
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:

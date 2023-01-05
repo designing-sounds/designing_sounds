@@ -160,6 +160,7 @@ class PowerSpectrumController(BoxLayout):
             self.update_sliders()
         self.update_waveform()
         self.update_power_spectrum()
+        self.wave_sound.sound_changed()
 
     def update_power_spectrum_graph_axis(self, ymax):
         self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)

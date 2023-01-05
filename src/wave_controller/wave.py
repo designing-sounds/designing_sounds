@@ -136,7 +136,6 @@ class RootWave(MDBoxLayout):
     def update_waveform(self, update_noise=False) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points(), update_noise)
         self.update_waveform_graph()
-        self.wave_sound.sound_changed()
 
     def update_loaded_sound_graph(self) -> None:
         x_min = self.waveform_graph.xmin

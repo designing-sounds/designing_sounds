@@ -29,7 +29,6 @@
     periodic_lengthscale: periodic_lengthscale
     squared_lengthscale: squared_lengthscale
     num_harmonics: num_harmonics
-    connect_button: connect_button
     kernel: kernel_mode
 
     BoxLayout:
@@ -37,10 +36,7 @@
         orientation: 'horizontal'
 
         BoxLayout:
-            size_hint: 0.05, 1
-
-        BoxLayout:
-            size_hint: 0.7, 1
+            size_hint: 0.5, 1
             orientation: 'vertical'
 
             BoxLayout:
@@ -65,7 +61,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint: 0.4, 1
+            size_hint: 0.5, 1
             border: 1
 
             BoxLayout:
@@ -193,7 +189,7 @@
                 size_hint: 1, 0.2
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
                 StandardPowerRectangleFlatIconButton:
                     id: add_button
@@ -201,7 +197,7 @@
                     text: 'Add Power Spectrum'
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
                 StandardPowerRectangleFlatIconButton:
                     id: all_power_spectrum_button
@@ -209,23 +205,16 @@
                     text: 'Display All'
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
-        BoxLayout:
-            size_hint: 0.35, 1
-            orientation: 'vertical'
+                StandardPowerRectangleFlatIconButton:
+                    icon: 'menu-down'
+                    id: kernel_mode
+                    text: "Choose Kernel"
+                    on_release: root.open_choose_kernel_menu()
 
-            StandardPowerRectangleFlatIconButton:
-                id: connect_button
-                icon: 'piano'
-                text: 'MIDI Piano Power Spectrum'
 
-            BoxLayout:
-                size_hint: 1, 1
 
-            StandardPowerRectangleFlatIconButton:
-                icon: 'menu-down'
-                id: kernel_mode
-                text: "Choose Kernel"
-                on_release: root.open_choose_kernel_menu()
+
+
 

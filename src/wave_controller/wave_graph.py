@@ -110,13 +110,13 @@ class WaveformGraph(Graph):
 
         return super().on_touch_up(touch)
 
-    def get_point_from_ellipse(self, ellipse):
+    def get_point_from_ellipse(self, ellipse: Ellipse) -> Tuple[Ellipse, int]:
         for i, point in enumerate(self.__selected_points):
             if ellipse == point[1]:
                 return point, i
         return None, None
 
-    def __create_point(self, touch_pos: typing.Tuple[float, float]) -> Ellipse:
+    def __create_point(self, touch_pos: Tuple[float, float]) -> Ellipse:
         color = (0, 0, 1)
         pos = (touch_pos[0] - self.__point_size / 2, touch_pos[1] - self.__point_size / 2)
         with self._graph_canvas.canvas:
@@ -132,7 +132,7 @@ class WaveformGraph(Graph):
                 return point
         return None
 
-    def __remove_point(self, ellipse):
+    def __remove_point(self, ellipse: Ellipse):
         to_remove = self._graph_canvas.canvas.children.index(ellipse)
         self._graph_canvas.canvas.children.pop(to_remove)
         self._graph_canvas.canvas.children.pop(to_remove - 1)

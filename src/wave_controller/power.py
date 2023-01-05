@@ -6,7 +6,6 @@ from kivy_garden.graph import Graph, LinePlot
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.menu import MDDropdownMenu
 
-from src.wave_controller.instruments import PianoMIDI
 from src.wave_view import style
 from math import floor, log
 
@@ -29,7 +28,7 @@ class PowerSpectrumController(BoxLayout):
             # Button Bindings
             self.add.bind(on_press=self.press_button_add)
             self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
-            self.connect_button.bind(on_press=self.press_button_connect)
+
             self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics,
                                            self.squared_sd, self.squared_lengthscale]
             self.num_harmonics.max = self.max_harmonics_per_spectrum
@@ -60,7 +59,6 @@ class PowerSpectrumController(BoxLayout):
             self.harmonic_list = [self.initial_harmonic_values] * self.max_power_spectrums
             self.press_button_add(None)
             self.change_power_spectrum = True
-            self.piano = PianoMIDI()
 
             choose_kernel_menu_items = [
                 {
@@ -87,14 +85,6 @@ class PowerSpectrumController(BoxLayout):
             )
 
         delayed()
-
-    def press_button_connect(self, _: typing.Any) -> None:
-        if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
-            self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
-            self.connect_button.md_bg_color = style.dark_sky_blue
-        else:  # Was already running so disconnected
-            self.connect_button.text = 'Connect MIDI Piano Power Spectrum'
-            self.connect_button.md_bg_color = style.blue_violet
 
     def press_button_add(self, _: typing.Any) -> None:
         if self.num_power_spectrums < self.max_power_spectrums:

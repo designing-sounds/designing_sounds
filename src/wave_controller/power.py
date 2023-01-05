@@ -131,8 +131,9 @@ class PowerSpectrumController(BoxLayout):
                                                    self.squared_sd.value, self.squared_lengthscale.value,
                                                    int(self.num_harmonics.value))
             self.update_power_spectrum_graph()
-            self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
+            self.update_waveform()
+
 
     def power_spectrum_from_freqs(self, freqs: [float]) -> None:
         for i in range(self.num_power_spectrums, 0, -1):

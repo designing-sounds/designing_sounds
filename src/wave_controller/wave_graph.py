@@ -1,5 +1,5 @@
 import typing
-from typing import Tuple, Any
+from typing import Tuple, Optional, List
 
 from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.uix.boxlayout import BoxLayout
@@ -40,6 +40,7 @@ class WaveformGraph(Graph):
         self._period = 0.002
         self.x_ticks_major = self.__initial_x_ticks_major
         self._eraser_mode = False
+        self._is_single_period = False
 
         # Public Class initialization
         self.xmin = 0
@@ -125,7 +126,7 @@ class WaveformGraph(Graph):
 
         return self._graph_canvas.canvas.children[-1]
 
-    def __touching_point(self, pos: typing.Tuple[float, float]) -> typing.Optional[Ellipse]:
+    def __touching_point(self, pos: typing.Tuple[float, float]) -> Optional[Ellipse]:
         points = self._graph_canvas.canvas.children[2::3]
         for point in points:
             if self.__is_inside_ellipse(point, pos):
@@ -143,19 +144,19 @@ class WaveformGraph(Graph):
         self._update_waveform_func(update_noise=True)
 
     @staticmethod
-    def __is_inside_ellipse(ellipse: Ellipse, pos: typing.Tuple[float, float]) -> bool:
+    def __is_inside_ellipse(ellipse: Ellipse, pos: Tuple[float, float]) -> bool:
         radius = ellipse.size[0] / 2
         x, y = (pos[0] - radius, pos[1] - radius)
         exp_x, exp_y = ellipse.pos
         return np.sqrt(np.power(exp_x - x, 2) + np.power(exp_y - y, 2)) < (ellipse.size[0] / 2)
 
-    def __convert_point(self, point: typing.Tuple[float, float]) -> Tuple[Any, ...]:
+    def __convert_point(self, point: Tuple[float, float]) -> Tuple[float, float]:
         radius = self.__point_size / 2
         e_x, e_y = (point[0] + radius, point[1] + radius)
         a_x, a_y = self.to_widget(e_x, e_y, relative=True)
         return tuple(self.to_data(a_x, a_y))
 
-    def get_selected_points(self) -> typing.List[typing.Tuple[float, float]]:
+    def get_selected_points(self) -> List[Tuple[float, float]]:
         return [x for x, _ in self.__selected_points]
 
     def clear_selected_points(self) -> None:
@@ -195,12 +196,11 @@ class WaveformGraph(Graph):
             self.x_grid = True
         self._update_waveform_graph_func()
 
-    def __update_zoom(self, pos: typing.Tuple[float, float], zoom_in: bool) -> None:
+    def __update_zoom(self, pos: Tuple[float, float], zoom_in: bool) -> None:
         x_pos, _ = self.__convert_point(pos)
         if zoom_in and self.xmax - self.xmin < self._period * 3:
-            self.xmin = (x_pos // self._period) * self._period
-            self.xmax = self.xmin + self._period
-            self.x_ticks_major = self._period / 4
+            self._update_single_period(x_pos)
+            self._is_single_period = True
         else:
             self.x_ticks_major = self.__initial_x_ticks_major / self._zoom_scale
             left_dist = x_pos - self.xmin
@@ -209,6 +209,7 @@ class WaveformGraph(Graph):
 
             self.xmax = x_pos + proportion * right_dist
             self.xmin = x_pos - proportion * left_dist
+            self._is_single_period = False
         if self.xmin < 0:
             self.xmax -= self.xmin
             self.xmin = 0
@@ -227,6 +228,11 @@ class WaveformGraph(Graph):
             self.xmax = window_length
         self.__update_graph_points()
 
+    def _update_single_period(self, x_pos: float):
+        self.xmin = (x_pos // self._period) * self._period
+        self.xmax = self.xmin + self._period
+        self.x_ticks_major = self._period / 4
+
     # Get/Set Methods for class
     def set_eraser_mode(self) -> None:
         self._eraser_mode = True
@@ -237,14 +243,25 @@ class WaveformGraph(Graph):
     def is_eraser_mode(self) -> bool:
         return self._eraser_mode
 
-    def set_period(self, frequency) -> None:
-        if frequency != 0:
-            new_period = 1 / frequency
-            if new_period != self._period:
-                self._period = new_period
-                self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), False)
+    def set_period(self, frequency: float) -> None:
+        if frequency == 0:
+            return
+        new_period = 1 / frequency
+        if new_period != self._period:
+            self._period = new_period
+            pos = ((self.xmax - self.xmin) / 2 + self.xmin, 0)
+            if self._is_single_period:
+                x_pos, _ = self.__convert_point(pos)
+                self._update_single_period(x_pos)
+                self._zoom_scale = (1 / self._period) / 2
+                if self.xmin < 0:
+                    self.xmax -= self.xmin
+                    self.xmin = 0
+                self.__update_graph_points()
+            else:
+                self.__update_zoom(pos, False)
 
-    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool) -> typing.List[typing.Tuple[float, float]]:
+    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool) -> List[Tuple[float, float]]:
         points = []
         spaced = np.linspace(0, self._period, amount)
         for i in spaced:
@@ -252,7 +269,7 @@ class WaveformGraph(Graph):
                 points.append((float(i), preset_func(i, self._period)))
         return self.get_preset_points_from_y(points)
 
-    def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
+    def get_preset_points_from_y(self, points: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
         self.clear_selected_points()
 
         for point in points:

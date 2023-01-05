@@ -1,0 +1,231 @@
+<StandardPowerRectangleFlatIconButton@MDRectangleFlatIconButton>:
+    md_bg_color: style.blue_violet
+    icon_color: 'white'
+    text_color: 'white'
+    line_color: (0, 0, 0, 0)
+    pos_hint: {"center_x": .5, "center_y": .5}
+
+<StandardSlider@MDSlider>:
+    color: style.cyber_grape
+    hint: False
+    hint_bg_color: style.dark_sky_blue
+    hint_text_color: "white"
+    hint_radius: [6, 0, 6, 0]
+    thumb_color_active: style.dark_sky_blue
+    thumb_color_inactive: style.palatinate_purple
+    show_off: False
+
+<StandardLabel@MDLabel>:
+    halign: 'center'
+    theme_text_color: 'Primary'
+
+<PowerSpectrumController>:
+    add: add_button
+    all_power_spectrums: all_power_spectrum_button
+    periodic_sd: periodic_sd
+    squared_sd: squared_sd
+    variance: variance
+    mean: mean
+    periodic_lengthscale: periodic_lengthscale
+    squared_lengthscale: squared_lengthscale
+    num_harmonics: num_harmonics
+    connect_button: connect_button
+    kernel: kernel_mode
+
+    BoxLayout:
+        size_hint: 1, 1
+        orientation: 'horizontal'
+
+        BoxLayout:
+            size_hint: 0.05, 1
+
+        BoxLayout:
+            size_hint: 0.7, 1
+            orientation: 'vertical'
+
+            BoxLayout:
+                size_hint: 1, None
+
+                StandardLabel:
+                    text: 'Power Spectrum'
+                    font_style: 'H6'
+
+            BoxLayout:
+                id: power_spectrum
+                size_hint: 1, 0.9
+                padding: [0, 20, 20, 20]
+
+            BoxLayout:
+                spacing: 10
+                id: power_spectrum_buttons
+                size_hint: 1, 0.1
+                orientation: 'horizontal'
+
+
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.4, 1
+            border: 1
+
+            BoxLayout:
+                size_hint: 1, 0.05
+                orientation: 'vertical'
+
+            BoxLayout:
+                size_hint: 1, 0.2
+                orientation: 'vertical'
+
+                StandardLabel:
+                    text: 'Interpolation Variance: ' + str(round(float(variance.value), 5))
+                StandardSlider:
+                    id: variance
+                    value: 0
+                    min: 0
+                    max: 1
+                    step: 0.00001
+                    on_value: root.update_variance()
+
+            BoxLayout:
+                size_hint: 1, 1
+                orientation: 'horizontal'
+
+                BoxLayout:
+                    size_hint: 0.5, 1
+                    orientation: 'vertical'
+
+                    StandardLabel:
+                        text: 'Periodic'
+
+                    BoxLayout:
+                        size_hint: 1, 1
+                        orientation: 'vertical'
+
+                        StandardLabel:
+                            text: 'Standard Deviation: ' + str(round(float(periodic_sd.value), 2))
+
+                        StandardSlider:
+                            id: periodic_sd
+                            value: 1
+                            min: 0.01
+                            max: 10
+                            step: 0.01
+                            on_value: root.update_power_spectrum()
+                    BoxLayout:
+                        size_hint: 1, 1
+                        orientation: 'vertical'
+                        StandardLabel:
+                            text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
+                        StandardSlider:
+                            id: mean
+                            min: 10
+                            max: 2000
+                            value: 500
+                            step: 0.1
+                            on_value: root.update_power_spectrum()
+                    BoxLayout:
+                        size_hint: 1, 1
+                        orientation: 'vertical'
+                        StandardLabel:
+                            text: 'Lengthscale: ' + str(round(float(periodic_lengthscale.value), 2))
+
+                        StandardSlider:
+                            id: periodic_lengthscale
+                            value: 1
+                            min: 0.01
+                            max: 10
+                            step: 0.01
+                            on_value: root.update_power_spectrum()
+
+                BoxLayout:
+                    size_hint: 0.5,1
+                    orientation: 'vertical'
+
+                    StandardLabel:
+                        text: 'Squared Exponential'
+
+                    BoxLayout:
+                        size_hint: 1, 1
+                        orientation: 'vertical'
+
+                        StandardLabel:
+                            text: 'Standard Deviation: ' + str(round(float(squared_sd.value), 2))
+                        StandardSlider:
+                            id: squared_sd
+                            value: 1
+                            min: 0.01
+                            max: 10
+                            step: 0.01
+                            on_value: root.update_power_spectrum()
+                    BoxLayout:
+                        size_hint: 1, 1
+                    BoxLayout:
+                        size_hint: 1, 1
+                        orientation: 'vertical'
+                        StandardLabel:
+                            text: 'Lengthscale: ' + str(round(float(squared_lengthscale.value), 2))
+
+                        StandardSlider:
+                            id: squared_lengthscale
+                            value: 1
+                            min: 0.01
+                            max: 10
+                            step: 0.01
+                            on_value: root.update_power_spectrum()
+
+
+            BoxLayout:
+                size_hint: 1, 0.2
+                orientation: 'vertical'
+                StandardLabel:
+                    text: 'Num harmonics: ' + str(int(num_harmonics.value))
+
+                StandardSlider:
+                    id: num_harmonics
+                    value: 1
+                    min: 1
+                    max: 5
+                    step: 1
+                    on_value: root.update_power_spectrum()
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: 1, 0.2
+
+                BoxLayout:
+                    size_hint: 0.5, 0.2
+
+                StandardPowerRectangleFlatIconButton:
+                    id: add_button
+                    icon: 'plus'
+                    text: 'Add Power Spectrum'
+
+                BoxLayout:
+                    size_hint: 0.5, 0.2
+
+                StandardPowerRectangleFlatIconButton:
+                    id: all_power_spectrum_button
+                    icon: 'chart-bar'
+                    text: 'Display All'
+
+                BoxLayout:
+                    size_hint: 0.5, 0.2
+
+        BoxLayout:
+            size_hint: 0.35, 1
+            orientation: 'vertical'
+
+            StandardPowerRectangleFlatIconButton:
+                id: connect_button
+                icon: 'piano'
+                text: 'MIDI Piano Power Spectrum'
+
+            BoxLayout:
+                size_hint: 1, 1
+
+            StandardPowerRectangleFlatIconButton:
+                icon: 'menu-down'
+                id: kernel_mode
+                text: "Choose Kernel"
+                on_release: root.open_choose_kernel_menu()
+

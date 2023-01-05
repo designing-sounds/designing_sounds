@@ -158,6 +158,7 @@ class PowerSpectrumController(BoxLayout):
             self.harmonic_list[i] = values
             self.sound_model.update_power_spectrum(i, *values)
             self.update_sliders()
+        self.waveform_graph.fit_to_new_frequency(min(freqs))
         self.update_waveform()
         self.update_power_spectrum()
 

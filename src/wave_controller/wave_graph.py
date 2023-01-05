@@ -244,8 +244,13 @@ class WaveformGraph(Graph):
                 self._period = new_period
                 self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), False)
 
-    def get_preset_points(self, preset_func: typing.Callable, amount: int) -> typing.List[typing.Tuple[float, float]]:
-        return self.get_preset_points_from_y([(float(i), (preset_func(i, self._period))) for i in np.linspace(0, self._period, amount)])
+    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool) -> typing.List[typing.Tuple[float, float]]:
+        points = []
+        spaced = np.linspace(0, self._period, amount)
+        for i in spaced:
+            if i != spaced[amount // 2] or not square:
+                points.append((float(i), preset_func(i, self._period)))
+        return self.get_preset_points_from_y(points)
 
     def get_preset_points_from_y(self, points) -> typing.List[typing.Tuple[float, float]]:
         self.clear_selected_points()

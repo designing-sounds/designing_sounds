@@ -150,11 +150,11 @@ class PowerSpectrumController(BoxLayout):
             self.remove_power_spectrum(None)
         self.double_tap = False
         self.sound_model.clear_all_power_spectrums()
-        for i in range(0, min(self.max_harmonics_per_spectrum, len(freqs))):
+        freqs = freqs[:self.max_harmonics_per_spectrum]
+        for i, freq in enumerate(freqs):
             if i != 0:
                 self.press_button_add(None)
-            values = [min(freqs[i], self.mean.max), 2, 0.6, 0.01, 0.16, 1]
-            values[0] = min(freqs[i], self.mean.max)
+            values = [freq, 2, 0.6, 0.01, 0.16, 1]
             self.harmonic_list[i] = values
             self.sound_model.update_power_spectrum(i, *values)
             self.update_sliders()

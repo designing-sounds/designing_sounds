@@ -237,11 +237,10 @@ class WaveformGraph(Graph):
     def is_eraser_mode(self) -> bool:
         return self._eraser_mode
 
-    def fit_to_new_frequency(self, new_frequency):
-        if new_frequency != 0:
-            new_period = 1 / new_frequency
+    def fit_to_new_frequency(self, old_frequency, new_frequency):
+        if old_frequency != 0:
             for point in self.__selected_points:
-                scale = new_period / self._period
+                scale = old_frequency / new_frequency
                 point[0] = (point[0][0] * scale, point[0][1])
                 point[1].pos = (point[1].pos[0] * scale, point[1].pos[1])
             self.__update_graph_points()

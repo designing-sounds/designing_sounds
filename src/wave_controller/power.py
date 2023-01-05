@@ -145,12 +145,13 @@ class PowerSpectrumController(BoxLayout):
             self.waveform_graph.set_period(self.mean.value)
 
     def power_spectrum_from_freqs(self, freqs: [float]) -> None:
+        old_frequency = float(self.mean.value)
         for i in range(self.num_power_spectrums, 0, -1):
             self.double_tap = True
             self.remove_power_spectrum(None)
         self.double_tap = False
         self.sound_model.clear_all_power_spectrums()
-        freqs = freqs[:self.max_harmonics_per_spectrum]
+        freqs = sorted(freqs[:self.max_harmonics_per_spectrum], reverse=True)
         for i, freq in enumerate(freqs):
             if i != 0:
                 self.press_button_add(None)
@@ -158,8 +159,7 @@ class PowerSpectrumController(BoxLayout):
             self.harmonic_list[i] = values
             self.sound_model.update_power_spectrum(i, *values)
             self.update_sliders()
-        self.waveform_graph.fit_to_new_frequency(min(freqs))
-        self.update_waveform()
+        self.waveform_graph.fit_to_new_frequency(old_frequency, freqs[-1])
         self.update_power_spectrum()
 
     def update_power_spectrum_graph_axis(self, ymax):

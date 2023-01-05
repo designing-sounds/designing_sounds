@@ -215,8 +215,6 @@ class RootWave(MDBoxLayout):
         self.sound_model.update_prior()
         self.update_waveform()
 
-
-
     def preset_waves(self, x: int):
         num_points = 100
 
@@ -243,7 +241,8 @@ class RootWave(MDBoxLayout):
             return 3 / 2 / period * x - 3 / 4
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
-        self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points, waves[x]==square_wave))
+        self.sound_model.interpolate_points(
+            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave))
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 

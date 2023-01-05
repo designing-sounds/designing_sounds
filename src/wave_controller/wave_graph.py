@@ -275,4 +275,5 @@ class WaveformGraph(Graph):
         for point in points:
             self.__selected_points.append([point, self.__create_point(self.__to_pixels(point))])
         self._update_waveform_func(update_noise=True)
+        self.__update_graph_points()
         return self.get_selected_points()

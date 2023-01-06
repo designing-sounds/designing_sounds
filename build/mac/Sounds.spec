@@ -54,6 +54,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='Sounds.app',
-    icon='media/icon.png'
+    icon='../../media/icon.png',
     bundle_identifier='com.tommywoodley.sounds',
 )

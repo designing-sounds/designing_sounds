@@ -285,6 +285,6 @@ class RootWave(MDBoxLayout):
         self.file_manager.close()
 
 
-class WaveApp(MDApp):
+class SoundsApp(MDApp):
     def build(self) -> RootWave:
         return RootWave()

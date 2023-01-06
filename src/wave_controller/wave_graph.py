@@ -239,8 +239,8 @@ class WaveformGraph(Graph):
 
     def fit_to_new_frequency(self, old_frequency, new_frequency):
         if old_frequency != 0:
+            scale = old_frequency / new_frequency
             for point in self.__selected_points:
-                scale = old_frequency / new_frequency
                 point[0] = (point[0][0] * scale, point[0][1])
                 point[1].pos = (point[1].pos[0] * scale, point[1].pos[1])
             self.__update_graph_points()

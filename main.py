@@ -13,5 +13,4 @@ from kivy import Logger, LOG_LEVELS
 if __name__ == '__main__':
     Logger.setLevel(LOG_LEVELS["trace"])
     Window.maximize()
-    Window.set_icon('media/icon.png')
     wave.SoundsApp().run()

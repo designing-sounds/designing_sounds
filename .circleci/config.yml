@@ -176,14 +176,14 @@ workflows:
       - create-cli-mac:
           requires:
             - test
-          filters:
-            branches:
-              only:
-                - main
+#          filters:
+#            branches:
+#              only:
+#                - main
       - publish-github-release:
           requires:
             - create-cli-mac
-          filters:
-            branches:
-              only:
-                - main
+#          filters:
+#            branches:
+#              only:
+#                - main

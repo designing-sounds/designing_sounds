@@ -19,10 +19,10 @@ def get_fft(k: np.array) -> Tuple[List[Tuple[Any, Any]], Union[ndarray, int, flo
 
 
 class SoundModel:
-    def __init__(self, max_harmonics_per_spectrum: int):
+    def __init__(self, max_harmonics_per_spectrum: int, max_power_spectrums: int):
         self.inv = None
         self.max_harmonics_per_spectrum = max_harmonics_per_spectrum
-        self.__power_spectrum = PowerSpectrum(self.max_harmonics_per_spectrum)
+        self.__power_spectrum = PowerSpectrum(self.max_harmonics_per_spectrum, max_power_spectrums)
         self.lock = threading.Lock()
         self.x_train = None
         self.y_train = None

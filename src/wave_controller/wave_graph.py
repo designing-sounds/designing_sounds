@@ -163,12 +163,6 @@ class WaveformGraph(Graph):
         self.__selected_points.clear()
         self.__update_graph_points()
 
-    def get_all_points(self) -> typing.List[typing.Tuple[float, float]]:
-        return self.__selected_points
-
-    def replace_all_points(self, points) -> None:
-        self.__selected_points = points
-
     def __to_pixels(self, data_pos: (int, int)) -> (int, int):
         (old_x, old_y) = data_pos
 

@@ -4,6 +4,7 @@ import copy
 class SaveNotes:
     def __init__(self):
         self.loading = False
+        self.saving = False
         self.saved_notes = dict()
 
     def save(self, note, harmonic_list, harmonic_dimensions, current_index, points, variance):

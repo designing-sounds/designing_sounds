@@ -173,14 +173,6 @@ class RootWave(MDBoxLayout):
             self.play.md_bg_color = style.dark_sky_blue
             self.wave_sound.play_audio()
 
-    # def press_button_connect(self, _: typing.Any) -> None:
-    #     if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
-    #         self.connect_button.text = 'Disconnect MIDI Piano '
-    #         self.connect_button.md_bg_color = style.dark_sky_blue
-    #     else:  # Was already running so disconnected
-    #         self.connect_button.text = '  Connect MIDI Piano  '
-    #         self.connect_button.md_bg_color = style.blue_violet
-
     def press_button_connect(self, _: typing.Any) -> None:
         if self.piano.begin(self.ps_controller.power_spectrum_from_freqs):  # Has successfully started
             self.ps_controller.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
@@ -191,8 +183,8 @@ class RootWave(MDBoxLayout):
             self.ps_controller.connect_button.text = 'Connect MIDI Piano Power Spectrum'
             self.ps_controller.connect_button.md_bg_color = style.blue_violet
             self.ps_controller.save_button.disabled = True
-            # if self.save_notes.saving:
-            #     self.press_save_button(None)
+            if self.save_notes.saving:
+                self.press_save_button(None)
 
     def enable_all_buttons(self):
         pass
@@ -202,38 +194,21 @@ class RootWave(MDBoxLayout):
 
     def press_save_button(self, _: typing.Any) -> None:
         self.ps_controller.save_button.md_bg_color = style.dark_sky_blue
-        self.piano.saving = True
+        self.save_notes.saving = True
         self.disable_all_buttons()
         note = 1
-        # notes = set()
-        # while len(notes) == 0:
-        #     notes = self.piano.play_notes
-        # note = notes.poll()
+        # note = self.piano.get_note()
         self.save_state(note)
         self.enable_all_buttons()
         self.ps_controller.save_button.md_bg_color = style.blue_violet
         self.ps_controller.load_button.disabled = False
-
-        # if self.save_notes.saving:
-        #     self.save_notes.saving = False
-        #     self.save_button.md_bg_color = style.blue_violet
-        #     self.save_notes.save_harmonic_list(self.harmonic_list, [self.initial_harmonic_values] * self.max_power_spectrums)
-        #     self.save_notes.index = self.current_power_spectrum_index
-        #
-        #     # self.save_notes.save_power_spectrum_sliders(self.power_spectrum_sliders)
-        #     # self.save_notes.save_power_spectrum_graph(self.power_spectrum_graph)
-        #     # self.save_notes.save_sound_power_plot(self.sound_power_plot)
-        #     # self.save_notes.save_power_plot(self.power_plot)
-        #     # self.save_notes.save_power_buttons(self.power_buttons)
-        #     self.load_button.disabled = False
-        # else:
-        #     self.save_notes.saving = True
-        #     self.save_button.md_bg_color = style.dark_sky_blue
+        self.ps_controller.clear_notes_button.disabled = False
+        self.save_notes.saving = False
 
     def save_state(self, note):
         self.save_notes.save(note, self.ps_controller.harmonic_list,
                              [self.ps_controller.initial_harmonic_values] * self.ps_controller.max_power_spectrums,
-                             self.ps_controller.current_power_spectrum_index, self.waveform_graph.get_all_points(),
+                             self.ps_controller.current_power_spectrum_index, self.waveform_graph.get_selected_points(),
                              self.ps_controller.variance.value)
 
     def press_load_button(self, _: typing.Any) -> None:
@@ -247,10 +222,13 @@ class RootWave(MDBoxLayout):
             self.disable_all_buttons()
             self.load_loop()
 
-    def press_clear_notes_button(self):
+    def press_clear_notes_button(self, _):
+        self.ps_controller.load_button.disabled = True
+        self.ps_controller.clear_notes_button.disabled = True
         self.save_notes.clear_saved_notes()
 
     def load_loop(self):
+        # Add func to piano class that calls something here with the note each times its changed
         # while self.save_notes.loading:
             note = 1
             # notes = set()
@@ -261,12 +239,13 @@ class RootWave(MDBoxLayout):
             # while freqs == None:
             #     freqs = self.piano.callback_update
             # note = freqs(0)
-            state = self.save_notes.saved_notes[note]
-            self.load_state(state)
+            if note in self.save_notes.saved_notes.keys():
+                state = self.save_notes.saved_notes[note]
+                self.load_state(state)
 
     def load_state(self, state: State):
         self.ps_controller.load_state(state)
-        self.waveform_graph.replace_all_points(state.points)
+        self.waveform_graph.get_preset_points_from_y(state.points)
 
     def press_button_show_loaded_sound(self, _: typing.Any) -> None:
         if self.loaded_file:

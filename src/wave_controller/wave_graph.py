@@ -53,10 +53,10 @@ class WaveformGraph(Graph):
         if self.collide_plot(a_x, a_y):
             if touch.is_mouse_scrolling:
                 if touch.button == SCROLL_DOWN:
-                    self._zoom_scale = min(self._zoom_scale + (1/self._period) / 100, (1/self._period) / 2)
+                    self._zoom_scale = min(self._zoom_scale + (1 / self._period) / 100, (1 / self._period) / 2)
                     self.__update_zoom((a_x, a_y), True)
                 elif touch.button == SCROLL_UP:
-                    self._zoom_scale = max(self._zoom_scale - (1/self._period) / 100, self.__min_zoom)
+                    self._zoom_scale = max(self._zoom_scale - (1 / self._period) / 100, self.__min_zoom)
                     self.__update_zoom((a_x, a_y), False)
                 elif touch.button == SCROLL_LEFT:
                     self.__update_panning(False)
@@ -268,8 +268,6 @@ class WaveformGraph(Graph):
                 point[0] = (point[0][0] * scale, point[0][1])
                 point[1].pos = (point[1].pos[0] * scale, point[1].pos[1])
             self.__update_graph_points()
-
-
 
     def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool) -> List[Tuple[float, float]]:
         points = []

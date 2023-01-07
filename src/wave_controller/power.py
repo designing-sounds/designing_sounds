@@ -135,25 +135,27 @@ class PowerSpectrumController(BoxLayout):
             self.update_waveform()
 
     def power_spectrum_from_freqs(self, freqs: [float]) -> None:
-        old_frequency = float(self.mean.value)
-        # values = [2, 0.06, 0.01, 0.16]
-        values = [self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value,
-                  self.squared_lengthscale.value, int(self.num_harmonics.value)]
-        for i in range(self.num_power_spectrums, 0, -1):
-            self.double_tap = True
-            self.remove_power_spectrum(None)
-        self.double_tap = False
-        self.sound_model.clear_all_power_spectrums()
-        freqs = sorted(freqs[:self.max_harmonics_per_spectrum], reverse=True)
-        for i, freq in enumerate(freqs):
-            if i != 0:
-                self.press_button_add(None)
-            self.harmonic_list[i] = [freq] + values
-            self.sound_model.update_power_spectrum(i, freq, *values)
+        with self.sound_model.lock:
+            old_frequency = float(self.mean.value)
+            # values = [2, 0.06, 0.01, 0.16]
+            values = [self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value,
+                      self.squared_lengthscale.value, int(self.num_harmonics.value)]
+            for i in range(self.num_power_spectrums, 0, -1):
+                self.double_tap = True
+                self.remove_power_spectrum(None)
+            self.double_tap = False
+            self.sound_model.clear_all_power_spectrums()
+            freqs = sorted(freqs[:self.max_harmonics_per_spectrum], reverse=True)
+            for i, freq in enumerate(freqs):
+                if i != 0:
+                    self.press_button_add(None)
+                self.harmonic_list[i] = [freq] + values
+                self.sound_model.update_power_spectrum(i, freq, *values)
+
             self.update_sliders()
-        self.waveform_graph.fit_to_new_frequency(old_frequency, freqs[-1])
-        self.update_power_spectrum()
-        self.sound_changed()
+            self.waveform_graph.fit_to_new_frequency(old_frequency, freqs[-1])
+            self.update_power_spectrum()
+            self.sound_changed()
 
     def update_power_spectrum_graph_axis(self, ymax):
         self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)

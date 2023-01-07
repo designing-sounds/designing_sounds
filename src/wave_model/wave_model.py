@@ -23,7 +23,7 @@ class SoundModel:
         self.inv = None
         self.max_harmonics_per_spectrum = max_harmonics_per_spectrum
         self.__power_spectrum = PowerSpectrum(self.max_harmonics_per_spectrum)
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.x_train = None
         self.y_train = None
         self.noise = 0

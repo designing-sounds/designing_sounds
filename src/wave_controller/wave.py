@@ -258,4 +258,5 @@ class RootWave(MDBoxLayout):
 
 class SoundsApp(MDApp):
     def build(self) -> RootWave:
+        self.icon = 'media/icon.png'
         return RootWave()

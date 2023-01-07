@@ -32,6 +32,7 @@
     connect_button: connect_button
     save_button: save_button
     load_button: load_button
+    clear_notes_button: clear_notes_button
     kernel: kernel_mode
 
     BoxLayout:
@@ -242,6 +243,15 @@
                 disabled: True
                 icon: 'folder-open'
                 text: 'Load notes'
+
+            BoxLayout:
+                size_hint: 0.5, 0.2
+
+            StandardPowerRectangleFlatIconButton:
+                id: clear_notes_button
+                disabled: True
+                icon: 'vector-polyline-remove'
+                text: 'Clear notes'
 
             BoxLayout:
                 size_hint: 0.5, 0.5

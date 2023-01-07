@@ -9,13 +9,11 @@ from kivy.properties import (StringProperty, ObjectProperty)
 
 from kivy_garden.graph import LinePlot
 from kivymd.app import MDApp
-from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
 from kivymd.uix.menu import MDDropdownMenu
-from scipy.io import wavfile
 
+from src.wave_controller.instruments import PianoMIDI
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
 from src.wave_model.wave_model import SoundModel
@@ -65,7 +63,7 @@ class RootWave(MDBoxLayout):
         self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
         self.resample.bind(on_press=self.press_button_resample)
-        self.show_loaded.bind(on_press=self.press_button_show_loaded_sound)
+        self.connect_button.bind(on_press=self.press_button_connect)
 
         # Wave Graphs
         border_color = [0, 0, 0, 1]
@@ -131,6 +129,7 @@ class RootWave(MDBoxLayout):
             items=choose_wave_menu_items,
             width_mult=4,
         )
+        self.piano = PianoMIDI()
 
         Window.bind(on_request_close=self.shutdown_audio)
 
@@ -166,7 +165,7 @@ class RootWave(MDBoxLayout):
             self.wave_sound.play_audio()
 
     def press_button_connect(self, _: typing.Any) -> None:
-        if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
+        if self.piano.begin(self.ps_controller.power_spectrum_from_freqs):  # Has successfully started
             self.connect_button.text = 'Disconnect MIDI Piano '
             self.connect_button.md_bg_color = style.dark_sky_blue
         else:  # Was already running so disconnected
@@ -243,47 +242,18 @@ class RootWave(MDBoxLayout):
             return 3 / 2 / period * x - 3 / 4
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
-        self.sound_model.interpolate_points(self.waveform_graph.get_preset_points(waves[x], num_points, waves[x]==square_wave))
+        self.sound_model.interpolate_points(
+            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave))
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 
     def shutdown_audio(self, _) -> bool:
         self.wave_sound.shutdown()
-        self.ps_controller.piano.shutdown()
+        self.piano.shutdown()
         return False
 
     def open_choose_wave_menu(self) -> None:
         self.choose_wave_menu.open()
-
-    def file_manager_open(self) -> None:
-        if not self.file_manager:
-            self.file_manager = MDFileManager(
-                exit_manager=self.exit_manager, select_path=self.select_path)
-        self.file_manager.show('/')  # output manager to the screen
-
-    def select_path(self, path: str) -> None:
-        try:
-            self.loaded_file = wavfile.read(path)
-            data = np.sum(self.loaded_file[1], axis=1)[::self.loaded_file[0]//self.sample_rate]
-            data = data / max(data.max(), data.min(), key=abs)
-            self.is_showing = True
-            self.show_loaded.disabled = False
-            self.loaded_file = (self.loaded_file[0], data)
-            self.ps_controller.sound_power_plot.points = self.sound_model.get_power_spectrum(data[:self.ps_controller.power_spectrum_graph_samples])
-            # step = 25
-            # y = data[:self.sample_rate:step]
-            # points = [(float(i) * step / self.sample_rate, y[i]) for i in range(len(y))]
-            # self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
-            self.wave_sound.sound_changed()
-            self.ps_controller.update_power_spectrum()
-
-            self.update_loaded_sound_graph()
-            self.exit_manager()
-        except ValueError:
-            toast("Not a valid file")
-
-    def exit_manager(self, *_: typing.Any) -> None:
-        self.file_manager.close()
 
 
 class SoundsApp(MDApp):

@@ -43,8 +43,10 @@
     back: back_button
     eraser_mode: eraser_mode
     preset: preset_mode
+    connect_button: connect_button
 
-    show_loaded: show_loaded
+
+
 
 
 
@@ -134,10 +136,8 @@
                     text: 'Resample'
 
                 BoxLayout:
-                    size_hint: 1, 1
+                    size_hint: 1, 0.6
                     orientation: 'vertical'
-
-
 
                 StandardRectangleFlatIconButton:
                     icon: 'menu-down'
@@ -146,26 +146,21 @@
                     on_release: root.open_choose_wave_menu()
 
                 BoxLayout:
-                    size_hint: 1, 1
+                    size_hint: 1, 0.6
                     orientation: 'vertical'
 
 
                 StandardRectangleFlatIconButton:
-                    text: "Load Sound"
-                    icon: "folder"
-                    md_bg_color: style.blue_violet
-                    on_release: root.file_manager_open()
+                    id: connect_button
+                    icon: 'piano'
+                    text: 'Connect MIDI Piano'
 
                 BoxLayout:
                     size_hint: 1, 1
                     orientation: 'vertical'
 
-                StandardRectangleFlatIconButton:
-                    md_bg_color: style.dark_sky_blue
-                    id: show_loaded
-                    icon: 'file-hidden'
-                    text: 'Hide Loaded Sound'
-                    disabled: True
+
+
 
         PowerSpectrumController:
             size_hint: 1, 0.8

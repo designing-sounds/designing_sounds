@@ -29,7 +29,6 @@
     periodic_lengthscale: periodic_lengthscale
     squared_lengthscale: squared_lengthscale
     num_harmonics: num_harmonics
-    connect_button: connect_button
     kernel: kernel_mode
 
     BoxLayout:
@@ -37,10 +36,7 @@
         orientation: 'horizontal'
 
         BoxLayout:
-            size_hint: 0.05, 1
-
-        BoxLayout:
-            size_hint: 0.7, 1
+            size_hint: 0.6, 1
             orientation: 'vertical'
 
             BoxLayout:
@@ -65,7 +61,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint: 0.4, 1
+            size_hint: 0.5, 1
             border: 1
 
             BoxLayout:
@@ -111,18 +107,7 @@
                             max: 10
                             step: 0.01
                             on_value: root.update_power_spectrum()
-                    BoxLayout:
-                        size_hint: 1, 1
-                        orientation: 'vertical'
-                        StandardLabel:
-                            text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
-                        StandardSlider:
-                            id: mean
-                            min: 10
-                            max: 2000
-                            value: 500
-                            step: 0.1
-                            on_value: root.update_power_spectrum()
+
                     BoxLayout:
                         size_hint: 1, 1
                         orientation: 'vertical'
@@ -157,8 +142,7 @@
                             max: 10
                             step: 0.01
                             on_value: root.update_power_spectrum()
-                    BoxLayout:
-                        size_hint: 1, 1
+
                     BoxLayout:
                         size_hint: 1, 1
                         orientation: 'vertical'
@@ -173,7 +157,18 @@
                             step: 0.01
                             on_value: root.update_power_spectrum()
 
-
+            BoxLayout:
+                size_hint: 1, 0.2
+                orientation: 'vertical'
+                StandardLabel:
+                    text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
+                StandardSlider:
+                    id: mean
+                    min: 10
+                    max: 2000
+                    value: 500
+                    step: 0.1
+                    on_value: root.update_power_spectrum()
             BoxLayout:
                 size_hint: 1, 0.2
                 orientation: 'vertical'
@@ -189,11 +184,12 @@
                     on_value: root.update_power_spectrum()
 
             BoxLayout:
+                padding: [0,20,0,0]
                 orientation: 'horizontal'
                 size_hint: 1, 0.2
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
                 StandardPowerRectangleFlatIconButton:
                     id: add_button
@@ -201,7 +197,7 @@
                     text: 'Add Power Spectrum'
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
                 StandardPowerRectangleFlatIconButton:
                     id: all_power_spectrum_button
@@ -209,23 +205,16 @@
                     text: 'Display All'
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
-        BoxLayout:
-            size_hint: 0.35, 1
-            orientation: 'vertical'
+                StandardPowerRectangleFlatIconButton:
+                    icon: 'menu-down'
+                    id: kernel_mode
+                    text: "Choose Kernel"
+                    on_release: root.open_choose_kernel_menu()
 
-            StandardPowerRectangleFlatIconButton:
-                id: connect_button
-                icon: 'piano'
-                text: 'MIDI Piano Power Spectrum'
 
-            BoxLayout:
-                size_hint: 1, 1
 
-            StandardPowerRectangleFlatIconButton:
-                icon: 'menu-down'
-                id: kernel_mode
-                text: "Choose Kernel"
-                on_release: root.open_choose_kernel_menu()
+
+
 

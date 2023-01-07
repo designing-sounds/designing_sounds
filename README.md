@@ -40,3 +40,23 @@ And then run the main application as below:
 ```shell
 python3 ./main.py
 ```
+
+### Libraries Used
+Kivy, numpy, pytest, pytest-cov, kivy_garden.graph, PyAudio, pyinstaller, kivymd, Cython, PyQt3D, pygame, scipy
+
+### References
+```
+[1] Wilson JT, Borovitskiy V, Terenin A, Mostowsky P, Deisenroth MP. Efficiently Sampling Functions
+from Gaussian Process Posteriors. 2020. Available from: https://arxiv.org/abs/2002.09309.
+
+[2] Tompkins A, Ramos F. Fourier Feature Approximations for Periodic Kernels in Time-Series Modelling.
+Proceedings of the AAAI Conference on Artificial Intelligence. 2018 Apr;32(1). Available from: https:
+//ojs.aaai.org/index.php/AAAI/article/view/11696.
+
+[3] Rahimi A, Recht B. Random Features for Large-Scale Kernel Machines. In: Platt J, Koller D,
+Singer Y, Roweis S, editors. Advances in Neural Information Processing Systems. vol. 20. Cur-
+ran Associates, Inc.; 2007. Available from: https://proceedings.neurips.cc/paper/2007/file/
+013a006f03dbc5392effeb8f18fda755-Paper.pdf.
+
+[4] Rasmussen CE, Williams CKI. Gaussian processes for machine learning. Cambridge, Mass. Mit Press;
+```

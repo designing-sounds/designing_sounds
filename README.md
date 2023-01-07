@@ -14,27 +14,16 @@ To see a demo of the maths behind creating a waveform, see this link: https://nb
 
 ## Building & Installing
 
-### Mac OS X
-For Mac OS X we have a pre-built application that you can download and install.
-Head to the [Releases](https://github.com/designing-sounds/designing_sounds/releases) page and download the latest version (sounds.dmg)
-Once downloaded click to open and then click again to open the application.
-
-#### Warning
-You may get a warning such as:
-
-- “sounds” can’t be opened because Apple cannot check it for malicious software
-
-This is an issue that is currently being worked on to do with signing of the application. To get around this head to System Preferences > Privacy & Security and you should see a message:
-
-- "sounds" was blocked from use because it is not from an identified developer
-
-Click the button "Open Anyway" and the application should start  :)
+### Mac OS X Package
+For Mac OS X we have a pre-built package that you can download and install.
+Head to the [Releases](https://github.com/designing-sounds/designing_sounds/releases) page and download the latest version (sounds.pkg)
+Once downloaded click to open and an installer should launch and once complete the appliation will appear in your Applications folder.
 
 ### Other Platforms
 
-Native applications for other platforms are currently in progress. 
-If you would like to run it then you can download the source code.
-Install all dependencies required as stated in the requirements.txt file.
+At this time we are currently not providing explit packages for other operating systems.
+However as it is an open source project if you would like to run it then you can download the full source code.
+Create a virtual environment based on the packages in the requirements.txt file.
 And then run the main application as below:
 
 ```shell

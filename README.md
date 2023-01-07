@@ -41,6 +41,9 @@ And then run the main application as below:
 python3 ./main.py
 ```
 
+### Libraries Used
+Kivy, numpy, pytest, pytest-cov, kivy_garden.graph, PyAudio, pyinstaller, kivymd, Cython, PyQt3D, pygame, scipy
+
 ### References
 ```
 [1] Wilson JT, Borovitskiy V, Terenin A, Mostowsky P, Deisenroth MP. Efficiently Sampling Functions

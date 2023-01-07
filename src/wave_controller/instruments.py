@@ -80,6 +80,7 @@ class PianoMIDI():
                 if len(freqs) > 0:
                     self.callback_update(freqs)
                 self.changed = False
+                self.play_notes = set()
             return self.running
         except RuntimeError:
             return False

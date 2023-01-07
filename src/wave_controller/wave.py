@@ -16,6 +16,7 @@ from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
 from kivymd.uix.menu import MDDropdownMenu
 from scipy.io import wavfile
 
+from src.wave_controller.save_notes import SaveNotes
 from src.wave_controller.wave_graph import WaveformGraph
 from src.wave_controller.wave_sound import WaveSound
 from src.wave_model.wave_model import SoundModel

@@ -52,10 +52,10 @@ class WaveformGraph(Graph):
         if self.collide_plot(a_x, a_y):
             if touch.is_mouse_scrolling:
                 if touch.button == SCROLL_DOWN:
-                    self._zoom_scale = min(self._zoom_scale + (1/self._period) / 100, (1/self._period) / 2)
+                    self._zoom_scale = min(self._zoom_scale + (1 / self._period) / 100, (1 / self._period) / 2)
                     self.__update_zoom((a_x, a_y), True)
                 elif touch.button == SCROLL_UP:
-                    self._zoom_scale = max(self._zoom_scale - (1/self._period) / 100, self.__min_zoom)
+                    self._zoom_scale = max(self._zoom_scale - (1 / self._period) / 100, self.__min_zoom)
                     self.__update_zoom((a_x, a_y), False)
                 elif touch.button == SCROLL_LEFT:
                     self.__update_panning(False)
@@ -163,6 +163,12 @@ class WaveformGraph(Graph):
         self.__selected_points.clear()
         self.__update_graph_points()
 
+    def get_all_points(self) -> typing.List[typing.Tuple[float, float]]:
+        return self.__selected_points
+
+    def replace_all_points(self, points) -> None:
+        self.__selected_points = points
+
     def __to_pixels(self, data_pos: (int, int)) -> (int, int):
         (old_x, old_y) = data_pos
 
@@ -244,7 +250,8 @@ class WaveformGraph(Graph):
                 self._period = new_period
                 self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), False)
 
-    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool) -> typing.List[typing.Tuple[float, float]]:
+    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool) -> typing.List[
+        typing.Tuple[float, float]]:
         points = []
         spaced = np.linspace(0, self._period, amount)
         for i in spaced:

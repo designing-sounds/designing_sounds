@@ -1,3 +1,4 @@
+import copy
 import typing
 
 from kivy.clock import mainthread
@@ -7,6 +8,7 @@ from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.menu import MDDropdownMenu
 
 from src.wave_controller.instruments import PianoMIDI
+from src.wave_controller.save_notes import SaveNotes, State
 from src.wave_view import style
 from math import floor, log
 
@@ -30,6 +32,8 @@ class PowerSpectrumController(BoxLayout):
             self.add.bind(on_press=self.press_button_add)
             self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
             self.connect_button.bind(on_press=self.press_button_connect)
+            self.save_button.bind(on_press=self.press_save_button)
+            self.load_button.bind(on_press=self.press_load_button)
             self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics,
                                            self.squared_sd, self.squared_lengthscale]
             self.num_harmonics.max = self.max_harmonics_per_spectrum
@@ -61,6 +65,7 @@ class PowerSpectrumController(BoxLayout):
             self.press_button_add(None)
             self.change_power_spectrum = True
             self.piano = PianoMIDI()
+            self.save_notes = SaveNotes()
 
             choose_kernel_menu_items = [
                 {
@@ -92,9 +97,110 @@ class PowerSpectrumController(BoxLayout):
         if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
             self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
             self.connect_button.md_bg_color = style.dark_sky_blue
+            self.save_button.disabled = False
+            self.save_button.md_bg_color = style.blue_violet
         else:  # Was already running so disconnected
             self.connect_button.text = 'Connect MIDI Piano Power Spectrum'
             self.connect_button.md_bg_color = style.blue_violet
+            self.save_button.disabled = True
+            # if self.save_notes.saving:
+            #     self.press_save_button(None)
+
+    def enable_all_buttons(self):
+        pass
+
+    def disable_all_buttons(self):
+        pass
+
+    def press_save_button(self, _: typing.Any) -> None:
+        self.save_button.md_bg_color = style.dark_sky_blue
+        self.piano.saving = True
+        self.disable_all_buttons()
+        notes = set()
+        while len(notes) == 0:
+            notes = self.piano.play_notes
+        note = notes.poll()
+        self.save_state(note)
+        self.enable_all_buttons()
+        self.save_button.md_bg_color = style.blue_violet
+        self.load_button.disabled = False
+
+        # if self.save_notes.saving:
+        #     self.save_notes.saving = False
+        #     self.save_button.md_bg_color = style.blue_violet
+        #     self.save_notes.save_harmonic_list(self.harmonic_list, [self.initial_harmonic_values] * self.max_power_spectrums)
+        #     self.save_notes.index = self.current_power_spectrum_index
+        #
+        #     # self.save_notes.save_power_spectrum_sliders(self.power_spectrum_sliders)
+        #     # self.save_notes.save_power_spectrum_graph(self.power_spectrum_graph)
+        #     # self.save_notes.save_sound_power_plot(self.sound_power_plot)
+        #     # self.save_notes.save_power_plot(self.power_plot)
+        #     # self.save_notes.save_power_buttons(self.power_buttons)
+        #     self.load_button.disabled = False
+        # else:
+        #     self.save_notes.saving = True
+        #     self.save_button.md_bg_color = style.dark_sky_blue
+
+    def save_state(self, note):
+        self.save_notes.save(note, self.harmonic_list, [self.initial_harmonic_values] * self.max_power_spectrums,
+                             self.current_power_spectrum_index)
+
+    def press_load_button(self, _: typing.Any) -> None:
+        if self.save_notes.loading:
+            self.save_notes.loading = False
+            self.enable_all_buttons()
+            self.load_button.md_bg_color = style.blue_violet
+        else:
+            self.save_notes.loading = True
+            self.load_button.md_bg_color = style.dark_sky_blue
+            self.disable_all_buttons()
+            self.load_loop()
+
+    def load_loop(self):
+        while self.save_notes.loading:
+            notes = set()
+            while len(notes) == 0:
+                notes = self.piano.play_notes
+            note = notes.poll()
+            # freqs = None
+            # while freqs == None:
+            #     freqs = self.piano.callback_update
+            # note = freqs(0)
+            state = self.save_notes.saved_notes[note]
+            self.load_state(state)
+
+    def load_state(self, state: State):
+        for button in self.power_buttons:
+            self.power_buttons.remove(button)
+            self.ids.power_spectrum_buttons.remove_widget(button)
+
+        self.num_power_spectrums = 0
+        self.save_notes.loading = True
+        self.harmonic_list = state.harmonic_list
+        print(len(self.power_buttons))
+        self.current_power_spectrum_index = state.index
+        for _ in self.harmonic_list:
+            self.num_power_spectrums += 1
+            button = self.create_button(self.num_power_spectrums)
+            button.md_bg_color = self.unselected_button_color
+            button.root_wave = self
+            self.power_buttons.append(button)
+            self.ids.power_spectrum_buttons.add_widget(button)
+        print(len(self.power_buttons))
+        # button = self.power_buttons[0]
+        # self.power_buttons.remove(button)
+        # self.ids.power_spectrum_buttons.remove_widget(button)
+        # print(len(self.power_buttons))
+
+        # self.update_power_spectrum()
+        # self.update_power_spectrum_graph()
+
+        # self.power_spectrum_sliders = self.save_notes.power_spectrum_sliders
+        # self.power_spectrum_graph = self.save_notes.power_spectrum_graph
+        # self.sound_power_plot = self.save_notes.sound_power_plot
+        # self.power_plot = self.save_notes.power_plot
+        # self.power_buttons = self.save_notes.power_buttons
+        # self.load_button.md_bg_color = style.dark_sky_blue
 
     def press_button_add(self, _: typing.Any) -> None:
         if self.num_power_spectrums < self.max_power_spectrums:
@@ -247,5 +353,3 @@ class PowerSpectrumController(BoxLayout):
 
     def open_choose_kernel_menu(self) -> None:
         self.choose_kernel_menu.open()
-
-

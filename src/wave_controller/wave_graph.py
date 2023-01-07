@@ -269,12 +269,7 @@ class WaveformGraph(Graph):
                 point[1].pos = (point[1].pos[0] * scale, point[1].pos[1])
             self.__update_graph_points()
 
-    def set_period(self, frequency) -> None:
-        if frequency != 0:
-            new_period = 1 / frequency
-            if new_period != self._period:
-                self._period = new_period
-                self.__update_zoom(((self.xmax - self.xmin) / 2 + self.xmin, 0), False)
+
 
     def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool) -> List[Tuple[float, float]]:
         points = []

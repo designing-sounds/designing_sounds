@@ -134,7 +134,6 @@ class PowerSpectrumController(BoxLayout):
             self.waveform_graph.set_period(self.mean.value)
             self.update_waveform()
 
-
     def power_spectrum_from_freqs(self, freqs: [float]) -> None:
         old_frequency = float(self.mean.value)
         # values = [2, 0.06, 0.01, 0.16]
@@ -242,5 +241,3 @@ class PowerSpectrumController(BoxLayout):
 
     def open_choose_kernel_menu(self) -> None:
         self.choose_kernel_menu.open()
-
-

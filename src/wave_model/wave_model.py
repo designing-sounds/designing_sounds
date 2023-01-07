@@ -89,9 +89,17 @@ class SoundModel:
                     pass
             self.update_train_prior()
 
+    def update_all_power_spectrums(self, freqs, periodic_sd, periodic_lengthscale, squared_sd, squared_lengthscale,
+                                   nums_harmonic):
+        with self.lock:
+            self.__power_spectrum.clear_all()
+            for i, freq in enumerate(freqs):
+                self.update_power_spectrum(i, freq, periodic_sd, periodic_lengthscale, squared_sd,
+                                           squared_lengthscale, nums_harmonic)
+
     def update_power_spectrum(self, power_spectrum_index: int, mean: int, periodic_sd: float,
                               periodic_lengthscale: float, squared_sd: float, squared_lengthscale: float,
-                              curr_harmonic_index: int, ) -> None:
+                              curr_harmonic_index: int) -> None:
         with self.lock:
             self.__power_spectrum.update_harmonic(power_spectrum_index, mean, periodic_sd,
                                                   periodic_lengthscale, squared_sd, squared_lengthscale,

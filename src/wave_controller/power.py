@@ -12,7 +12,6 @@ from math import floor, log
 
 class PowerSpectrumController(BoxLayout):
     max_harmonics_per_spectrum = 5
-    max_power_spectrums = 5
     num_power_spectrums = 0
     current_power_spectrum_index = 0
     max_samples_per_harmonic = 500

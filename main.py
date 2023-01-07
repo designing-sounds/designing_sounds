@@ -5,11 +5,11 @@ Config.set('graphics', 'height', 1080)
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.set('graphics', 'resizable', False)
 Config.set('graphics', 'maxfps', '5')
+Config.set('kivy', 'window_icon', 'media/icon.png')
 
 from src.wave_controller import wave
 from kivy.core.window import Window
 
 if __name__ == '__main__':
     Window.maximize()
-    Window.set_icon('media/icon.png')
     wave.SoundsApp().run()

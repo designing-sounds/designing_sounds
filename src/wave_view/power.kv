@@ -107,18 +107,7 @@
                             max: 10
                             step: 0.01
                             on_value: root.update_power_spectrum()
-                    BoxLayout:
-                        size_hint: 1, 1
-                        orientation: 'vertical'
-                        StandardLabel:
-                            text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
-                        StandardSlider:
-                            id: mean
-                            min: 10
-                            max: 2000
-                            value: 500
-                            step: 0.1
-                            on_value: root.update_power_spectrum()
+
                     BoxLayout:
                         size_hint: 1, 1
                         orientation: 'vertical'
@@ -153,8 +142,7 @@
                             max: 10
                             step: 0.01
                             on_value: root.update_power_spectrum()
-                    BoxLayout:
-                        size_hint: 1, 1
+
                     BoxLayout:
                         size_hint: 1, 1
                         orientation: 'vertical'
@@ -169,7 +157,18 @@
                             step: 0.01
                             on_value: root.update_power_spectrum()
 
-
+            BoxLayout:
+                size_hint: 1, 0.2
+                orientation: 'vertical'
+                StandardLabel:
+                    text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
+                StandardSlider:
+                    id: mean
+                    min: 10
+                    max: 2000
+                    value: 500
+                    step: 0.1
+                    on_value: root.update_power_spectrum()
             BoxLayout:
                 size_hint: 1, 0.2
                 orientation: 'vertical'
@@ -185,6 +184,7 @@
                     on_value: root.update_power_spectrum()
 
             BoxLayout:
+                padding: [0,20,0,0]
                 orientation: 'horizontal'
                 size_hint: 1, 0.2
 

@@ -89,22 +89,60 @@ class PowerSpectrumController(BoxLayout):
         delayed()
 
     def load_state(self, state: State):
-        for button in self.power_buttons:
-            self.power_buttons.remove(button)
-            self.ids.power_spectrum_buttons.remove_widget(button)
+        # self.num_power_spectrums = 0
+        # print(self.power_buttons)
+        # for button in self.power_buttons:
+        #     self.power_buttons.remove(button)
+        #     self.ids.power_spectrum_buttons.remove_widget(button)
+        #
+        # print(self.power_buttons)
+        # self.harmonic_list = state.harmonic_list
+        self.remove_all_power_spectrums()
 
-        self.num_power_spectrums = 0
-        self.harmonic_list = state.harmonic_list
-        print(len(self.power_buttons))
+        for i in range(len(self.harmonic_list)):
+            self.current_power_spectrum_index = i
+            self.press_button_add(None)
+
         self.current_power_spectrum_index = state.index
-        for _ in self.harmonic_list:
-            self.num_power_spectrums += 1
-            button = self.create_button(self.num_power_spectrums)
-            button.md_bg_color = self.unselected_button_color
-            button.root_wave = self
-            self.power_buttons.append(button)
-            self.ids.power_spectrum_buttons.add_widget(button)
-        print(len(self.power_buttons))
+        self.harmonic_list = state.harmonic_list
+
+        for i in range(len(self.harmonic_list)):
+            self.current_power_spectrum_index = i
+            self.power_spectrum_sliders = self.harmonic_list[i]
+            self.update_sliders()
+            self.update_power_spectrum()
+            # self.update_power_spectrum_graph()
+
+
+        # for i in range(len(self.harmonic_list)):
+        #     self.current_power_spectrum_index = i
+        #     self.remove_power_spectrum(None)
+
+
+        # for i in range(len(self.harmonic_list)):
+        #     self.current_power_spectrum_index = i
+        #     self.press_button_add(None)
+        #     self.update_sliders()
+        #
+        # self.current_power_spectrum_index = state.index
+
+
+        # for button in self.power_buttons:
+        #     self.power_buttons.remove(button)
+        #     self.ids.power_spectrum_buttons.remove_widget(button)
+        #
+        # self.num_power_spectrums = 0
+        # self.harmonic_list = state.harmonic_list
+        # print(len(self.power_buttons))
+        # self.current_power_spectrum_index = state.index
+        # for _ in self.harmonic_list:
+        #     self.num_power_spectrums += 1
+        #     button = self.create_button(self.num_power_spectrums)
+        #     button.md_bg_color = self.unselected_button_color
+        #     button.root_wave = self
+        #     self.power_buttons.append(button)
+        #     self.ids.power_spectrum_buttons.add_widget(button)
+        # print(len(self.power_buttons))
         # button = self.power_buttons[0]
         # self.power_buttons.remove(button)
         # self.ids.power_spectrum_buttons.remove_widget(button)
@@ -232,6 +270,32 @@ class PowerSpectrumController(BoxLayout):
             line_color=(0, 0, 0, 0),
         )
 
+    def remove_all_power_spectrums(self) -> None:
+        for _ in range(len(self.power_buttons)):
+            button = self.power_buttons[0]
+            self.power_buttons.remove(button)
+            self.ids.power_spectrum_buttons.remove_widget(button)
+
+        self.current_power_spectrum_index = 0
+        self.num_power_spectrums = 0
+            #
+            # for i in range(self.current_power_spectrum_index, len(self.power_buttons)):
+            #     self.power_buttons[i].text = f"{i + 1}"
+            #     self.harmonic_list[i] = self.harmonic_list[i + 1]
+            #
+            # # zero fill end of harmonic list to account for removal
+            # self.harmonic_list[self.num_power_spectrums - 1] = self.initial_harmonic_values
+            #
+            # self.sound_model.remove_power_spectrum(i)
+            #
+            # self.num_power_spectrums -= 1
+            # # update current index selection
+            # self.current_power_spectrum_index -= 1 if self.current_power_spectrum_index == len(self.power_buttons) else 0
+            #
+            # self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
+            #
+            # self.update_sliders()
+            # self.update_power_spectrum()
     def remove_power_spectrum(self, _) -> None:
         if not self.double_tap or len(self.power_buttons) == 1:
             return

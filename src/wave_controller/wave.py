@@ -178,13 +178,18 @@ class RootWave(MDBoxLayout):
             self.ps_controller.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
             self.ps_controller.connect_button.md_bg_color = style.dark_sky_blue
             self.ps_controller.save_button.disabled = False
+            if len(self.save_notes.saved_notes) > 0:
+                self.ps_controller.load_button.disabled = False
             self.ps_controller.save_button.md_bg_color = style.blue_violet
         else:  # Was already running so disconnected
             self.ps_controller.connect_button.text = 'Connect MIDI Piano Power Spectrum'
             self.ps_controller.connect_button.md_bg_color = style.blue_violet
-            self.ps_controller.save_button.disabled = True
             if self.save_notes.saving:
                 self.press_save_button(None)
+            if self.save_notes.loading:
+                self.press_load_button(None)
+            self.ps_controller.save_button.disabled = True
+            self.ps_controller.load_button.disabled = True
 
     def enable_all_buttons(self):
         pass
@@ -230,18 +235,18 @@ class RootWave(MDBoxLayout):
     def load_loop(self):
         # Add func to piano class that calls something here with the note each times its changed
         # while self.save_notes.loading:
-            note = 1
-            # notes = set()
-            # while len(notes) == 0:
-            #     notes = self.piano.play_notes
-            # note = notes.poll()
-            # freqs = None
-            # while freqs == None:
-            #     freqs = self.piano.callback_update
-            # note = freqs(0)
-            if note in self.save_notes.saved_notes.keys():
-                state = self.save_notes.saved_notes[note]
-                self.load_state(state)
+        note = 1
+        # notes = set()
+        # while len(notes) == 0:
+        #     notes = self.piano.play_notes
+        # note = notes.poll()
+        # freqs = None
+        # while freqs == None:
+        #     freqs = self.piano.callback_update
+        # note = freqs(0)
+        if note in self.save_notes.saved_notes.keys():
+            state = self.save_notes.saved_notes[note]
+            self.load_state(state)
 
     def load_state(self, state: State):
         self.ps_controller.load_state(state)

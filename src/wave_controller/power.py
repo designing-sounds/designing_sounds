@@ -141,8 +141,8 @@ class PowerSpectrumController(BoxLayout):
         freqs = sorted(freqs[:self.max_harmonics_per_spectrum], reverse=True)
 
         for button in self.power_buttons:
-            self.power_buttons.remove(button)
             self.ids.power_spectrum_buttons.remove_widget(button)
+        self.power_buttons.clear()
 
         for i in range(len(freqs)):
             button = self.create_button(i + 1)
@@ -151,6 +151,7 @@ class PowerSpectrumController(BoxLayout):
             self.harmonic_list[i] = [freqs[i]] + values
             self.current_power_spectrum_index = i
             self.power_buttons[i].md_bg_color = self.unselected_button_color
+
         self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
         self.update_sliders()
         self.waveform_graph.set_period(self.mean.value)

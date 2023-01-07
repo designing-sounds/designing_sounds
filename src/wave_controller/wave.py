@@ -88,6 +88,7 @@ class RootWave(MDBoxLayout):
         self.ps_controller.sound_model = self.sound_model
         self.ps_controller.update_waveform = self.update_waveform
         self.ps_controller.waveform_graph = self.waveform_graph
+        self.ps_controller.sound_changed = self.wave_sound.sound_changed
 
         choose_wave_menu_items = [
             {
@@ -255,6 +256,6 @@ class RootWave(MDBoxLayout):
         self.choose_wave_menu.open()
 
 
-class WaveApp(MDApp):
+class SoundsApp(MDApp):
     def build(self) -> RootWave:
         return RootWave()

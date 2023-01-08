@@ -50,9 +50,6 @@ class RootWave(MDBoxLayout):
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
-        self.is_showing = False
-        self.file_manager = None
-        self.loaded_file = None
 
         self.sound_model = SoundModel(self.ps_controller.max_harmonics_per_spectrum, self.max_power_spectrums)
 
@@ -81,16 +78,15 @@ class RootWave(MDBoxLayout):
         plot_color = style.cyber_grape
 
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
-        self.load_sound_plot = LinePlot(color=style.red, line_width=1)
 
         self.waveform_graph.add_plot(self.wave_plot)
-        self.waveform_graph.add_plot(self.load_sound_plot)
 
         self.ps_controller.sound_model = self.sound_model
         self.ps_controller.max_power_spectrums = self.max_power_spectrums
         self.ps_controller.update_waveform = self.update_waveform
         self.ps_controller.waveform_graph = self.waveform_graph
         self.ps_controller.sound_changed = self.wave_sound.sound_changed
+        self.ps_controller.update_waveform_graph = self.update_waveform_graph
 
         choose_wave_menu_items = [
             {
@@ -139,22 +135,11 @@ class RootWave(MDBoxLayout):
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points(), update_noise)
         self.update_waveform_graph()
 
-    def update_loaded_sound_graph(self) -> None:
-        x_min = self.waveform_graph.xmin
-        x_max = self.waveform_graph.xmax
-        sample_rate, data = self.loaded_file
-        start_index = int(self.sample_rate * x_min)
-        finish_index = int(self.sample_rate * x_max)
-        self.load_sound_plot.points = list(
-            zip(np.linspace(x_min, x_max, finish_index - start_index), data[start_index:finish_index]))
-
     def update_waveform_graph(self) -> None:
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
         self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
-        if self.loaded_file and self.is_showing:
-            self.update_loaded_sound_graph()
 
     def press_button_play(self, _: typing.Any) -> None:
         if self.wave_sound.is_playing():
@@ -173,27 +158,6 @@ class RootWave(MDBoxLayout):
         else:  # Was already running so disconnected
             self.connect_button.text = '  Connect MIDI Piano  '
             self.connect_button.md_bg_color = style.blue_violet
-
-    def press_button_show_loaded_sound(self, _: typing.Any) -> None:
-        if self.loaded_file:
-            if self.is_showing:
-                # Hide the graphs
-                self.is_showing = False
-                self.show_loaded.icon = "cellphone-sound"
-                self.show_loaded.text = "Show Loaded Sound"
-                self.load_sound_plot.points = []
-                self.old_sound_power_plot_points = self.ps_controller.sound_power_plot.points
-                self.ps_controller.sound_power_plot.points = []
-                self.show_loaded.md_bg_color = style.blue_violet
-            else:
-                self.is_showing = True
-                self.show_loaded.icon = "file-hidden"
-                self.show_loaded.text = "Hide Loaded Sound"
-                _, data = self.loaded_file
-                self.update_loaded_sound_graph()
-
-                self.ps_controller.sound_power_plot.points = self.old_sound_power_plot_points
-                self.show_loaded.md_bg_color = style.dark_sky_blue
 
     def press_button_back(self, _: typing.Any) -> None:
         self.wave_sound.sound_changed()
@@ -245,7 +209,7 @@ class RootWave(MDBoxLayout):
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(
-            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave))
+            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave, waves[x] == sawtooth_wave))
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 

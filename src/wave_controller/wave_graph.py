@@ -53,10 +53,10 @@ class WaveformGraph(Graph):
         if self.collide_plot(a_x, a_y):
             if touch.is_mouse_scrolling:
                 if touch.button == SCROLL_DOWN:
-                    self._zoom_scale = min(self._zoom_scale + (1/self._period) / 100, (1/self._period) / 2)
+                    self._zoom_scale = min(self._zoom_scale + (1 / self._period) / 100, (1 / self._period) / 2)
                     self.__update_zoom((a_x, a_y), True)
                 elif touch.button == SCROLL_UP:
-                    self._zoom_scale = max(self._zoom_scale - (1/self._period) / 100, self.__min_zoom)
+                    self._zoom_scale = max(self._zoom_scale - (1 / self._period) / 100, self.__min_zoom)
                     self.__update_zoom((a_x, a_y), False)
                 elif touch.button == SCROLL_LEFT:
                     self.__update_panning(False)
@@ -269,14 +269,17 @@ class WaveformGraph(Graph):
                 point[1].pos = (point[1].pos[0] * scale, point[1].pos[1])
             self.__update_graph_points()
 
-
-
-    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool) -> List[Tuple[float, float]]:
+    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool, sawtooth: bool) -> List[Tuple[float, float]]:
         points = []
         spaced = np.linspace(0, self._period, amount)
         for i in spaced:
-            if i != spaced[amount // 2] or not square:
-                points.append((float(i), preset_func(i, self._period)))
+            points.append((float(i), preset_func(i, self._period)))
+        if square or sawtooth:
+            points.pop(0)
+            points.pop(-1)
+        if square:
+            points.pop(amount // 2)
+            points.pop(amount // 2 - 1)
         return self.get_preset_points_from_y(points)
 
     def get_preset_points_from_y(self, points: List[Tuple[float, float]]) -> List[Tuple[float, float]]:

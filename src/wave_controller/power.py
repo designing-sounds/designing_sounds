@@ -138,24 +138,32 @@ class PowerSpectrumController(BoxLayout):
 
     def power_spectrum_from_freqs(self, freqs: [float]) -> None:
         old_frequency = float(self.mean.value)
-        # values = [2, 0.06, 0.01, 0.16]
         values = [self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value,
                   self.squared_lengthscale.value, int(self.num_harmonics.value)]
-        for i in range(self.num_power_spectrums, 0, -1):
-            self.double_tap = True
-            self.remove_power_spectrum(None)
-        self.double_tap = False
-        self.sound_model.clear_all_power_spectrums()
         freqs = sorted(freqs[:self.max_harmonics_per_spectrum], reverse=True)
-        for i, freq in enumerate(freqs):
-            if i != 0:
-                self.press_button_add(None)
-            self.harmonic_list[i] = [freq] + values
-            self.sound_model.update_power_spectrum(i, freq, *values)
-            self.update_sliders()
+
+        for button in self.power_buttons:
+            self.ids.power_spectrum_buttons.remove_widget(button)
+        self.power_buttons.clear()
+
+        for i in range(len(freqs)):
+            button = self.create_button(i + 1)
+            self.power_buttons.append(button)
+            self.ids.power_spectrum_buttons.add_widget(button)
+            self.harmonic_list[i] = [freqs[i]] + values
+            self.current_power_spectrum_index = i
+            self.power_buttons[i].md_bg_color = self.unselected_button_color
+
+        self.num_power_spectrums = len(freqs)
+        self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
+        self.update_sliders()
+        self.waveform_graph.set_period(self.mean.value)
         self.waveform_graph.fit_to_new_frequency(old_frequency, freqs[-1])
-        self.update_power_spectrum()
+
         self.sound_changed()
+        self.sound_model.update_all_power_spectrums(freqs, *values, self.waveform_graph.get_selected_points())
+        self.update_waveform_graph()
+        self.update_power_spectrum_graph()
 
     def update_power_spectrum_graph_axis(self, ymax):
         self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)

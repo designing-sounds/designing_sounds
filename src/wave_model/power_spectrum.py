@@ -1,6 +1,5 @@
 import numpy as np
 
-from src.wave_model.priors import Prior
 from src.wave_model.priors import MultPrior
 from src.wave_model.priors import PeriodicPrior
 

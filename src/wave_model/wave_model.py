@@ -23,7 +23,7 @@ class SoundModel:
         self.inv = None
         self.max_harmonics_per_spectrum = max_harmonics_per_spectrum
         self.__power_spectrum = PowerSpectrum(self.max_harmonics_per_spectrum, max_power_spectrums)
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.x_train = None
         self.y_train = None
         self.noise = 0
@@ -89,15 +89,25 @@ class SoundModel:
                     pass
             self.update_train_prior()
 
+    def update_all_power_spectrums(self, freqs, periodic_sd, periodic_lengthscale, squared_sd, squared_lengthscale,
+                                   nums_harmonic, points):
+        with self.lock:
+            self.__power_spectrum.clear_all()
+            for i, freq in enumerate(freqs):
+                self.update_power_spectrum(i, freq, periodic_sd, periodic_lengthscale, squared_sd,
+                                           squared_lengthscale, nums_harmonic)
+            self.interpolate_points(points)
+
     def update_power_spectrum(self, power_spectrum_index: int, mean: int, periodic_sd: float,
                               periodic_lengthscale: float, squared_sd: float, squared_lengthscale: float,
-                              curr_harmonic_index: int, ) -> None:
+                              curr_harmonic_index: int) -> None:
         with self.lock:
             self.__power_spectrum.update_harmonic(power_spectrum_index, mean, periodic_sd,
                                                   periodic_lengthscale, squared_sd, squared_lengthscale,
                                                   curr_harmonic_index)
-            self.__power_spectrum.prior.update(self.__power_spectrum.get_freqs(), self.__power_spectrum.get_periodic_lengthscales(),
-                              self.__power_spectrum.get_periodic_sds())
+            self.__power_spectrum.prior.update(self.__power_spectrum.get_freqs(),
+                                               self.__power_spectrum.get_periodic_lengthscales(),
+                                               self.__power_spectrum.get_periodic_sds())
             self.update_train_prior()
 
     def clear_all_power_spectrums(self) -> None:

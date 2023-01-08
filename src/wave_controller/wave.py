@@ -84,6 +84,7 @@ class RootWave(MDBoxLayout):
         self.ps_controller.update_waveform = self.update_waveform
         self.ps_controller.waveform_graph = self.waveform_graph
         self.ps_controller.sound_changed = self.wave_sound.sound_changed
+        self.ps_controller.update_waveform_graph = self.update_waveform_graph
 
         choose_wave_menu_items = [
             {

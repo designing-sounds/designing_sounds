@@ -156,11 +156,11 @@ class PowerSpectrumController(BoxLayout):
         self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
         self.update_sliders()
         self.waveform_graph.set_period(self.mean.value)
+        self.waveform_graph.fit_to_new_frequency(old_frequency, freqs[-1])
 
         self.sound_changed()
-        self.waveform_graph.fit_to_new_frequency(old_frequency, freqs[-1])
-        self.sound_model.update_all_power_spectrums(freqs, *values)
-        self.update_waveform()
+        self.sound_model.update_all_power_spectrums(freqs, *values, self.waveform_graph.get_selected_points())
+        self.update_waveform_graph()
         self.update_power_spectrum_graph()
 
 

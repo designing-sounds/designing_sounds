@@ -187,6 +187,7 @@ class PowerSpectrumController(BoxLayout):
                                                                  self.num_harmonics.value]
         self.current_power_spectrum_index = harmonic_index
         self.update_sliders()
+        self.waveform_graph.set_period(self.mean.value)
 
     def update_sliders(self) -> None:
         self.change_power_spectrum = False

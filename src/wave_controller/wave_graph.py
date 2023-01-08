@@ -111,7 +111,7 @@ class WaveformGraph(Graph):
 
         return super().on_touch_up(touch)
 
-    def get_point_from_ellipse(self, ellipse: Ellipse) -> Tuple[List[typing.Any], int]:
+    def get_point_from_ellipse(self, ellipse: Ellipse) -> Tuple[List[typing.Union[Tuple[float, float], Ellipse]], int]:
         for i, point in enumerate(self.__selected_points):
             if ellipse == point[1]:
                 return point, i

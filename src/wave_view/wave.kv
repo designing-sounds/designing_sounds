@@ -43,20 +43,17 @@
     back: back_button
     eraser_mode: eraser_mode
     preset: preset_mode
-
-    show_loaded: show_loaded
-
-
-
+    connect_button: connect_button
 
     BoxLayout:
         size_hint: 1, 1
         orientation: 'vertical'
         pos: self.pos
-        padding: 20
+        padding: [20,20,20,0]
 
         BoxLayout:
             size_hint: 1, 0.1
+            pos_hint: {"center_x": .443, "center_y": .5}
 
             MDLabel:
                 text: 'Waveform'
@@ -69,19 +66,18 @@
 
             BoxLayout:
                 id: modulation
-                size_hint: 1, 1
+                size_hint: 0.85, 1
 
             BoxLayout:
-                size_hint: 0.2, 1
+                size_hint: 0.15, 1
                 orientation: 'vertical'
 
                 BoxLayout:
                     size_hint: 1, 0.5
-                    orientation: 'vertical'
 
                 BoxLayout:
                     orientation: 'vertical'
-                    size_hint: 1, 1
+                    size_hint: 1, 2
 
                     BoxLayout:
                         size_hint: 1, 0.2
@@ -134,10 +130,8 @@
                     text: 'Resample'
 
                 BoxLayout:
-                    size_hint: 1, 1
+                    size_hint: 1, 0.6
                     orientation: 'vertical'
-
-
 
                 StandardRectangleFlatIconButton:
                     icon: 'menu-down'
@@ -146,31 +140,26 @@
                     on_release: root.open_choose_wave_menu()
 
                 BoxLayout:
-                    size_hint: 1, 1
+                    size_hint: 1, 0.6
                     orientation: 'vertical'
 
 
                 StandardRectangleFlatIconButton:
-                    text: "Load Sound"
-                    icon: "folder"
-                    md_bg_color: style.blue_violet
-                    on_release: root.file_manager_open()
+                    id: connect_button
+                    icon: 'piano'
+                    text: 'Connect MIDI Piano'
 
                 BoxLayout:
                     size_hint: 1, 1
                     orientation: 'vertical'
 
-                StandardRectangleFlatIconButton:
-                    md_bg_color: style.dark_sky_blue
-                    id: show_loaded
-                    icon: 'file-hidden'
-                    text: 'Hide Loaded Sound'
-                    disabled: True
+
+
 
         PowerSpectrumController:
             size_hint: 1, 0.8
             orientation: 'horizontal'
-            padding: 20
+            padding: [20, 0, 20, 20]
             id: power_spectrum_controller
 
         BoxLayout:

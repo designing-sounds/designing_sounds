@@ -1,15 +1,14 @@
 import numpy as np
 
-from src.wave_model.priors import Prior
 from src.wave_model.priors import MultPrior
 from src.wave_model.priors import PeriodicPrior
 
 
 class PowerSpectrum:
-    def __init__(self, max_harmonics_per_spectrum: int):
+    def __init__(self, max_harmonics_per_spectrum: int, max_power_spectrums: int):
         self.max_harmonics_per_spectrum = max_harmonics_per_spectrum
         self.stats = np.empty((0, 5), dtype=np.float32)
-        self.num_harmonics_per_spectrum = np.zeros(self.max_harmonics_per_spectrum, dtype=int)
+        self.num_harmonics_per_spectrum = np.zeros(max_power_spectrums, dtype=int)
         approx_num = 50
         self.priors = [MultPrior(approx_num), PeriodicPrior(approx_num)]
         self.prior = self.priors[0]

@@ -22,6 +22,7 @@ class PowerSpectrumController(BoxLayout):
     yaxis_extra_padding = 1.1
     yaxis_extra_sig_figs = 2
     double_tap = False
+    is_periodic_kernel = False
 
     def __init__(self, **kwargs):
         super(PowerSpectrumController, self).__init__(**kwargs)
@@ -31,6 +32,7 @@ class PowerSpectrumController(BoxLayout):
             # Button Bindings
             self.add.bind(on_press=self.press_button_add)
             self.all_power_spectrums.bind(on_press=self.press_button_all_power_spectrum)
+
             self.power_spectrum_sliders = [self.periodic_sd, self.mean, self.periodic_lengthscale, self.num_harmonics,
                                            self.squared_sd, self.squared_lengthscale]
             self.num_harmonics.max = self.max_harmonics_per_spectrum
@@ -143,6 +145,7 @@ class PowerSpectrumController(BoxLayout):
     def set_periodic_prior(self) -> None:
         self.squared_sd.disabled = True
         self.squared_lengthscale.disabled = True
+        self.is_periodic_kernel = True
         self.sound_model.change_kernel(1)
         self.update_power_spectrum()
         self.update_waveform()
@@ -150,6 +153,7 @@ class PowerSpectrumController(BoxLayout):
     def set_mult_prior(self) -> None:
         self.squared_sd.disabled = False
         self.squared_lengthscale.disabled = False
+        self.is_periodic_kernel = False
         self.sound_model.change_kernel(0)
         self.update_waveform()
 
@@ -160,25 +164,37 @@ class PowerSpectrumController(BoxLayout):
                                                    self.squared_sd.value, self.squared_lengthscale.value,
                                                    int(self.num_harmonics.value))
             self.update_power_spectrum_graph()
-            self.update_waveform()
             self.waveform_graph.set_period(self.mean.value)
+            self.update_waveform()
 
     def power_spectrum_from_freqs(self, freqs: [float]) -> None:
-        for i in range(self.num_power_spectrums, 0, -1):
-            self.double_tap = True
-            self.remove_power_spectrum(None)
-        self.double_tap = False
-        self.sound_model.clear_all_power_spectrums()
-        for i in range(0, min(self.max_harmonics_per_spectrum, len(freqs))):
-            if i != 0:
-                self.press_button_add(None)
-            values = [min(freqs[i], self.mean.max), 2, 0.6, 0.01, 0.16, 1]
-            values[0] = min(freqs[i], self.mean.max)
-            self.harmonic_list[i] = values
-            self.sound_model.update_power_spectrum(i, *values)
-            self.update_sliders()
-        self.update_waveform()
-        self.update_power_spectrum()
+        old_frequency = float(self.mean.value)
+        values = [self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value,
+                  self.squared_lengthscale.value, int(self.num_harmonics.value)]
+        freqs = sorted(freqs[:self.max_harmonics_per_spectrum], reverse=True)
+
+        for button in self.power_buttons:
+            self.ids.power_spectrum_buttons.remove_widget(button)
+        self.power_buttons.clear()
+
+        for i in range(len(freqs)):
+            button = self.create_button(i + 1)
+            self.power_buttons.append(button)
+            self.ids.power_spectrum_buttons.add_widget(button)
+            self.harmonic_list[i] = [freqs[i]] + values
+            self.current_power_spectrum_index = i
+            self.power_buttons[i].md_bg_color = self.unselected_button_color
+
+        self.num_power_spectrums = len(freqs)
+        self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
+        self.update_sliders()
+        self.waveform_graph.set_period(self.mean.value)
+        self.waveform_graph.fit_to_new_frequency(old_frequency, freqs[-1])
+
+        self.sound_changed()
+        self.sound_model.update_all_power_spectrums(freqs, *values, self.waveform_graph.get_selected_points())
+        self.update_waveform_graph()
+        self.update_power_spectrum_graph()
 
     def update_power_spectrum_graph_axis(self, ymax):
         self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)
@@ -202,12 +218,19 @@ class PowerSpectrumController(BoxLayout):
                                                                  self.num_harmonics.value]
         self.current_power_spectrum_index = harmonic_index
         self.update_sliders()
+        self.waveform_graph.set_period(self.mean.value)
 
     def update_sliders(self) -> None:
         self.change_power_spectrum = False
         harmonic = self.harmonic_list[self.current_power_spectrum_index]
         self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value = harmonic[:-2]
         self.squared_lengthscale.value, self.num_harmonics.value = harmonic[-2:]
+        if self.is_periodic_kernel:
+            self.squared_sd.disabled = True
+            self.squared_lengthscale.disabled = True
+        else:
+            self.squared_sd.disabled = False
+            self.squared_lengthscale.disabled = False
         self.change_power_spectrum = True
 
     def set_double_tap(self, _button, touch) -> None:

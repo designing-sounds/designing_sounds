@@ -28,7 +28,7 @@ class Prior:
         for i, freq in enumerate(freqs):
             x = x_1[:, None] - x_2
             temp[i] = self.kernel(x, freq, sds[i], lengthscales[i], sds_squared[i], lengthscales_squared[i])
-        return np.exp(-0.5 * temp)
+        return temp
 
     def kernel(self, _, __, ___, ____, _____, ______):
         return 0
@@ -81,7 +81,7 @@ class PeriodicPrior(Prior):
             period = 1 / freq
             x = self.to_period(x_1, period)[:, None] - self.to_period(x_2, period)
             temp[i] = self.kernel(x, freq, sds[i], lengthscales[i], sds_squared[i], lengthscales_squared[i])
-        return np.exp(-0.5 * temp)
+        return temp
 
     def phi(self, x, freqs, _, __, ___, ____):
         vals = x[:, None] @ self.temp
@@ -91,7 +91,7 @@ class PeriodicPrior(Prior):
         return residue * self.calc
 
     def kernel(self, x, freq, sd, lengthscale, _, __):
-        return squared_exponential(2 * np.sin(np.pi * x * freq), sd, lengthscale)
+        return squared_exponential(np.sin(np.pi * x * freq), sd, lengthscale)
 
 
 class MultPrior(Prior):

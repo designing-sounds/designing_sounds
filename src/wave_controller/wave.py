@@ -9,13 +9,11 @@ from kivy.properties import (StringProperty, ObjectProperty)
 
 from kivy_garden.graph import LinePlot
 from kivymd.app import MDApp
-from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.list import OneLineAvatarIconListItem, IRightBodyTouch
 from kivymd.uix.menu import MDDropdownMenu
-from scipy.io import wavfile
 
+from src.wave_controller.instruments import PianoMIDI
 from src.wave_controller.save_notes import SaveNotes, State
 from src.wave_controller.instruments import PianoMIDI
 from src.wave_controller.wave_graph import WaveformGraph
@@ -50,14 +48,12 @@ class RootWave(MDBoxLayout):
     graph_sample_rate = 8000
     waveform_duration = 1
     chunk_duration = 0.1
+    max_power_spectrums = 5
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
-        self.is_showing = False
-        self.file_manager = None
-        self.loaded_file = None
 
-        self.sound_model = SoundModel(self.ps_controller.max_harmonics_per_spectrum)
+        self.sound_model = SoundModel(self.ps_controller.max_harmonics_per_spectrum, self.max_power_spectrums)
 
         self.wave_sound = WaveSound(self.sample_rate, self.chunk_duration, self.sound_model)
 
@@ -67,11 +63,10 @@ class RootWave(MDBoxLayout):
         self.eraser_mode.bind(on_press=self.press_button_eraser)
         self.clear.bind(on_press=self.press_button_clear)
         self.resample.bind(on_press=self.press_button_resample)
-        self.show_loaded.bind(on_press=self.press_button_show_loaded_sound)
-        self.ps_controller.connect_button.bind(on_press=self.press_button_connect)
-        self.ps_controller.save_button.bind(on_press=self.press_save_button)
-        self.ps_controller.clear_notes_button.bind(on_press=self.press_clear_notes_button)
-        self.ps_controller.load_button.bind(on_press=self.press_load_button)
+        self.save_button.bind(on_press=self.press_save_button)
+        self.clear_notes_button.bind(on_press=self.press_clear_notes_button)
+        self.load_button.bind(on_press=self.press_load_button)
+        self.connect_button.bind(on_press=self.press_button_connect)
 
         # Wave Graphs
         border_color = [0, 0, 0, 1]
@@ -88,14 +83,15 @@ class RootWave(MDBoxLayout):
         plot_color = style.cyber_grape
 
         self.wave_plot = LinePlot(color=plot_color, line_width=1)
-        self.load_sound_plot = LinePlot(color=style.red, line_width=1)
 
         self.waveform_graph.add_plot(self.wave_plot)
-        self.waveform_graph.add_plot(self.load_sound_plot)
 
         self.ps_controller.sound_model = self.sound_model
+        self.ps_controller.max_power_spectrums = self.max_power_spectrums
         self.ps_controller.update_waveform = self.update_waveform
         self.ps_controller.waveform_graph = self.waveform_graph
+        self.ps_controller.sound_changed = self.wave_sound.sound_changed
+        self.ps_controller.update_waveform_graph = self.update_waveform_graph
         self.save_notes = SaveNotes()
         self.piano = PianoMIDI()
 
@@ -144,24 +140,12 @@ class RootWave(MDBoxLayout):
     def update_waveform(self, update_noise=False) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points(), update_noise)
         self.update_waveform_graph()
-        self.wave_sound.sound_changed()
-
-    def update_loaded_sound_graph(self) -> None:
-        x_min = self.waveform_graph.xmin
-        x_max = self.waveform_graph.xmax
-        sample_rate, data = self.loaded_file
-        start_index = int(self.sample_rate * x_min)
-        finish_index = int(self.sample_rate * x_max)
-        self.load_sound_plot.points = list(
-            zip(np.linspace(x_min, x_max, finish_index - start_index), data[start_index:finish_index]))
 
     def update_waveform_graph(self) -> None:
         x_min = self.waveform_graph.xmin
         x_max = self.waveform_graph.xmax
         points = self.sound_model.model_sound(self.graph_sample_rate / (x_max - x_min), x_max - x_min, x_min)
         self.wave_plot.points = list(zip(np.linspace(x_min, x_max, points.size), points))
-        if self.loaded_file and self.is_showing:
-            self.update_loaded_sound_graph()
 
     def press_button_play(self, _: typing.Any) -> None:
         if self.wave_sound.is_playing():
@@ -234,27 +218,6 @@ class RootWave(MDBoxLayout):
         self.ps_controller.load_state(state)
         self.waveform_graph.get_preset_points_from_y(state.points)
 
-    def press_button_show_loaded_sound(self, _: typing.Any) -> None:
-        if self.loaded_file:
-            if self.is_showing:
-                # Hide the graphs
-                self.is_showing = False
-                self.show_loaded.icon = "cellphone-sound"
-                self.show_loaded.text = "Show Loaded Sound"
-                self.load_sound_plot.points = []
-                self.old_sound_power_plot_points = self.ps_controller.sound_power_plot.points
-                self.ps_controller.sound_power_plot.points = []
-                self.show_loaded.md_bg_color = style.blue_violet
-            else:
-                self.is_showing = True
-                self.show_loaded.icon = "file-hidden"
-                self.show_loaded.text = "Hide Loaded Sound"
-                _, data = self.loaded_file
-                self.update_loaded_sound_graph()
-
-                self.ps_controller.sound_power_plot.points = self.old_sound_power_plot_points
-                self.show_loaded.md_bg_color = style.dark_sky_blue
-
     def press_button_back(self, _: typing.Any) -> None:
         self.wave_sound.sound_changed()
 
@@ -305,7 +268,7 @@ class RootWave(MDBoxLayout):
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(
-            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave))
+            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave, waves[x] == sawtooth_wave))
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 
@@ -317,38 +280,8 @@ class RootWave(MDBoxLayout):
     def open_choose_wave_menu(self) -> None:
         self.choose_wave_menu.open()
 
-    def file_manager_open(self) -> None:
-        if not self.file_manager:
-            self.file_manager = MDFileManager(
-                exit_manager=self.exit_manager, select_path=self.select_path)
-        self.file_manager.show('/')  # output manager to the screen
 
-    def select_path(self, path: str) -> None:
-        try:
-            self.loaded_file = wavfile.read(path)
-            data = np.sum(self.loaded_file[1], axis=1)[::self.loaded_file[0] // self.sample_rate]
-            data = data / max(data.max(), data.min(), key=abs)
-            self.is_showing = True
-            self.show_loaded.disabled = False
-            self.loaded_file = (self.loaded_file[0], data)
-            self.ps_controller.sound_power_plot.points = self.sound_model.get_power_spectrum(
-                data[:self.ps_controller.power_spectrum_graph_samples])
-            # step = 25
-            # y = data[:self.sample_rate:step]
-            # points = [(float(i) * step / self.sample_rate, y[i]) for i in range(len(y))]
-            # self.sound_model.interpolate_points(self.waveform_graph.get_preset_points_from_y(points))
-            self.wave_sound.sound_changed()
-            self.ps_controller.update_power_spectrum()
-
-            self.update_loaded_sound_graph()
-            self.exit_manager()
-        except ValueError:
-            toast("Not a valid file")
-
-    def exit_manager(self, *_: typing.Any) -> None:
-        self.file_manager.close()
-
-
-class WaveApp(MDApp):
+class SoundsApp(MDApp):
     def build(self) -> RootWave:
+        self.icon = 'media/icon.png'
         return RootWave()

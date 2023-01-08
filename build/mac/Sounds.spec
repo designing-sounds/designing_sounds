@@ -22,7 +22,7 @@ a = Analysis(
 )
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-a.datas +=[('src/wave_view/wave.kv', '../../src/wave_view/wave.kv', 'DATA'), ('src/wave_view/power.kv', '../../src/wave_view/power.kv', 'DATA'), ('media/black.png', '../../media/black.png', 'media')]
+a.datas +=[('src/wave_view/wave.kv', '../../src/wave_view/wave.kv', 'DATA'), ('src/wave_view/power.kv', '../../src/wave_view/power.kv', 'DATA'), ('media/black.png', '../../media/black.png', 'media'), ('src/wave_view/power.kv', '../../src/wave_view/power.kv', 'DATA'), ('media/icon.png', '../../media/icon.png', 'media')]
 
 exe = EXE(
     pyz,
@@ -54,6 +54,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='Sounds.app',
-    icon=None,
+    icon='../../media/icon.icns',
     bundle_identifier='com.tommywoodley.sounds',
 )

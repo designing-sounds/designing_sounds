@@ -19,6 +19,7 @@
     halign: 'center'
     theme_text_color: 'Primary'
 
+
 <PowerSpectrumController>:
     add: add_button
     all_power_spectrums: all_power_spectrum_button
@@ -29,10 +30,6 @@
     periodic_lengthscale: periodic_lengthscale
     squared_lengthscale: squared_lengthscale
     num_harmonics: num_harmonics
-    connect_button: connect_button
-    save_button: save_button
-    load_button: load_button
-    clear_notes_button: clear_notes_button
     kernel: kernel_mode
 
     BoxLayout:
@@ -40,14 +37,11 @@
         orientation: 'horizontal'
 
         BoxLayout:
-            size_hint: 0.05, 1
-
-        BoxLayout:
-            size_hint: 0.7, 1
+            size_hint: 0.6, 1
             orientation: 'vertical'
 
             BoxLayout:
-                size_hint: 1, None
+                size_hint: 1, 0.1
 
                 StandardLabel:
                     text: 'Power Spectrum'
@@ -56,41 +50,24 @@
             BoxLayout:
                 id: power_spectrum
                 size_hint: 1, 0.9
-                padding: [0, 20, 20, 20]
+                padding: [0, 0, 20, 20]
+
 
             BoxLayout:
                 spacing: 10
                 id: power_spectrum_buttons
-                size_hint: 1, 0.1
+                size_hint: 0.9, 0.1
+                pos_hint: {"center_x": .5, "center_y": .5}
                 orientation: 'horizontal'
 
 
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint: 0.4, 1
-            border: 1
+            size_hint: 0.5, 1
 
             BoxLayout:
-                size_hint: 1, 0.05
-                orientation: 'vertical'
-
-            BoxLayout:
-                size_hint: 1, 0.2
-                orientation: 'vertical'
-
-                StandardLabel:
-                    text: 'Interpolation Variance: ' + str(round(float(variance.value), 5))
-                StandardSlider:
-                    id: variance
-                    value: 0
-                    min: 0
-                    max: 1
-                    step: 0.00001
-                    on_value: root.update_variance()
-
-            BoxLayout:
-                size_hint: 1, 1
+                size_hint: 1, 4
                 orientation: 'horizontal'
 
                 BoxLayout:
@@ -99,9 +76,11 @@
 
                     StandardLabel:
                         text: 'Periodic'
+                        font_style: 'H6'
+                        size_hint: 1, 1
 
                     BoxLayout:
-                        size_hint: 1, 1
+                        size_hint: 1, 1.5
                         orientation: 'vertical'
 
                         StandardLabel:
@@ -114,20 +93,9 @@
                             max: 10
                             step: 0.01
                             on_value: root.update_power_spectrum()
+
                     BoxLayout:
-                        size_hint: 1, 1
-                        orientation: 'vertical'
-                        StandardLabel:
-                            text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
-                        StandardSlider:
-                            id: mean
-                            min: 10
-                            max: 2000
-                            value: 500
-                            step: 0.1
-                            on_value: root.update_power_spectrum()
-                    BoxLayout:
-                        size_hint: 1, 1
+                        size_hint: 1, 1.5
                         orientation: 'vertical'
                         StandardLabel:
                             text: 'Lengthscale: ' + str(round(float(periodic_lengthscale.value), 2))
@@ -141,14 +109,17 @@
                             on_value: root.update_power_spectrum()
 
                 BoxLayout:
-                    size_hint: 0.5,1
+                    size_hint: 0.5, 1
                     orientation: 'vertical'
 
                     StandardLabel:
                         text: 'Squared Exponential'
+                        font_style: 'H6'
+                        size_hint: 1, 1
+
 
                     BoxLayout:
-                        size_hint: 1, 1
+                        size_hint: 1, 1.5
                         orientation: 'vertical'
 
                         StandardLabel:
@@ -160,10 +131,9 @@
                             max: 10
                             step: 0.01
                             on_value: root.update_power_spectrum()
+
                     BoxLayout:
-                        size_hint: 1, 1
-                    BoxLayout:
-                        size_hint: 1, 1
+                        size_hint: 1, 1.5
                         orientation: 'vertical'
                         StandardLabel:
                             text: 'Lengthscale: ' + str(round(float(squared_lengthscale.value), 2))
@@ -176,9 +146,35 @@
                             step: 0.01
                             on_value: root.update_power_spectrum()
 
+            BoxLayout:
+                size_hint: 1, 1.5
+                orientation: 'vertical'
+                StandardLabel:
+                    text: 'Frequency: ' + str(round(float(mean.value), 1)) + 'Hz'
+                StandardSlider:
+                    id: mean
+                    min: 1
+                    max: 2000
+                    value: 500
+                    step: 0.1
+                    on_value: root.update_power_spectrum()
 
             BoxLayout:
-                size_hint: 1, 0.2
+                size_hint: 1, 1.5
+                orientation: 'vertical'
+
+                StandardLabel:
+                    text: 'Interpolation Variance: ' + str(round(float(variance.value), 5))
+                StandardSlider:
+                    id: variance
+                    value: 0
+                    min: 0
+                    max: 1
+                    step: 0.00001
+                    on_value: root.update_variance()
+
+            BoxLayout:
+                size_hint: 1, 1.5
                 orientation: 'vertical'
                 StandardLabel:
                     text: 'Num harmonics: ' + str(int(num_harmonics.value))
@@ -192,11 +188,12 @@
                     on_value: root.update_power_spectrum()
 
             BoxLayout:
+                padding: [0,20,0,0]
                 orientation: 'horizontal'
-                size_hint: 1, 0.2
+                size_hint: 1, 1.5
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
                 StandardPowerRectangleFlatIconButton:
                     id: add_button
@@ -204,7 +201,7 @@
                     text: 'Add Power Spectrum'
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
                 StandardPowerRectangleFlatIconButton:
                     id: all_power_spectrum_button
@@ -212,50 +209,13 @@
                     text: 'Display All'
 
                 BoxLayout:
-                    size_hint: 0.5, 0.2
+                    size_hint: 0.1, 0.1
 
-        BoxLayout:
-            size_hint: 0.35, 1
-            orientation: 'vertical'
+                StandardPowerRectangleFlatIconButton:
+                    icon: 'menu-down'
+                    id: kernel_mode
+                    text: "Choose Kernel"
+                    on_release: root.open_choose_kernel_menu()
 
-            BoxLayout:
-                size_hint: 0.5, 0.2
-
-            StandardPowerRectangleFlatIconButton:
-                id: connect_button
-                icon: 'piano'
-                text: 'MIDI Piano Power Spectrum'
-
-            BoxLayout:
-                size_hint: 0.5, 0.2
-
-            StandardPowerRectangleFlatIconButton:
-                id: save_button
-                icon: 'music'
-                text: 'Save notes'
-
-            BoxLayout:
-                size_hint: 0.5, 0.2
-
-            StandardPowerRectangleFlatIconButton:
-                id: load_button
-                icon: 'folder-open'
-                text: 'Load notes'
-
-            BoxLayout:
-                size_hint: 0.5, 0.2
-
-            StandardPowerRectangleFlatIconButton:
-                id: clear_notes_button
-                icon: 'vector-polyline-remove'
-                text: 'Clear notes'
-
-            BoxLayout:
-                size_hint: 0.5, 0.5
-
-            StandardPowerRectangleFlatIconButton:
-                icon: 'menu-down'
-                id: kernel_mode
-                text: "Choose Kernel"
-                on_release: root.open_choose_kernel_menu()
-
+                BoxLayout:
+                    size_hint: 0.1, 0.1

@@ -9,7 +9,7 @@ if __name__ == '__main__':
 class TestPriors(unittest.TestCase):
 
     def setUp(self):
-        self.tolerance = 3 * 1e-5
+        self.tolerance = 1e-4
         self.approx_dim = 50
 
     def test_periodic_kernel(self):

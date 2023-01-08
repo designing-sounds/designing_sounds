@@ -18,6 +18,7 @@ class PowerSpectrumController(BoxLayout):
     yaxis_extra_padding = 1.1
     yaxis_extra_sig_figs = 2
     double_tap = False
+    is_periodic_kernel = False
 
     def __init__(self, **kwargs):
         super(PowerSpectrumController, self).__init__(**kwargs)
@@ -113,6 +114,7 @@ class PowerSpectrumController(BoxLayout):
     def set_periodic_prior(self) -> None:
         self.squared_sd.disabled = True
         self.squared_lengthscale.disabled = True
+        self.is_periodic_kernel = True
         self.sound_model.change_kernel(1)
         self.update_power_spectrum()
         self.update_waveform()
@@ -120,6 +122,7 @@ class PowerSpectrumController(BoxLayout):
     def set_mult_prior(self) -> None:
         self.squared_sd.disabled = False
         self.squared_lengthscale.disabled = False
+        self.is_periodic_kernel = False
         self.sound_model.change_kernel(0)
         self.update_waveform()
 
@@ -182,6 +185,12 @@ class PowerSpectrumController(BoxLayout):
         harmonic = self.harmonic_list[self.current_power_spectrum_index]
         self.mean.value, self.periodic_sd.value, self.periodic_lengthscale.value, self.squared_sd.value = harmonic[:-2]
         self.squared_lengthscale.value, self.num_harmonics.value = harmonic[-2:]
+        if self.is_periodic_kernel:
+            self.squared_sd.disabled = True
+            self.squared_lengthscale.disabled = True
+        else:
+            self.squared_sd.disabled = False
+            self.squared_lengthscale.disabled = False
         self.change_power_spectrum = True
 
     def set_double_tap(self, _button, touch) -> None:

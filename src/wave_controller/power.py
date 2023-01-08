@@ -152,6 +152,7 @@ class PowerSpectrumController(BoxLayout):
             self.current_power_spectrum_index = i
             self.power_buttons[i].md_bg_color = self.unselected_button_color
 
+        self.num_power_spectrums = len(freqs)
         self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
         self.update_sliders()
         self.waveform_graph.set_period(self.mean.value)

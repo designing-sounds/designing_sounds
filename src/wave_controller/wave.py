@@ -46,11 +46,12 @@ class RootWave(MDBoxLayout):
     graph_sample_rate = 8000
     waveform_duration = 1
     chunk_duration = 0.1
+    max_power_spectrums = 5
 
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
 
-        self.sound_model = SoundModel(self.ps_controller.max_harmonics_per_spectrum)
+        self.sound_model = SoundModel(self.ps_controller.max_harmonics_per_spectrum, self.max_power_spectrums)
 
         self.wave_sound = WaveSound(self.sample_rate, self.chunk_duration, self.sound_model)
 
@@ -81,6 +82,7 @@ class RootWave(MDBoxLayout):
         self.waveform_graph.add_plot(self.wave_plot)
 
         self.ps_controller.sound_model = self.sound_model
+        self.ps_controller.max_power_spectrums = self.max_power_spectrums
         self.ps_controller.update_waveform = self.update_waveform
         self.ps_controller.waveform_graph = self.waveform_graph
         self.ps_controller.sound_changed = self.wave_sound.sound_changed
@@ -222,4 +224,5 @@ class RootWave(MDBoxLayout):
 
 class SoundsApp(MDApp):
     def build(self) -> RootWave:
+        self.icon = 'media/icon.png'
         return RootWave()

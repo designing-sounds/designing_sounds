@@ -12,7 +12,6 @@ from math import floor, log
 
 class PowerSpectrumController(BoxLayout):
     max_harmonics_per_spectrum = 5
-    max_power_spectrums = 5
     num_power_spectrums = 0
     current_power_spectrum_index = 0
     max_samples_per_harmonic = 500
@@ -162,8 +161,6 @@ class PowerSpectrumController(BoxLayout):
         self.sound_model.update_all_power_spectrums(freqs, *values, self.waveform_graph.get_selected_points())
         self.update_waveform_graph()
         self.update_power_spectrum_graph()
-
-
 
     def update_power_spectrum_graph_axis(self, ymax):
         self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)

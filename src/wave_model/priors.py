@@ -91,7 +91,7 @@ class PeriodicPrior(Prior):
         return residue * self.calc
 
     def kernel(self, x, freq, sd, lengthscale, _, __):
-        return squared_exponential(2 * np.sin(np.pi * x * freq), sd, lengthscale)
+        return squared_exponential(np.sin(np.pi * x * freq), sd, lengthscale)
 
 
 class MultPrior(Prior):

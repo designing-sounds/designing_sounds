@@ -55,10 +55,11 @@
         size_hint: 1, 1
         orientation: 'vertical'
         pos: self.pos
-        padding: 20
+        padding: [20,20,20,0]
 
         BoxLayout:
             size_hint: 1, 0.1
+            pos_hint: {"center_x": .443, "center_y": .5}
 
             MDLabel:
                 text: 'Waveform'
@@ -71,10 +72,10 @@
 
             BoxLayout:
                 id: modulation
-                size_hint: 1, 1
+                size_hint: 0.85, 1
 
             BoxLayout:
-                size_hint: 0.2, 1
+                size_hint: 0.15, 1
                 orientation: 'vertical'
 
                 BoxLayout:
@@ -165,7 +166,7 @@
         PowerSpectrumController:
             size_hint: 1, 0.8
             orientation: 'horizontal'
-            padding: 20
+            padding: [20, 0, 20, 20]
             id: power_spectrum_controller
 
         BoxLayout:

@@ -158,23 +158,23 @@ class RootWave(MDBoxLayout):
             self.wave_sound.play_audio()
 
     def press_button_connect(self, _: typing.Any) -> None:
-        if self.piano.begin(self.ps_controller.power_spectrum_from_freqs):  # Has successfully started
-            self.ps_controller.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
-            self.ps_controller.connect_button.md_bg_color = style.dark_sky_blue
-            self.ps_controller.save_button.disabled = False
+        if self.piano.begin(self.power_spectrum_from_freqs):  # Has successfully started
+            self.connect_button.text = 'Disconnect MIDI Piano Power Spectrum'
+            self.connect_button.md_bg_color = style.dark_sky_blue
+            self.save_button.disabled = False
             if len(self.save_notes.saved_notes) > 0:
-                self.ps_controller.load_button.disabled = False
-            self.ps_controller.save_button.md_bg_color = style.blue_violet
+                self.load_button.disabled = False
+            self.save_button.md_bg_color = style.blue_violet
         else:  # Was already running so disconnected
-            self.ps_controller.connect_button.text = 'Connect MIDI Piano Power Spectrum'
-            self.ps_controller.connect_button.md_bg_color = style.blue_violet
+            self.connect_button.text = 'Connect MIDI Piano Power Spectrum'
+            self.connect_button.md_bg_color = style.blue_violet
 
     def save_note_callback(self, freqs: [float]) -> None:
         note = freqs[0]
         self.save_state(note)
-        self.ps_controller.save_button.md_bg_color = style.blue_violet
-        self.ps_controller.load_button.disabled = False
-        self.ps_controller.clear_notes_button.disabled = False
+        self.save_button.md_bg_color = style.blue_violet
+        self.load_button.disabled = False
+        self.clear_notes_button.disabled = False
         self.save_notes.saving = False
         self.piano.begin(self.save_note_callback)
 
@@ -185,9 +185,9 @@ class RootWave(MDBoxLayout):
             self.load_state(state)
 
     def press_save_button(self, _: typing.Any) -> None:
-        if self.ps_controller.connect_button.text == 'Disconnect MIDI Piano Power Spectrum':
+        if self.connect_button.text == 'Disconnect MIDI Piano Power Spectrum':
             self.press_button_connect(None)
-        self.ps_controller.save_button.md_bg_color = style.dark_sky_blue
+        self.save_button.md_bg_color = style.dark_sky_blue
         self.save_notes.saving = True
         self.piano.begin(self.save_note_callback)
 
@@ -198,20 +198,20 @@ class RootWave(MDBoxLayout):
                              self.ps_controller.variance.value)
 
     def press_load_button(self, _: typing.Any) -> None:
-        if self.ps_controller.connect_button.text == 'Disconnect MIDI Piano Power Spectrum':
+        if self.connect_button.text == 'Disconnect MIDI Piano Power Spectrum':
             self.press_button_connect(None)
         if self.save_notes.loading:
             self.piano.begin(self.load_notes_callback)
             self.save_notes.loading = False
-            self.ps_controller.load_button.md_bg_color = style.blue_violet
+            self.load_button.md_bg_color = style.blue_violet
         else:
             self.save_notes.loading = True
-            self.ps_controller.load_button.md_bg_color = style.dark_sky_blue
+            self.load_button.md_bg_color = style.dark_sky_blue
             self.piano.begin(self.load_notes_callback)
 
     def press_clear_notes_button(self, _):
-        self.ps_controller.load_button.disabled = True
-        self.ps_controller.clear_notes_button.disabled = True
+        self.load_button.disabled = True
+        self.clear_notes_button.disabled = True
         self.save_notes.clear_saved_notes()
 
     def load_state(self, state: State):

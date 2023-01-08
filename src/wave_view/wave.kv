@@ -44,6 +44,10 @@
     eraser_mode: eraser_mode
     preset: preset_mode
     connect_button: connect_button
+    save_button: save_button
+    load_button: load_button
+    clear_notes_button: clear_notes_button
+
 
     BoxLayout:
         size_hint: 1, 1
@@ -143,11 +147,37 @@
                     size_hint: 1, 0.6
                     orientation: 'vertical'
 
-
                 StandardRectangleFlatIconButton:
                     id: connect_button
                     icon: 'piano'
                     text: 'Connect MIDI Piano'
+
+                BoxLayout:
+                    size_hint: 1, 0.6
+                    orientation: 'vertical'
+
+                StandardRectangleFlatIconButton:
+                    id: save_button
+                    icon: 'music'
+                    text: 'Save notes'
+
+                BoxLayout:
+                    size_hint: 1, 0.6
+                    orientation: 'vertical'
+
+                StandardRectangleFlatIconButton:
+                    id: load_button
+                    icon: 'folder-open'
+                    text: 'Load notes'
+
+                BoxLayout:
+                    size_hint: 1, 0.6
+                    orientation: 'vertical'
+
+                StandardRectangleFlatIconButton:
+                    id: clear_notes_button
+                    icon: 'selection-ellipse-remove'
+                    text: 'Clear notes'
 
                 BoxLayout:
                     size_hint: 1, 1

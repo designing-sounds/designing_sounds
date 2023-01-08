@@ -21,8 +21,8 @@ Once downloaded click to open and an installer should launch and once complete t
 
 ### Other Platforms
 
-At this time we are currently not providing explit packages for other operating systems.
-However as it is an open source project if you would like to run it then you can download the full source code.
+At this time we are currently not providing explicit packages for other operating systems. However, all code we have developed is cross-platform.
+And as it is an open source project if you would like to run it then you can download the full source code. By either cloning the repo or downloading a zip version of the code in the [Releases](https://github.com/designing-sounds/designing_sounds/releases) page.
 Create a virtual environment based on the packages in the requirements.txt file.
 And then run the main application as below:
 

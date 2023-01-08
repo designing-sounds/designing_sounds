@@ -51,7 +51,8 @@ class RootWave(MDBoxLayout):
     def __init__(self, **kwargs: typing.Any):
         super().__init__(**kwargs)
 
-        self.sound_model = SoundModel(self.ps_controller.max_harmonics_per_spectrum, self.max_power_spectrums)
+        self.sound_model = SoundModel(self.ps_controller.max_harmonics_per_spectrum,
+                                      self.ps_controller.max_power_spectrums)
 
         self.wave_sound = WaveSound(self.sample_rate, self.chunk_duration, self.sound_model)
 
@@ -82,7 +83,6 @@ class RootWave(MDBoxLayout):
         self.waveform_graph.add_plot(self.wave_plot)
 
         self.ps_controller.sound_model = self.sound_model
-        self.ps_controller.max_power_spectrums = self.max_power_spectrums
         self.ps_controller.update_waveform = self.update_waveform
         self.ps_controller.waveform_graph = self.waveform_graph
         self.ps_controller.sound_changed = self.wave_sound.sound_changed
@@ -131,7 +131,7 @@ class RootWave(MDBoxLayout):
 
         Window.bind(on_request_close=self.shutdown_audio)
 
-    def update_waveform(self, update_noise=False) -> None:
+    def update_waveform(self, update_noise: bool = False) -> None:
         self.sound_model.interpolate_points(self.waveform_graph.get_selected_points(), update_noise)
         self.update_waveform_graph()
 
@@ -182,38 +182,39 @@ class RootWave(MDBoxLayout):
         self.sound_model.update_prior()
         self.update_waveform()
 
-    def preset_waves(self, x: int):
+    def preset_waves(self, x: int) -> None:
         num_points = 100
 
-        def sin_wave(x, period):
+        def sin_wave(z: float, period: float) -> float:
             amp_scale = 0.75
             scale = (2 * np.pi)
-            return amp_scale * np.sin((scale / period) * x)
+            return amp_scale * np.sin((scale / period) * z)
 
-        def square_wave(x, period):
+        def square_wave(z: float, period: float) -> float:
             square_scale = 0.75
-            return -square_scale if x < (period / 2) else square_scale
+            return -square_scale if z < (period / 2) else square_scale
 
-        def triangle_wave(x, period):
+        def triangle_wave(z: float, period: float) -> float:
             scale = 3
             slope = (scale / period)
             scale_factor = scale / 4
-            if 0 <= x < period / 4:
-                return slope * x
-            if period / 4 <= x < 3 * period / 4:
-                return scale_factor * 2 - slope * x
-            return slope * x - scale_factor * 4
+            if 0 <= z < period / 4:
+                return slope * z
+            if period / 4 <= z < 3 * period / 4:
+                return scale_factor * 2 - slope * z
+            return slope * z - scale_factor * 4
 
-        def sawtooth_wave(x, period):
-            return 3 / 2 / period * x - 3 / 4
+        def sawtooth_wave(z: float, period: float) -> float:
+            return 3 / 2 / period * z - 3 / 4
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(
-            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave, waves[x] == sawtooth_wave))
+            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave,
+                                                  waves[x] == sawtooth_wave))
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 
-    def shutdown_audio(self, _) -> bool:
+    def shutdown_audio(self, _: typing.Any) -> bool:
         self.wave_sound.shutdown()
         self.piano.shutdown()
         return False

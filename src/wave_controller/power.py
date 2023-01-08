@@ -11,6 +11,7 @@ from math import floor, log
 
 
 class PowerSpectrumController(BoxLayout):
+    max_power_spectrums = 5
     max_harmonics_per_spectrum = 5
     num_power_spectrums = 0
     current_power_spectrum_index = 0
@@ -19,6 +20,7 @@ class PowerSpectrumController(BoxLayout):
     yaxis_extra_sig_figs = 2
     double_tap = False
     is_periodic_kernel = False
+    change_power_spectrum = True
 
     def __init__(self, **kwargs):
         super(PowerSpectrumController, self).__init__(**kwargs)
@@ -58,7 +60,6 @@ class PowerSpectrumController(BoxLayout):
                                             self.squared_sd.value, self.squared_lengthscale.value, 1]
             self.harmonic_list = [self.initial_harmonic_values] * self.max_power_spectrums
             self.press_button_add(None)
-            self.change_power_spectrum = True
 
             choose_kernel_menu_items = [
                 {
@@ -165,7 +166,7 @@ class PowerSpectrumController(BoxLayout):
         self.update_waveform_graph()
         self.update_power_spectrum_graph()
 
-    def update_power_spectrum_graph_axis(self, ymax):
+    def update_power_spectrum_graph_axis(self, ymax: float) -> None:
         self.power_spectrum_graph.ymax = float(ymax * self.yaxis_extra_padding)
         y_ticks_major = (ymax * self.yaxis_extra_padding) / 5
         if y_ticks_major >= 1:
@@ -219,7 +220,7 @@ class PowerSpectrumController(BoxLayout):
             line_color=(0, 0, 0, 0),
         )
 
-    def remove_power_spectrum(self, _) -> None:
+    def remove_power_spectrum(self, _: typing.Any) -> None:
         if not self.double_tap or len(self.power_buttons) == 1:
             return
 

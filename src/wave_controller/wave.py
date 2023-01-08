@@ -206,7 +206,7 @@ class RootWave(MDBoxLayout):
 
         waves = [sin_wave, square_wave, triangle_wave, sawtooth_wave]
         self.sound_model.interpolate_points(
-            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave))
+            self.waveform_graph.get_preset_points(waves[x], num_points, waves[x] == square_wave, waves[x] == sawtooth_wave))
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 

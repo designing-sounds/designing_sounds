@@ -23,6 +23,13 @@
     line_color: (0, 0, 0, 0)
     pos_hint: {"center_x": .5, "center_y": .6}
 
+<StandardRectangleFlatButton@MDRectangleFlatButton>:
+    md_bg_color: style.blue_violet
+    icon_color: 'white'
+    text_color: 'white'
+    line_color: (0, 0, 0, 0)
+    pos_hint: {"center_x": .5, "center_y": .6}
+
 <Item>
     IconLeftWidget:
         icon: root.left_icon
@@ -122,11 +129,8 @@
                         id: clear_button
                         icon: 'vector-polyline-remove'
 
-
                 BoxLayout:
                     size_hint: 1, 0.6
-
-
 
                 StandardRectangleFlatIconButton:
                     id: resample_button
@@ -153,34 +157,52 @@
                     text: 'Connect MIDI Piano'
 
                 BoxLayout:
-                    size_hint: 1, 0.6
+                    size_hint: 0.1, 0.1
                     orientation: 'vertical'
 
-                StandardRectangleFlatIconButton:
-                    id: save_button
-                    icon: 'music'
-                    text: 'Save notes'
+                StandardLabel:
+                    text: 'Save sounds to keys'
+                    font_style: 'H6'
+
+
+                BoxLayout:
+                    size_hint: 0.1, 0.1
+                    orientation: 'vertical'
 
                 BoxLayout:
                     size_hint: 1, 0.6
-                    orientation: 'vertical'
+                    orientation: 'horizontal'
 
-                StandardRectangleFlatIconButton:
-                    id: load_button
-                    icon: 'folder-open'
-                    text: 'Load notes'
+                    BoxLayout:
+                        size_hint: 1, 0.6
+                        orientation: 'vertical'
+
+                    StandardRectangleFlatButton:
+                        id: save_button
+                        text: 'Save'
+
+                    BoxLayout:
+                        size_hint: 1, 0.6
+                        orientation: 'vertical'
+
+                    StandardRectangleFlatButton:
+                        id: load_button
+                        text: 'Load'
+
+                    BoxLayout:
+                        size_hint: 1, 0.6
+                        orientation: 'vertical'
+
+                    StandardRectangleFlatButton:
+                        id: clear_notes_button
+                        text: 'Clear'
+
+                    BoxLayout:
+                        size_hint: 1, 0.6
+                        orientation: 'vertical'
 
                 BoxLayout:
                     size_hint: 1, 0.6
-                    orientation: 'vertical'
-
-                StandardRectangleFlatIconButton:
-                    id: clear_notes_button
-                    icon: 'selection-ellipse-remove'
-                    text: 'Clear notes'
-
-                BoxLayout:
-                    size_hint: 1, 1
                     orientation: 'vertical'
 
 

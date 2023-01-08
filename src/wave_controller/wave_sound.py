@@ -1,6 +1,6 @@
-import numpy as np
 import pyaudio
 from src.wave_model.wave_model import SoundModel
+from typing import Tuple, Optional
 
 
 class WaveSound:
@@ -16,11 +16,11 @@ class WaveSound:
                                            frames_per_buffer=int(self.sample_rate * self._chunk_duration))
         self._stream.stop_stream()
 
-    def callback(self, _in_data, _frame_count, _time_info, _flag):
+    def callback(self, _in_data, _frame_count, _time_info, _flag) -> Tuple[Optional[bytes], int]:
         sound = self.sound_model.model_sound(self.sample_rate, self._chunk_duration,
-                                                         start_time=self._chunk_index * self._chunk_duration)
+                                             start_time=self._chunk_index * self._chunk_duration)
         self._chunk_index = self._chunk_index + 1
-        return sound, pyaudio.paContinue
+        return bytes(sound), pyaudio.paContinue
 
     def is_playing(self) -> bool:
         return self._is_playing

@@ -1,5 +1,5 @@
 import typing
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Callable
 
 from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.uix.boxlayout import BoxLayout
@@ -26,7 +26,7 @@ class WaveformGraph(Graph):
     __min_zoom = 1
     __initial_duration = 1
 
-    def __init__(self, update_waveform, update_waveform_graph, **kwargs):
+    def __init__(self, update_waveform: Callable, update_waveform_graph: Callable, **kwargs):
         super().__init__(**kwargs)
         # Add kivy graph widget to canvas
         self._graph_canvas = BoxLayout(size_hint=(1, 1))
@@ -111,11 +111,10 @@ class WaveformGraph(Graph):
 
         return super().on_touch_up(touch)
 
-    def get_point_from_ellipse(self, ellipse: Ellipse) -> Tuple[Ellipse, int]:
+    def get_point_from_ellipse(self, ellipse: Ellipse) -> Tuple[List[typing.Union[Tuple[float, float], Ellipse]], int]:
         for i, point in enumerate(self.__selected_points):
             if ellipse == point[1]:
                 return point, i
-        return None, None
 
     def __create_point(self, touch_pos: Tuple[float, float]) -> Ellipse:
         color = (0, 0, 1)
@@ -133,7 +132,7 @@ class WaveformGraph(Graph):
                 return point
         return None
 
-    def __remove_point(self, ellipse: Ellipse):
+    def __remove_point(self, ellipse: Ellipse) -> None:
         to_remove = self._graph_canvas.canvas.children.index(ellipse)
         self._graph_canvas.canvas.children.pop(to_remove)
         self._graph_canvas.canvas.children.pop(to_remove - 1)
@@ -176,7 +175,7 @@ class WaveformGraph(Graph):
         new_y = (((old_y - self.ymin) * new_range_y) / old_range_y) + self._plot_area.pos[1] + self.y
         return round(new_x), round(new_y)
 
-    def __update_graph_points(self):
+    def __update_graph_points(self) -> None:
         self._graph_canvas.canvas.clear()
         self._redraw_all()
         for point in self.__selected_points:
@@ -228,7 +227,7 @@ class WaveformGraph(Graph):
             self.xmax = window_length
         self.__update_graph_points()
 
-    def _update_single_period(self, x_pos: float):
+    def _update_single_period(self, x_pos: float) -> None:
         self.xmin = (x_pos // self._period) * self._period
         self.xmax = self.xmin + self._period
         self.x_ticks_major = self._period / 4
@@ -261,7 +260,7 @@ class WaveformGraph(Graph):
             else:
                 self.__update_zoom(pos, False)
 
-    def fit_to_new_frequency(self, old_frequency, new_frequency):
+    def fit_to_new_frequency(self, old_frequency: float, new_frequency: float) -> None:
         if old_frequency != 0:
             scale = old_frequency / new_frequency
             for point in self.__selected_points:
@@ -269,7 +268,8 @@ class WaveformGraph(Graph):
                 point[1].pos = (point[1].pos[0] * scale, point[1].pos[1])
             self.__update_graph_points()
 
-    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool, sawtooth: bool) -> List[Tuple[float, float]]:
+    def get_preset_points(self, preset_func: typing.Callable, amount: int, square: bool,
+                          sawtooth: bool) -> List[Tuple[float, float]]:
         points = []
         spaced = np.linspace(0, self._period, amount)
         for i in spaced:

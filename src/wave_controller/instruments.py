@@ -4,7 +4,7 @@ from pygame import midi
 from pygame.midi import MidiException
 
 
-class PianoMIDI():
+class PianoMIDI:
     """
     Piano connected through midi signal
     """
@@ -60,7 +60,7 @@ class PianoMIDI():
         Clock.schedule_interval(self.loop, 0.1)
         return True
 
-    def loop(self, _):
+    def loop(self, _) -> bool:
         try:
             if midi.get_init() & self.midi_input.poll():
                 # Add or remove notes from notes_dict

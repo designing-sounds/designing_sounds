@@ -236,24 +236,6 @@ class PowerSpectrumController(BoxLayout):
 
         self.current_power_spectrum_index = 0
         self.num_power_spectrums = 0
-        #
-        # for i in range(self.current_power_spectrum_index, len(self.power_buttons)):
-        #     self.power_buttons[i].text = f"{i + 1}"
-        #     self.harmonic_list[i] = self.harmonic_list[i + 1]
-        #
-        # # zero fill end of harmonic list to account for removal
-        # self.harmonic_list[self.num_power_spectrums - 1] = self.initial_harmonic_values
-        #
-        # self.sound_model.remove_power_spectrum(i)
-        #
-        # self.num_power_spectrums -= 1
-        # # update current index selection
-        # self.current_power_spectrum_index -= 1 if self.current_power_spectrum_index == len(self.power_buttons) else 0
-        #
-        # self.power_buttons[self.current_power_spectrum_index].md_bg_color = self.selected_button_color
-        #
-        # self.update_sliders()
-        # self.update_power_spectrum()
 
     def remove_power_spectrum(self, _) -> None:
         if not self.double_tap or len(self.power_buttons) == 1:

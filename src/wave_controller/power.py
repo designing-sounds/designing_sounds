@@ -83,6 +83,7 @@ class PowerSpectrumController(BoxLayout):
                 caller=self.kernel,
                 items=choose_kernel_menu_items,
                 width_mult=7,
+                max_height=105
             )
 
         delayed()

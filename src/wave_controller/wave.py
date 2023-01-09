@@ -126,6 +126,7 @@ class RootWave(MDBoxLayout):
             caller=self.preset,
             items=choose_wave_menu_items,
             width_mult=4,
+            max_height=200
         )
         self.piano = PianoMIDI()
 

@@ -100,7 +100,8 @@ class WaveformGraph(Graph):
 
                 ellipse.pos = touch.x - radius, touch.y - radius
                 point, _ = self.get_point_from_ellipse(ellipse)
-                point[0] = self.__convert_point(ellipse.pos)
+                if point is not None:
+                    point[0] = self.__convert_point(ellipse.pos)
                 self._update_waveform_func(update_noise=True)
                 return True
         return False
@@ -115,6 +116,7 @@ class WaveformGraph(Graph):
         for i, point in enumerate(self.__selected_points):
             if ellipse == point[1]:
                 return point, i
+        return None, None
 
     def __create_point(self, touch_pos: Tuple[float, float]) -> Ellipse:
         color = (0, 0, 1)

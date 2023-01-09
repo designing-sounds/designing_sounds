@@ -70,7 +70,7 @@ class RootWave(MDBoxLayout):
                                             update_waveform_graph=self.update_waveform_graph, size_hint=(1, 1),
                                             border_color=border_color,
                                             xmin=0, xmax=self.waveform_duration, ymin=-1.0, ymax=1.0, padding=10,
-                                            draw_border=True, x_grid_label=True, y_grid_label=True, xlabel='Time',
+                                            draw_border=True, x_grid_label=True, y_grid_label=True, xlabel='Time (s)',
                                             ylabel='Amplitude', precision="%.5g", x_grid=True, y_grid=True,
                                             y_ticks_major=0.25, label_options=dict(color=(0, 0, 0, 1)))
 

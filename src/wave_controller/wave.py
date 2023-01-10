@@ -183,7 +183,7 @@ class RootWave(MDBoxLayout):
         self.update_waveform()
 
     def preset_waves(self, x: int) -> None:
-        num_points = 100
+        num_points = 50
 
         def sin_wave(z: float, period: float) -> float:
             amp_scale = 0.75

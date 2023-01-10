@@ -65,8 +65,8 @@ class PianoMIDI:
             if midi.get_init() & self.midi_input.poll():
                 # Add or remove notes from notes_dict
                 for event in self.midi_input.read(num_events=16):
-                    (status, note, _vel, _), _ = event
-                    if status == 0x80 and note in self.notes_set:  # Stop Note
+                    (status, note, vel, _), _ = event
+                    if (status == 0x80 and note in self.notes_set) or (status == 0x90 and note in self.notes_set and vel == 0):  # Stop Note
                         self.notes_set.remove(note)
                         self.play_notes.remove(note)
                     elif status == 0x90 and note not in self.notes_set:  # Start Note

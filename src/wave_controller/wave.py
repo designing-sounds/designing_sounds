@@ -183,7 +183,7 @@ class RootWave(MDBoxLayout):
         self.update_waveform()
 
     def preset_waves(self, x: int) -> None:
-        num_points = 100
+        num_points = 50
 
         def sin_wave(z: float, period: float) -> float:
             amp_scale = 0.75
@@ -214,7 +214,7 @@ class RootWave(MDBoxLayout):
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 
-    def shutdown_audio(self, _: typing.Any) -> bool:
+    def shutdown_audio(self, _: typing.Any, source='keyboard') -> bool:
         self.wave_sound.shutdown()
         self.piano.shutdown()
         return False

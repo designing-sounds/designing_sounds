@@ -214,7 +214,7 @@ class RootWave(MDBoxLayout):
         self.ps_controller.update_power_spectrum()
         self.wave_sound.sound_changed()
 
-    def shutdown_audio(self, _: typing.Any) -> bool:
+    def shutdown_audio(self, _: typing.Any, source='keyboard') -> bool:
         self.wave_sound.shutdown()
         self.piano.shutdown()
         return False

@@ -198,7 +198,7 @@ class WaveformGraph(Graph):
         self._update_waveform_graph_func()
 
     def __update_zoom(self, pos: Tuple[float, float], zoom_in: bool) -> None:
-        x_pos, _ = self.__convert_point(pos)
+        x_pos, _ = self.to_data(*self.to_widget(*pos))
         if zoom_in and self.xmax - self.xmin < self._period * 3:
             self._update_single_period(x_pos)
             self._is_single_period = True
